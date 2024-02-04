@@ -276,29 +276,15 @@ pub enum MyError {
 
 Давайте закріпимо концепції, які ми розглянули у цьому уроці, розширивши програму обзору фільмів з попередніх уроків.
 
-У цьому завданні ми оновимо програму для того, щоб вона могла створювати токени для користувачів, які подають новий обзор фільму.
+У цьому завданні ми оновимо програму для того, щоб вона могла створювати токени для користувачів, які затверджують новий обзор фільму.
 
 ### 1. Початковий код
 
-Для початку ми будемо використовувати останній стан програми Anchor Movie Review з попереднього уроку. Так що, якщо ви щойно завершили цей урок, ви готові йти вперед. Якщо ви тільки починаєте, не хвилюйтеся, ви можете [завантажити початковий код](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-pdas). Ми будемо використовувати гілку `solution-pdas` як наш стартовий пункт.
+Для початку ми використаємо останній стан програми Anchor Movie Review з попереднього уроку. Так що, якщо ви щойно завершили цей урок, ви готові йти вперед. Якщо ви тільки починаєте, не хвилюйтеся, ви можете [завантажити початковий код](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-pdas). Ми будемо використовувати гілку `solution-pdas` як наш стартовий пункт.
 
 ### 2. Додайте залежності в `Cargo.toml`
 
 Перш ніж ми розпочнемо, нам потрібно активувати функцію `init-if-needed` та додати крейт `anchor-spl` до залежностей в `Cargo.toml`. Якщо вам потрібно освіжити пам'ять щодо функції `init-if-needed`, перегляньте [урок Anchor PDAs and Accounts](anchor-pdas).
-
-Lab
-
-Let’s practice the concepts we’ve gone over in this lesson by building on top of the Movie Review program from previous lessons.
-
-In this lab we’ll update the program to mint tokens to users when they submit a new movie review.
-
-### 1. Starter
-
-To get started, we will be using the final state of the Anchor Movie Review program from the previous lesson. So, if you just completed that lesson then you’re all set and ready to go. If you are just jumping in here, no worries, you can [download the starter code](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-pdas). We'll be using the `solution-pdas` branch as our starting point.
-
-### 2. Add dependencies to `Cargo.toml`
-
-Before we get started we need enable the `init-if-needed` feature and add the `anchor-spl` crate to the dependencies in `Cargo.toml`. If you need to brush up on the `init-if-needed` feature take a look at the [Anchor PDAs and Accounts lesson](anchor-pdas).
 
 ```rust
 [dependencies]
@@ -306,9 +292,9 @@ anchor-lang = { version = "0.25.0", features = ["init-if-needed"] }
 anchor-spl = "0.25.0"
 ```
 
-### 3. Initialize reward token
+### 3. Ініціалізуйте токен винагороди
 
-Next, navigate to `lib.rs` and create an instruction to initialize a new token mint. This will be the token that is minted each time a user leaves a review. Note that we don't need to include any custom instruction logic since the initialization can be handled entirely through Anchor constraints.
+Далі перейдіть до файлу lib.rs та створіть інструкцію для ініціалізації нового токен мінта. Це буде токен, який мінтується кожного разу, коли користувач залишає відгук. Зверніть увагу, що нам не потрібно включати жодної специфічної логіки інструкції, оскільки ініціалізацію можна повністю обробити через обмеження Anchor.
 
 ```rust
 pub fn initialize_token_mint(_ctx: Context<InitializeMint>) -> Result<()> {
@@ -317,9 +303,9 @@ pub fn initialize_token_mint(_ctx: Context<InitializeMint>) -> Result<()> {
 }
 ```
 
-Now, implement the `InitializeMint` context type and list the accounts and constraints the instruction requires. Here we initialize a new `Mint` account using a PDA with the string "mint" as a seed. Note that we can use the same PDA for both the address of the `Mint` account and the mint authority. Using a PDA as the mint authority enables our program to sign for the minting of the tokens.
+Тепер реалізуйте тип контексту `InitializeMint` та створіть список облікових записів та обмежень, які вимагає інструкція. Тут ми ініціалізуємо новий обліковий запис `Mint`, використовуючи PDA із рядком "mint" як seed. Зверніть увагу, що ми можемо використовувати той самий PDA як для адреси облікового запису `Mint`, так і для прав адміністратора мінтування. Використання PDA як адміністратора мінтування дозволяє нашій програмі підписувати мінти токенів.
 
-In order to initialize the `Mint` account, we'll need to include the `token_program`, `rent`, and `system_program` in the list of accounts.
+Для ініціалізації облікового запису `Mint` нам знадобляться `token_program`, `rent`, та `system_program` в списку облікових записів.
 
 ```rust
 #[derive(Accounts)]
@@ -341,11 +327,11 @@ pub struct InitializeMint<'info> {
 }
 ```
 
-There may be some constraints above that you haven't seen yet. Adding `mint::decimals` and `mint::authority` along with `init` ensures that the account is initialized as a new token mint with the appropriate decimals and mint authority set.
+Можливо, є деякі обмеження вище, які ви ще не бачили. Додавання `mint::decimals` та `mint::authority` разом із `init` гарантує, що обліковий запис ініціалізується як новий мінт токенів із відповідними десятковими розрядами та правами мінтування.
 
-### 4. Anchor Error
+### 4. Помилка Anchor
 
-Next, let’s create an Anchor Error that we’ll use when validating the `rating` passed to either the `add_movie_review` or `update_movie_review` instruction.
+Далі створимо помилку Anchor, яку ми будемо використовувати при перевірці `rating`, переданого інструкцією `add_movie_review` або `update_movie_review`.
 
 ```rust
 #[error_code]
@@ -355,17 +341,17 @@ enum MovieReviewError {
 }
 ```
 
-### 5. Update `add_movie_review` instruction
+### 5. Оновіть інструкцію `add_movie_review`
 
-Now that we've done some setup, let’s update the `add_movie_review` instruction and `AddMovieReview` context type to mint tokens to the reviewer.
+Тепер, коли ми виконали певні підготовчі роботи, давайте оновимо інструкцію `add_movie_review` та тип контексту `AddMovieReview`, щоб мінтити токени рецензентові.
 
-Next, update the `AddMovieReview` context type to add the following accounts:
+Далі оновіть тип контексту `AddMovieReview`, щоб додати наступні облікові записи:
 
-- `token_program` - we'll be using the Token Program to mint tokens
-- `mint` - the mint account for the tokens that we'll mint to users when they add a movie review
-- `token_account` - the associated token account for the afforementioned `mint` and reviewer
-- `associated_token_program` - required because we'll be using the `associated_token` constraint on the `token_account`
-- `rent` - required because we are using the `init-if-needed` constraint on the `token_account`
+- `token_program` - ми будемо використовувати Token Program для мінту токенів
+- `mint` - обліковий запис мінту для токенів, які ми будемо мінтувати користувачам під час додавання обзору фільму
+- `token_account` - пов'язаний обліковий запис токенів для зазначеного вище `mint` та рецензента
+- `associated_token_program` - потрібний, оскільки ми будемо використовувати обмеження associated_token для облікового запису token_account
+- `rent` - потрібний, оскільки ми використовуємо обмеження `init-if-needed` для облікового запису `token_account` 
 
 ```rust
 #[derive(Accounts)]
@@ -402,14 +388,14 @@ pub struct AddMovieReview<'info> {
 }
 ```
 
-Again, some of the above constraints may be unfamiliar to you. The `associated_token::mint` and `associated_token::authority` constraints along with the `init_if_needed` constraint ensures that if the account has not already been initialized, it will be initialized as an associated token account for the specified mint and authority.
+Знову ж таки, деякі з вказаних вище обмежень можуть бути вам невідомі. Обмеження `associated_token::mint` і `associated_token::authority`, разом з обмеженням `init_if_needed`, забезпечують, що якщо обліковий запис ще не був ініціалізований, він буде ініціалізований як пов'язаний обліковий запис токенів для зазначеного мінту та прав.
 
-Next, let’s update the `add_movie_review` instruction to do the following:
+Далі давайте оновимо інструкцію `add_movie_review`, щоб виконати наступне:
 
-- Check that `rating` is valid. If it is not a valid rating, return the `InvalidRating` error.
-- Make a CPI to the token program’s `mint_to` instruction using the mint authority PDA as a signer. Note that we'll mint 10 tokens to the user but need to adjust for the mint decimals by making it `10*10^6`.
+- Перевірити, що `rating` є допустимим. Якщо це не є допустимий рейтинг, поверніть помилку `InvalidRating`.
+- Виконати CPI до інструкції `mint_to` програми токенів, використовуючи PDA мінта в якості підписника. Зазначте, що ми будемо мінтити 10 токенів користувачеві, але ми повинні скоригувати для десяткових розрядів мінта, зробивши це `10*10^6`.
 
-Fortunately, we can use the `anchor_spl` crate to access helper functions and types like `mint_to` and `MintTo` for constructing our CPI to the Token Program. `mint_to` takes a `CpiContext` and integer as arguments, where the integer represents the number of tokens to mint. `MintTo` can be used for the list of accounts that the mint instruction needs.
+На щастя, ми можемо використовувати пакет `anchor_spl`, щоб отримати доступ до допоміжних функцій та типів, таких як `mint_to` та `MintTo`, для створення нашого CPI до програми токенів. `mint_to` приймає `CpiContext` та ціле число як аргументи, де ціле число представляє кількість токенів для мінтування. `MintTo` може бути використано для списку облікових записів, які потрібні для інструкції мінтування.
 
 ```rust
 pub fn add_movie_review(ctx: Context<AddMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
@@ -448,9 +434,9 @@ pub fn add_movie_review(ctx: Context<AddMovieReview>, title: String, description
 }
 ```
 
-### 6. Update `update_movie_review` instruction
+### 6. Оновлення інструкції `update_movie_review`
 
-Here we are only adding the check that `rating` is valid.
+Тут ми лише додаємо перевірку того, що `rating` є допустимим.
 
 ```rust
 pub fn update_movie_review(ctx: Context<UpdateMovieReview>, title: String, description: String, rating: u8) -> Result<()> {
@@ -469,11 +455,11 @@ pub fn update_movie_review(ctx: Context<UpdateMovieReview>, title: String, descr
 }
 ```
 
-### 7. Test
+### 7. Тест
 
-Those are all of the changes we need to make to the program! Now, let’s update our tests.
+Це всі зміни, які нам потрібно зробити в програмі! Тепер давайте оновимо наші тести.
 
-Start by making sure your imports nad `describe` function look like this:
+Почніть з того, щоб переконатися, що ваші імпорти та функція `describe` виглядають так:
 
 ```typescript
 import * as anchor from "@project-serum/anchor"
@@ -509,7 +495,7 @@ describe("anchor-movie-review-program", () => {
 }
 ```
 
-With that done, add a test for the `initializeTokenMint` instruction:
+Зробивши це, додайте тест для інструкції `initializeTokenMint`:
 
 ```typescript
 it("Initializes the reward token", async () => {
@@ -517,11 +503,11 @@ it("Initializes the reward token", async () => {
 })
 ```
 
-Notice that we didn't have to add `.accounts` because they call be inferred, including the `mint` account (assuming you have seed inference enabled).
+Зверніть увагу, що нам не потрібно додавати `.accounts`, оскільки вони можуть бути виведені, включаючи обліковий запис `mint` (за умови, що у вас включено виведення seed).
 
-Next, update the test for the `addMovieReview` instruction. The primary additions are:
-1. To get the associated token address that needs to be passed into the instruction as an account that cannot be inferred
-2. Check at the end of the test that the associated token account has 10 tokens
+Далі оновіть тест для інструкції `addMovieReview`. Основні додатки такі:
+1. Отримати адресу пов'язаного облікового запису токенів, яку потрібно передати в інструкцію як обліковий запис, який не може бути виведений.
+2. Перевірте в кінці тесту, що пов'язаний обліковий запис токенів має 10 токенів.
 
 ```typescript
 it("Movie review is added`", async () => {
@@ -548,9 +534,9 @@ it("Movie review is added`", async () => {
 })
 ```
 
-After that, neither the test for `updateMovieReview` nor the test for `deleteMovieReview` need any changes.
+Після цього тест для `updateMovieReview` або тест для `deleteMovieReview` не потребує жодних змін.
 
-At this point, run `anchor test` and you should see the following output
+На цьому етапі виконайте команду `anchor test`, і ви повинні побачити наступний вивід
 
 ```console
 anchor-movie-review-program
@@ -562,15 +548,14 @@ anchor-movie-review-program
   5 passing (2s)
 ```
 
-If you need more time with the concepts from this lesson or got stuck along the way, feel free to take a look at the [solution code](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-add-tokens). Note that the solution to this lab is on the `solution-add-tokens` branch.
+Якщо вам потрібно більше часу для освоєння концепцій цього уроку або ви застрягли по дорозі, зверніть увагу на [код рішення](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-add-tokens). Зверніть увагу, що рішення для цього завдання розташоване в гілці `solution-add-tokens`.
 
-# Challenge
+# Виклик
 
-To apply what you've learned about CPIs in this lesson, think about how you could incorporate them into the Student Intro program. You could do something similar to what we did in the lab here and add some functionality to mint tokens to users when they introduce themselves.
+Щоб застосувати те, що ви вивчили про CPI в цьому уроці, подумайте, як ви могли б їх включити в програму Student Intro. Ви можете зробити щось схоже з тим, що ми робили в лабораторній роботі, і додати функціонал для мінту токенів користувачам під час їхнього представлення.
 
-Try to do this independently if you can! But if you get stuck, feel free to reference this [solution code](https://github.com/Unboxed-Software/anchor-student-intro-program/tree/cpi-challenge). Note that your code may look slightly different than the solution code depending on your implementation.
+Спробуйте це зробити самостійно, якщо ви можете! Але якщо ви застрягли, звертайтеся до цього [рішення](https://github.com/Unboxed-Software/anchor-student-intro-program/tree/cpi-challenge). Варто відмітити, що ваш код може виглядати трошки інакше, ніж рішення, в залежності від вашої реалізації.
 
+## Завершили лабораторну роботу?
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=21375c76-b6f1-4fb6-8cc1-9ef151bc5b0a)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=21375c76-b6f1-4fb6-8cc1-9ef151bc5b0a)!
