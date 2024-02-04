@@ -6,20 +6,20 @@
 - Реалізувати перевірки валідації даних за допомогою обмежень Anchor
 ---
 
-# Стис
+# Стислий виклад
 
-- Use **data validation checks** to verify that account data matches an expected value. Without appropriate data validation checks, unexpected accounts may be used in an instruction.
-- To implement data validation checks in Rust, simply compare the data stored on an account to an expected value.
-    
+- Використовуйте **data validation checks**, щоб перевірити, що дані облікового запису відповідають очікуваному значенню. Без відповідних перевірок валідації даних можуть, в інструкції бути використані неочікувані облікові записи.
+- Для реалізації перевірок валідації даних в Rust достатньо порівняти дані, збережені на обліковому записі, з очікуваним значенням.
+
     ```rust
     if ctx.accounts.user.key() != ctx.accounts.user_data.user {
         return Err(ProgramError::InvalidAccountData.into());
     }
     ```
     
-- In Anchor, you can use `constraint` to checks whether the given expression evaluates to true. Alternatively, you can use `has_one` to check that a target account field stored on the account matches the key of an account in the `Accounts` struct.
+- В Anchor ви можете використовувати `constraint` для перевірки того, чи вираз, заданий вами, є істинним. З альтернативи ви можете використовувати `has_one` для перевірки того, що поле цільового облікового запису, збережене на обліковому записі, відповідає ключу облікового запису в структурі `Accounts`.
 
-# Overview
+# Огляд
 
 Account data matching refers to data validation checks used to verify the data stored on an account matches an expected value. Data validation checks provide a way to include additional constraints to ensure the appropriate accounts are passed into an instruction. 
 
@@ -30,6 +30,17 @@ This can be useful when accounts required by an instruction have dependencies on
 The example below includes an `update_admin` instruction that updates the `admin` field stored on an `admin_config` account. 
 
 The instruction is missing a data validation check to verify the `admin` account signing the transaction matches the `admin` stored on the `admin_config` account. This means any account signing the transaction and passed into the instruction as the `admin` account can update the `admin_config` account.
+
+
+Відповідність даних облікового запису вказує на перевірки валідації даних, які використовуються для перевірки того, чи дані, збережені на обліковому записі, відповідають очікуваному значенню. Перевірки валідації даних надають можливість включити додаткові обмеження, щоб забезпечити передачу відповідних облікових записів в інструкцію.
+
+Це може бути корисно, коли облікові записи, які необхідні для виконання інструкції, залежать від значень, що зберігаються в інших облікових записах, або якщо виконання інструкції залежить від даних, які зберігаються в обліковому записі.
+
+### Відсутність валідації даних
+
+У наведеному нижче прикладі є інструкція `update_admin`, яка оновлює поле `admin`, збережене на обліковому записі `admin_config`.
+
+В інструкції відсутня валідація даних для перевірки того, що обліковий запис `admin`, який підписує транзакцію, відповідає `admin`, збереженому на обліковому записі `admin_config`. Це означає, що будь-який обліковий запис, який підписує транзакцію і передається в інструкцію як обліковий запис `admin`, може оновлювати обліковий запис `admin_config`.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -61,9 +72,9 @@ pub struct AdminConfig {
 }
 ```
 
-### Add data validation check
+### Додати перевірку валідації даних
 
-The basic Rust approach to solve this problem is to simply compare the passed in `admin` key to the `admin` key stored in the `admin_config` account, throwing an error if they don’t match.
+Основний підхід у Rust для вирішення цієї проблеми - просто порівняти переданий ключ `admin` з ключем `admin`, збереженим на обліковому записі `admin_config`, і генерувати помилку, якщо вони не відповідають одне одному.
 
 ```rust
 if ctx.accounts.admin.key() != ctx.accounts.admin_config.admin {
@@ -71,7 +82,7 @@ if ctx.accounts.admin.key() != ctx.accounts.admin_config.admin {
 }
 ```
 
-By adding a data validation check, the `update_admin` instruction would only process if the `admin` signer of the transaction matched the `admin` stored on the `admin_config` account.
+Додавши валідацію даних, інструкція `update_admin` буде виконуватися лише в тому випадку, якщо підписник `admin` транзакції відповідає `admin`, збереженому на обліковому записі `admin_config`.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -106,11 +117,11 @@ pub struct AdminConfig {
 }
 ```
 
-### Use Anchor constraints
+### Використайте обмеження Anchor
 
-Anchor simplifies this with the `has_one` constraint. You can use the `has_one` constraint to move the data validation check from the instruction logic to the `UpdateAdmin` struct.
+Anchor спрощує, використовуючи обмеження `has_one`. Ви можете використовувати обмеження `has_one`, щоб перемістити валідацію даних з логіки інструкції в структуру `UpdateAdmin`.
 
-In the example below, `has_one = admin` specifies that the `admin` account signing the transaction must match the `admin` field stored on the `admin_config` account. To use the `has_one` constraint, the naming convention of the data field on the account must be consistent with the naming on the account validation struct. 
+У наведеному нижче прикладі `has_one = admin` вказує, що обліковий запис `admin`, який підписує транзакцію, повинен відповідати полю `admin`, збереженому на обліковому записі `admin_config`. Для використання обмеження `has_one` конвенція найменування поля даних на обліковому записі повинна бути узгодженою з конвенцією найменування на обліковому записі структури валідації.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -145,7 +156,7 @@ pub struct AdminConfig {
 }
 ```
 
-Alternatively, you can use `constraint` to manually add an expression that must evaluate to true in order for execution to continue. This is useful when for some reason naming can’t be consistent or when you need a more complex expression to fully validate the incoming data.
+Замість цього ви можете використовувати `constraint`, щоб вручну додати вираз, який повинен взяти участь в процесі виконання, із виразу true, щоб виконання могло продовжитися. Це корисно, коли, з якої-небудь причини, неможливо забезпечити послідовність імен, або коли для повної перевірки вхідних даних вам потрібен більш складний вираз.
 
 ```rust
 #[derive(Accounts)]
@@ -161,21 +172,21 @@ pub struct UpdateAdmin<'info> {
 }
 ```
 
-# Lab
+# Лабораторна робота
 
-For this lab we’ll create a simple “vault” program similar to the program we used in the Signer Authorization lesson and the Owner Check lesson. Similar to those labs, we’ll show in this lab how a missing data validation check could allow the vault to be drained.
+У цьому лабораторному завданні ми створимо просту програму "сховище" (“vault”) схожу на ту, яку ми використовували в уроках "Авторизація підписувача" і "Перевірка власника" (Authorization lesson and the Owner Check lesson). Подібно до цих лабораторних робіт, ми покажемо в цьому завданні, як відсутність перевірки валідації даних може призвести до втратити коштів зі сховища.
 
-### 1. Starter
+### 1. Стартовий код
 
-To get started, download the starter code from the `starter` branch of [this repository](https://github.com/Unboxed-Software/solana-account-data-matching). The starter code includes a program with two instructions and the boilerplate setup for the test file. 
+Для початку завантажте стартовий код з гілки `starter` з [цього репозиторію](https://github.com/Unboxed-Software/solana-account-data-matching). Стартовий код включає програму з двома інструкціями та заготовкою для файлу тестів.
 
-The `initialize_vault` instruction initializes a new `Vault` account and a new `TokenAccount`. The `Vault` account will store the address of a token account, the authority of the vault, and a withdraw destination token account.
+Інструкція `initialize_vault` ініціалізує новий обліковий запис `Vault` та новий обліковий запис `TokenAccount`. Обліковий запис `Vault` буде зберігати адресу облікового запису токена, авторитет сховища та обліковий запис для виводу.
 
-The authority of the new token account will be set as the `vault`, a PDA of the program. This allows the `vault` account to sign for the transfer of tokens from the token account. 
+Авторитет нового облікового запису токена буде встановлено як `vault`, PDA програми. Це дозволяє обліковому запису `vault` підписувати трансфери токенів з облікового запису токена.
 
-The `insecure_withdraw` instruction transfers all the tokens in the `vault` account’s token account to a `withdraw_destination` token account. 
+Інструкція `insecure_withdraw` перекладає всі токени в обліковому записі токена `vault` до облікового запису токена `withdraw_destination`. 
 
-Notice that this instruction ****does**** have a signer check for `authority` and an owner check for `vault`. However, nowhere in the account validation or instruction logic is there code that checks that the `authority` account passed into the instruction matches the `authority` account on the `vault`.
+Зверніть увагу, що ця інструкція має перевірку підпису для `authority` та перевірку власника для `vault`. Однак ніде в логіці перевірки облікового запису чи логіці інструкції немає коду, який перевіряє, що обліковий запис `authority`, переданий в інструкцію, відповідає обліковому запису `authority` в `vault`.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -270,15 +281,15 @@ pub struct Vault {
 }
 ```
 
-### 2. Test `insecure_withdraw` instruction
+### 2. Тест інструкції `insecure_withdraw` 
 
-To prove that this is a problem, let’s write a test where an account other than the vault’s `authority` tries to withdraw from the vault.
+Щоб довести, що це проблема, давайте напишемо тест, де обліковий запис, який не є `authority` сховища, намагається зняти кошти з сховища.
 
-The test file includes the code to invoke the `initialize_vault` instruction using the provider wallet as the `authority` and then mints 100 tokens to the `vault` token account.
+У тестовому файлі вже є код для виклику інструкції `initialize_vault`, використовуючи гаманець постачальника як `authority`, а потім надсилає 100 токенів на рахунок `vault` токена.
 
-Add a test to invoke the `insecure_withdraw` instruction. Use `withdrawDestinationFake` as the `withdrawDestination` account and `walletFake` as the `authority`. Then send the transaction using `walletFake`.
+Додайте тест для виклику інструкції `insecure_withdraw`. Використовуйте `withdrawDestinationFake` як рахунок `withdrawDestination`, а `walletFake` як `authority`. Потім відправте транзакцію, використовуючи `walletFake`.
 
-Since there are no checks the verify the `authority` account passed into the instruction matches the values stored on the `vault` account initialized in the first test, the instruction will process successfully and the tokens will be transferred to the `withdrawDestinationFake` account.
+Оскільки немає перевірок, які б визначали, що обліковий запис `authority`, переданий в інструкцію, відповідає значенням, збереженим на сховищі, інструкція буде успішно оброблена, і токени будуть передані на рахунок `withdrawDestinationFake`.
 
 ```tsx
 describe("account-data-matching", () => {
@@ -302,7 +313,7 @@ describe("account-data-matching", () => {
 })
 ```
 
-Run `anchor test` to see that both transactions will complete successfully.
+Запустіть `anchor test`, щоб переконатися, що обидві транзакції завершаться успішно.
 
 ```bash
 account-data-matching
@@ -310,11 +321,11 @@ account-data-matching
   ✔ Insecure withdraw (403ms)
 ```
 
-### 3. Add `secure_withdraw` instruction
+### 3. Додайте інструкцію `secure_withdraw` 
 
-Let’s go implement a secure version of this instruction called `secure_withdraw`.
+Давайте реалізуємо безпечну версію цієї інструкції під назвою `secure_withdraw`.
 
-This instruction will be identical to the `insecure_withdraw` instruction, except we’ll use the `has_one` constraint in the account validation struct (`SecureWithdraw`) to check that the `authority` account passed into the instruction matches the `authority` account on the `vault` account. That way only the correct authority account can withdraw the vault’s tokens.
+Ця інструкція буде ідентичною інструкції `insecure_withdraw`, за винятком того, що ми використаємо обмеження `has_one` в структурі перевірки облікових записів (`SecureWithdraw`), щоб перевірити, що обліковий запис `authority`, переданий до інструкції, відповідає обліковому запису `authority` на обліковому записі `vault`. Таким чином, тільки правильний обліковий запис може знімати кошти з хранилища.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -371,9 +382,9 @@ pub struct SecureWithdraw<'info> {
 }
 ```
 
-### 4. Test `secure_withdraw` instruction
+### 4. Тест інструкції `secure_withdraw` 
 
-Now let’s test the `secure_withdraw` instruction with two tests: one that uses `walletFake` as the authority and one that uses `wallet` as the authority. We expect the first invocation to return an error and the second to succeed.
+Тепер давайте протестуємо інструкцію `secure_withdraw` двома тестами: один, який використовує `walletFake` як підтвердження, і один, який використовує `wallet` як підтвердження. Ми очікуємо, що перший виклик поверне помилку, а другий буде успішним.
 
 ```tsx
 describe("account-data-matching", () => {
@@ -423,7 +434,7 @@ describe("account-data-matching", () => {
 })
 ```
 
-Run `anchor test` to see that the transaction using an incorrect authority account will now return an Anchor Error  while the transaction using correct accounts completes successfully.
+Виконайте команду `anchor test`, щоб переконатися, що транзакція, яка використовує невірний обліковий запис для підтвердження, тепер повертає помилку Anchor, тоді як транзакція, яка використовує правильні облікові записи, завершується успішно.
 
 ```bash
 'Program Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS invoke [1]',
@@ -437,25 +448,25 @@ Run `anchor test` to see that the transaction using an incorrect authority accou
 'Program Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS failed: custom program error: 0x7d1'
 ```
 
-Note that Anchor specifies in the logs the account that causes the error (`AnchorError caused by account: vault`).
+Важливо відзначити, що Anchor вказує в логах обліковий запис, який спричинив помилку (`AnchorError caused by account: vault`).
 
 ```bash
 ✔ Secure withdraw, expect error (77ms)
 ✔ Secure withdraw (10073ms)
 ```
 
-And just like that, you've closed up the security loophole. The theme across most of these potential exploits is that they're quite simple. However, as your programs grow in scope and complexity, it becomse increasingly easy to miss possible exploits. It's great to get in a habit of writing tests that send instructions that *shouldn't* work. The more the better. That way you catch problems before you deploy.
+Тепер ви закрили цю уразливість в безпеці. Головна схожість більшості вразливостей в тому, що вони дуже прості. Втім, зі збільшенням масштабу і складності ваших програм таких потенційно вразливих місць буде все більше. Варто формувати звичку писати тести, які відправляють інструкції, які *не повинні* працювати. Чим більше, тим краще. Таким чином ви виявите проблеми до розгортання.
 
-If you want to take a look at the final solution code you can find it on the `solution` branch of [the repository](https://github.com/Unboxed-Software/solana-account-data-matching/tree/solution).
+Якщо ви хочете переглянути кінцевий код, ви можете знайти його в гілці `solution` [репозиторію](https://github.com/Unboxed-Software/solana-account-data-matching/tree/solution).
 
-# Challenge
+# Виклик
 
-Just as with other lessons in this unit, your opportunity to practice avoiding this security exploit lies in auditing your own or other programs.
+Так само, як і з іншими уроками цього блоку, ви можете відпрацювати слабкі місця, перевіряючи свій власний код.
 
-Take some time to review at least one program and ensure that proper data checks are in place to avoid security exploits.
+Виділіть собі час, щоб переглянути принаймні одну програму та переконайтеся, що встановлено належні перевірки даних для уникнення зловживань з боку безпеки.
 
-Remember, if you find a bug or exploit in somebody else's program, please alert them! If you find one in your own program, be sure to patch it right away.
+Пам'ятайте, якщо ви знаходите помилку чи слабке місце в програмі когось іншого, будь ласка, попередьте його! Якщо ви знаходите їх у своїй власній програмі, не забудьте виправити їх одразу.
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=a107787e-ad33-42bb-96b3-0592efc1b92f)!
+Вивантажте свій код на GitHub і [розкажіть нам, що ви думаєте про цей урок](https://form.typeform.com/to/IPH0UGz7#answers-lesson=a107787e-ad33-42bb-96b3-0592efc1b92f)!
