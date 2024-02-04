@@ -1,18 +1,12 @@
 ---
-title: Account Data Matching
-objectives:
-- Explain the security risks associated with missing data validation checks
-- Implement data validation checks using long-form Rust
-- Implement data validation checks using Anchor constraints
-
 заголовок: Відповідність даних облікового запису
-objectives:
+мета:
 - Пояснити ризики безпеки, пов'язані з відсутністю перевірок валідації даних
-- Реалізувати перевірки валідації даних за допомогою довгого варіанту Rust
+- Реалізувати перевірки валідації даних за допомогою довгого long-form Rust
 - Реалізувати перевірки валідації даних за допомогою обмежень Anchor
 ---
 
-# Summary
+# Стис
 
 - Use **data validation checks** to verify that account data matches an expected value. Without appropriate data validation checks, unexpected accounts may be used in an instruction.
 - To implement data validation checks in Rust, simply compare the data stored on an account to an expected value.
