@@ -4,6 +4,12 @@ objectives:
 - Explain the security risks associated with missing data validation checks
 - Implement data validation checks using long-form Rust
 - Implement data validation checks using Anchor constraints
+
+заголовок: Відповідність даних облікового запису
+objectives:
+- Пояснити ризики безпеки, пов'язані з відсутністю перевірок валідації даних
+- Реалізувати перевірки валідації даних за допомогою довгого варіанту Rust
+- Реалізувати перевірки валідації даних за допомогою обмежень Anchor
 ---
 
 # Summary
