@@ -1,30 +1,30 @@
 ---
-title: Anchor PDAs and Accounts
-objectives:
-- Use the `seeds` and `bump` constraints to work with PDA accounts in Anchor
-- Enable and use the `init_if_needed` constraint
-- Use the `realloc` constraint to reallocate space on an existing account
-- Use the `close` constraint to close an existing account
+заголовок: Anchor PDA і облікові записи
+цілі:
+- Використовуйте обмеження `seeds` та `bump`, щоб працювати з обліковими записами PDA в Anchor.
+- Увімкніть та використовуйте обмеження `init_if_needed`.
+- Використовуйте обмеження `realloc`, щоб перерозподілити простір на існуючому обліковому записі.
+- Використовуйте обмеження `close`, щоб закрити існуючий обліковий запис.
 ---
 
-# Summary
+# Стислий виклад
 
-- The `seeds` and `bump` constraints are used to initialize and validate PDA accounts in Anchor
-- The `init_if_needed` constraint is used to conditionally initialize a new account
-- The `realloc` constraint is used to reallocate space on an existing account
-- The `close` constraint is used to close an account and refund its rent
+- Обмеження `seeds` та `bump` використовуються для ініціалізації та перевірки облікових записів PDA в Anchor.
+- Обмеження `init_if_needed` використовується для умовної ініціалізації нового облікового запису.
+- Обмеження `realloc` використовується для перерозподілу простору на існуючому обліковому записі.
+- Обмеження `close` використовується для закриття облікового запису та повернення оплати за оренду.
 
-# Lesson
+# Урок
 
-In this lesson you'll learn how to work with PDAs, reallocate accounts, and close accounts in Anchor.
+У цьому уроці ви навчитеся працювати з PDA, перерозподіляти облікові записи та закривати їх в Anchor.
 
-Recall that Anchor programs separate instruction logic from account validation. Account validation primarily happens within structs that represent the list of accounts needed for a given instruction. Each field of the struct represents a different account, and you can customize the validation performed on the account using the `#[account(...)]` attribute macro.
+Пам'ятайте, що програми Anchor розділяють логіку інструкцій і перевірку облікових записів. Перевірка облікових записів відбувається переважно в межах структур, які представляють список облікових записів, необхідних для певної інструкції. Кожне поле структури представляє різний обліковий запис, і ви можете налаштувати перевірку облікового запису за допомогою макроса атрибутів #[account(...)].
 
-In addition to using constraints for account validation, some constraints can handle repeatable tasks that would otherwise require a lot of boilerplate inside our instruction logic. This lesson will introduce the `seeds`, `bump`, `realloc`, and `close` constraints to help you initialize and validate PDAs, reallocate accounts, and close accounts.
+У цьому уроці ви ознайомитеся з обмеженнями `seeds`, `bump`, `realloc` та `close`, які допомагатимуть вам ініціалізувати та перевірити PDA, перерозподілити облікові записи та закрити їх. Ці обмеження виконують не лише перевірку облікових записів, але й автоматизують повторювані завдання, що в іншому випадку потребували б великої кількості шаблонного коду всередині нашої логіки інструкції.
 
-## PDAs with Anchor
+## PDA з Anchor
 
-Recall that [PDAs](https://github.com/Unboxed-Software/solana-course/blob/main/content/pda) are derived using a list of optional seeds, a bump seed, and a program ID. Anchor provides a convenient way to validate a PDA with the `seeds` and `bump` constraints.
+Пам'ятайте, що [PDA](https://github.com/Unboxed-Software/solana-course/blob/main/content/pda) визначаються за допомогою списку опціональних seeds, bump seed та ID програми. Anchor надає зручний спосіб перевірити PDA за допомогою обмежень `seeds` та `bump`.
 
 ```rust
 #[derive(Accounts)]
@@ -37,15 +37,15 @@ struct ExampleAccounts {
 }
 ```
 
-During account validation, Anchor will derive a PDA using the seeds specified in the `seeds` constraint and verify that the account passed into the instruction matches the PDA found using the specified `seeds`.
+Під час перевірки облікового запису, Anchor виведе PDA, використовуючи seeds, уточнені в обмеженні `seeds`, та перевірить, що обліковий запис, переданий до інструкції, відповідає знайденому PDA за вказаними `seeds`.
 
-When the `bump` constraint is included without specifying a specific bump, Anchor will default to using the canonical bump (the first bump that results in a valid PDA). In most cases you should use the canonical bump.
+Якщо обмеження `bump` включено без вказівки конкретного bump, Anchor за замовчуванням буде використовувати канонічний bump (перший bump, який призводить до дійсного PDA). У більшості випадків ви повинні використовувати канонічний bump.
 
-You can access other fields from within the struct from constraints, so you can specify seeds that are dependent on other accounts like the signer's public key.
+Ви можете отримати доступ до інших полів структури з обмеженнями, тому ви можете вказати seeds, що залежать від інших облікових записів, наприклад, від публічного ключа підписника.
 
-You can also reference the deserialized instruction data if you add the `#[instruction(...)]` attribute macro to the struct.
+Ви також можете посилатися на десеріалізовані дані інструкції, якщо додасте макрос атрибуту `#[instruction(...)]` до структури.
 
-For example, the following example shows a list of accounts that include `pda_account` and `user`. The `pda_account` is constrained such that the seeds must be the string "example_seed," the public key of `user`, and the string passed into the instruction as `instruction_data`.
+Наприклад, наступний приклад показує список облікових записів, який включає `pda_account` та `user`. `pda_account` обмежений так, що seeds повинні бути рядком "example_seed", публічним ключем `user` та рядком, переданим у інструкцію як `instruction_data`.
 
 ```rust
 #[derive(Accounts)]
@@ -61,7 +61,7 @@ pub struct Example<'info> {
 }
 ```
 
-If the `pda_account` address provided by the client doesn't match the PDA derived using the specified seeds and the canonical bump, then the account validation will fail.
+Якщо адреса `pda_account`, надана клієнтом, не відповідає PDA, виведеному за допомогою вказаних seeds та канонічного bump, то перевірка облікового запису буде неуспішною.
 
 ### Use PDAs with the `init` constraint
 
@@ -91,34 +91,34 @@ pub struct AccountType {
 }
 ```
 
-When using `init` for non-PDA accounts, Anchor defaults to setting the owner of the initialized account to be the program currently executing the instruction.
+При використанні `init` для облікових записів, які не є PDA, Anchor за замовчуванням встановлює власника ініціалізованого облікового запису на поточну програму, яка виконує інструкцію.
 
-However, when using `init` in combination with `seeds` and `bump`, the owner *must* be the executing program. This is because initializing an account for the PDA requires a signature that only the executing program can provide. In other words, the signature verification for the initialization of the PDA account would fail if the program ID used to derive the PDA did not match the program ID of the executing program.
+Однак, при використанні `init` у поєднанні з `seeds` та `bump`, власник *має* бути виконуючою програмою. Це тому, що ініціалізація облікового запису для PDA вимагає підпису, який може надати лише виконуюча програма. Іншими словами, перевірка підпису для ініціалізації облікового запису PDA буде невдалою, якщо програмний ідентифікатор, використаний для виведення PDA, не відповідає програмному ідентифікатору виконуючої програми.
 
-When determining the value of `space` for an account initialized and owned by the executing Anchor program, remember that the first 8 bytes are reserved for the account discriminator. This is an 8-byte value that Anchor calculates and uses to identify the program account types. You can use this [reference](https://www.anchor-lang.com/docs/space) to calculate how much space you should allocate for an account.
+При визначенні значення `space` для облікового запису, що ініціалізований та належить запущеній програмі Anchor, пам'ятайте, що перші 8 байтів зарезервовані для дискримінатора облікового запису. Це 8-байтове значення, яке Anchor обчислює та використовує для ідентифікації типів облікових записів програми. Ви можете скористатися цим [посиланням](https://www.anchor-lang.com/docs/space), щоб розрахувати, скільки місця ви повинні виділити для облікового запису.
 
 ### Seed inference
 
-The account list for an instruction can get really long for some programs. To simplify the client-side experience when invoking an Anchor program instruction, we can turn on seed inference.
+Список облікових записів для інструкції може стати занадто довгим для деяких програм. Щоб спростити виклик інструкції програми Anchor з боку клієнта, ми можемо увімкнути seed inference.
 
-Seed inference adds information about PDA seeds to the IDL so that Anchor can infer PDA seeds from existing call-site information. In the previous example, the seeds are `b"example_seed"` and `user.key()`. The first is static and therefore known, and the second is known because `user` is the transaction signer.
+Seed inference додає інформацію про PDA seeds до IDL, так що Anchor може виводити PDA seeds з існуючої call-site інформації. У попередньому прикладі seeds - це `b"example_seed"` та `user.key()`. Перше є статичним і тому відомим, а друге відоме, оскільки `user` - це підписувач транзакції.
 
-If you use seed inference when building your program, then as long as you're calling the program using Anchor, you don't need to explicitly derive and pass in the PDA. Instead, the Anchor library will do it for you.
+Якщо ви використовуєте seed inference при побудові своєї програми, то якщо ви викликаєте програму за допомогою Anchor, вам не потрібно явно виводити та передавати PDA. Замість цього бібліотека Anchor зробить це за вас.
 
-You can turn on seed inference in the `Anchor.toml` file with `seeds = true` under `[features]`.
+Ви можете увімкнути seed inference у файлі `Anchor.toml`, вказавши `seeds = true` під `[features]`.
 
 ```
 [features]
 seeds = true
 ```
 
-### Use the `#[instruction(...)]` attribute macro
+### Використовуйте макрос атрибуту `#[instruction(...)]`.
 
-Let's briefly look at the `#[instruction(...)]` attribute macro before moving on. When using `#[instruction(...)]`, the instruction data you provide in the list of arguments must match and be in the same order as the instruction arguments. You can omit unused arguments at the end of the list, but you must include all arguments up until the last one you will be using.
+Перш ніж перейти до наступного пункту, давайте коротко розглянемо макрос атрибуту `#[instruction(...)]`. При використанні `#[instruction(...)]` дані інструкції, які ви надаєте у списку аргументів, повинні відповідати та бути в тому ж порядку, що й аргументи інструкції. Ви можете опускати аргументи в кінці списку, що не використовуються, але ви повинні включити всі аргументи до останнього, який ви будете використовувати.
 
-For example, imagine an instruction has arguments `input_one`, `input_two`, and `input_three`. If your account constraints need to reference `input_one` and `input_three`, you need to list all three arguments in the `#[instruction(...)]` attribute macro.
+Наприклад, уявіть, що інструкція має аргументи `input_one`, `input_two` та `input_three`. Якщо ваші обмеження облікових записів повинні посилатися на `input_one` та `input_three`, вам потрібно вказати всі три аргументи у макросі атрибуту `#[instruction(...)]`.
 
-However, if your constraints only reference `input_one` and `input_two`, you can omit `input_three`.
+Однак, якщо ваші обмеження посилаються лише на `input_one` та `input_two`, ви можете пропустити `input_three`.
 
 ```rust
 pub fn example_instruction(
@@ -138,7 +138,7 @@ pub struct Example<'info> {
 }
 ```
 
-Additionally, you will get an error if you list the inputs in the incorrect order:
+Додатково, ви отримаєте помилку, якщо перерахуєте вхідні дані у неправильному порядку:
 
 ```rust
 #[derive(Accounts)]
@@ -150,20 +150,20 @@ pub struct Example<'info> {
 
 ## Init-if-needed
 
-Anchor provides an `init_if_needed` constraint that can be used to initialize an account if the account has not already been initialized.
+Anchor надає обмеження `init_if_needed`, яке може бути використане для ініціалізації облікового запису, якщо обліковий запис ще не був ініціалізований.
 
-This feature is gated behind a feature flag to make sure you are intentional about using it. For security reasons, it's smart to avoid having one instruction branch into multiple logic paths. And as the name suggests, `init_if_needed` executes one of two possible code paths depending on the state of the account in question.
+Ця функція захищена за допомогою флага функцій, щоб ви могли свідомо використовувати її. З погляду безпеки, розумно уникати того, щоб одна інструкція гілкувалася на кілька логічних шляхів. І, як ім'я вказує, `init_if_needed` виконує один з двох можливих кодових шляхів в залежності від стану облікового запису, про який йдеться.
 
-When using `init_if_needed`, you need to make sure to properly protect your program against re-initialization attacks. You need to include checks in your code that check that the initialized account cannot be reset to its initial settings after the first time it was initialized.
+При використанні `init_if_needed` вам потрібно переконатися, що ваша програма належним чином захищена від атак на повторну ініціалізацію. Ви повинні включити перевірки у вашому коді, які перевіряють, що ініціалізований обліковий запис не може бути скинутий до початкових налаштувань після першої ініціалізації.
 
-To use `init_if_needed`, you must first enable the feature in `Cargo.toml`.
+Щоб використовувати `init_if_needed`, спочатку вам потрібно увімкнути цю функцію в `Cargo.toml`.
 
 ```rust
 [dependencies]
 anchor-lang = { version = "0.25.0", features = ["init-if-needed"] }
 ```
 
-Once you’ve enabled the feature, you can include the constraint in the `#[account(…)]` attribute macro. The example below demonstrates using the `init_if_needed` constraint to initialize a new associated token account if one does not already exist.
+Після активації функції ви можете включити обмеження в макрос атрибуту `#[account(...)]`. Наведений нижче приклад демонструє використання обмеження `init_if_needed` для ініціалізації нового асоційованого облікового запису токенів, якщо такого ще не існує.
 
 ```rust
 #[program]
@@ -193,21 +193,21 @@ pub struct Initialize<'info> {
 }
 ```
 
-When the `initialize` instruction is invoked in the previous example, Anchor will check if the `token_account` exists and initialize it if it does not. If it already exists, then the instruction will continue without initializing the account. Just as with the `init` constraint, you can use `init_if_needed` in conjunction with `seeds` and `bump` if the account is a PDA.
+При виклику інструкції `initialize` в попередньому прикладі Anchor перевірить, чи існує `token_account`, і ініціалізує його, якщо такого не існує. Якщо він вже існує, то інструкція продовжить виконуватися без ініціалізації облікового запису. Так само, як з обмеженням `init`, ви можете використовувати `init_if_needed` разом з `seeds` та `bump`, якщо обліковий запис є PDA.
 
 ## Realloc
 
-The `realloc` constraint provides a simple way to reallocate space for existing accounts.
+Обмеження `realloc` надає простий спосіб перерозподілу простору для існуючих облікових записів.
 
-The `realloc` constraint must be used in combination with the following constraints:
+Обмеження `realloc` повинно використовуватися в поєднанні з наступними обмеженнями:
 
-- `mut` - the account must be set as mutable
-- `realloc::payer` - the account to subtract or add lamports to depending on whether the reallocation is decreasing or increasing account space
-- `realloc::zero` - boolean to specify if new memory should be zero initialized
+- `mut` - обліковий запис повинен бути встановлений як змінний
+- `realloc::payer` - обліковий запис для віднімання або додавання лампортів в залежності від того, чи зменшується або збільшується розмір облікового запису
+- `realloc::zero` - булеве значення, щоб вказати, чи нова пам'ять повинна бути ініціалізована нулем
 
-As with `init`, you must include `system_program` as one of the accounts in the account validation struct when using `realloc`.
+Як і з `init`, коли ви використовуєте `realloc`, ви повинні включити `system_program` як один з облікових записів у структурі перевірки облікових записів.
 
-Below is an example of reallocating space for an account that stores a `data` field of type `String`.
+Нижче наведено приклад перерозподілу простору для облікового запису, який зберігає поле `data` типу `String`.
 
 ```rust
 #[derive(Accounts)]
@@ -233,22 +233,22 @@ pub struct AccountType {
 }
 ```
 
-Notice that `realloc` is set to `8 + 4 + instruction_data.len()`. This breaks down as follows:
-- `8` is for the account discriminator
-- `4` is for the 4 bytes of space that BORSH uses to store the length of the string
-- `instruction_data.len()` is the length of the string itself
+Зверніть увагу, що `realloc` встановлено як `8 + 4 + instruction_data.len()`. Це розбивається наступним чином:
+- `8` відведено для дискримінатора облікового запису
+- `4` відведено на 4 байти простору, який BORSH використовує для зберігання довжини рядка
+- `instruction_data.len()` - це довжина самого рядка
 
-If the change in account data length is additive, lamports will be transferred from the `realloc::payer` to the account in order to maintain rent exemption. Likewise, if the change is subtractive, lamports will be transferred from the account back to the `realloc::payer`.
+Якщо зміна довжини даних облікового запису є додатньою, лампорти будуть перенесені з `realloc::payer` на обліковий запис, щоб забезпечити звільнення від оренди. Так само, якщо зміна є від'ємною, лампорти будуть перенесені з облікового запису назад на `realloc::payer`.
 
-The `realloc::zero` constraint is required in order to determine whether the new memory should be zero initialized after reallocation. This constraint should be set to true in cases where you expect the memory of an account to shrink and expand multiple times. That way you zero out space that would otherwise show as stale data.
+Обмеження `realloc::zero` необхідне для визначення того, чи нова пам'ять повинна бути ініціалізована нулем після перерозподілу. Це обмеження слід встановити в `true` у випадках, коли ви очікуєте, що пам'ять облікового запису буде звужуватися та розширюватися кілька разів. Це дозволить обнулити простір, який в іншому випадку може показатися як застарілі дані.
 
 ## Close
 
-The `close` constraint provides a simple and secure way to close an existing account.
+Обмеження `close` надає простий та безпечний спосіб закрити існуючий обліковий запис.
 
-The `close` constraint marks the account as closed at the end of the instruction’s execution by setting its discriminator to the `CLOSED_ACCOUNT_DISCRIMINATOR` and sends its lamports to a specified account. Setting the discriminator to a special variant makes account revival attacks (where a subsequent instruction adds the rent exemption lamports again) impossible. If someone tries to reinitialize the account, the reinitialization will fail the discriminator check and be considered invalid by the program.
+Обмеження `close` позначає обліковий запис як закритий в кінці виконання інструкції, встановлюючи його дискримінатор на `CLOSED_ACCOUNT_DISCRIMINATOR` та відправляючи його лампорти на вказаний обліковий запис. Встановлення спеціального варіанту дискримінатора робить атаки на відновлення облікового запису (де наступна інструкція знову додає лампорти звільнення від оренди) неможливими. Якщо хтось спробує знову ініціалізувати обліковий запис, перевірка дискримінатора буде не вдалою, і програма вважатиме ініціалізацію недійсною.
 
-The example below uses the `close` constraint to close the `data_account` and sends the lamports allocated for rent to the `receiver` account.
+У наведеному нижче прикладі використовується обмеження `close`, щоб закрити `data_account` та відправити лампорти, виділені на оренду, на обліковий запис отримувача.
 
 ```rust
 pub fn close(ctx: Context<Close>) -> Result<()> {
@@ -264,25 +264,25 @@ pub struct Close<'info> {
 }
 ```
 
-# Lab
+# Лабораторна робота
 
-Let’s practice the concepts we’ve gone over in this lesson by creating a Movie Review program using the Anchor framework.
+Давайте пропрацюємо концепції, які ми розглянули в цьому уроці, створивши програму для оглядів фільмів за допомогою фреймворку Anchor.
 
-This program will allow users to:
+Ця програма дозволить користувачам:
 
-- Use a PDA to initialize a new movie review account to store the review
-- Update the content of an existing movie review account
-- Close an existing movie review account
+- Використовувати PDA для ініціалізації нового облікового запису для збереження відгуку
+- Оновлювати вміст існуючого облікового запису 
+- Закривати існуючий обліковий запис 
 
-### 1. Create a new Anchor project
+### 1. Створіть новий проект Anchor
 
-To begin, let’s create a new project using `anchor init`.
+Для початку створіть новий проект за допомогою команди `anchor init`.
 
 ```console
 anchor init anchor-movie-review-program
 ```
 
-Next, navigate to the `lib.rs` file within the `programs` folder and you should see the following starter code.
+Далі перейдіть до файлу `lib.rs` в папці `programs`, і ви побачите наступний початковий код.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -302,7 +302,7 @@ pub mod anchor_movie_review_program {
 pub struct Initialize {}
 ```
 
-Go ahead and remove the `initialize` instruction and `Initialize` type.
+Продовжуйте і видаліть інструкцію `initialize` та тип `Initialize`.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -318,14 +318,14 @@ pub mod anchor_movie_review_program {
 
 ### 2. `MovieAccountState`
 
-First, let’s use the `#[account]` attribute macro to define the `MovieAccountState` that will represent the data structure of the movie review accounts. As a reminder, the `#[account]` attribute macro implements various traits that help with serialization and deserialization of the account, set the discriminator for the account, and set the owner of a new account as the program ID defined in the `declare_id!` macro.
+Спочатку використаємо макрос атрибуту `#[account]`, щоб визначити `MovieAccountState`, який буде представляти структуру даних облікових записів. Нагадую, що макрос атрибуту `#[account]` реалізує різні траєкторії, які допомагають з серіалізацією та десеріалізацією облікового запису, встановлюють дискримінатор для облікового запису та встановлюють власника нового облікового запису як ідентифікатор програми, визначений у макросі `declare_id!`.
 
-Within each movie review account, we’ll store the:
+У кожному обліковому записі ми будемо зберігати:
 
-- `reviewer` - user creating the review
-- `rating` - rating for the movie
-- `title` - title of the movie
-- `description` - content of the review
+- `reviewer` - користувач, який створює огляд
+- `rating` - рейтинг фільму
+- `title` - назва фільму
+- `description` - зміст огляду
 
 ```rust
 use anchor_lang::prelude::*;
@@ -347,17 +347,17 @@ pub struct MovieAccountState {
 }
 ```
 
-### 3. Add Movie Review
+### 3. Додайте огляд фільму
 
-Next, let’s implement the `add_movie_review` instruction. The `add_movie_review` instruction will require a `Context` of type `AddMovieReview` that we’ll implement shortly.
+Далі реалізуємо інструкцію `add_movie_review`. Ця інструкція буде вимагати `Context` типу `AddMovieReview`, який ми реалізуємо незабаром.
 
-The instruction will require three additional arguments as instruction data provided by a reviewer:
+Інструкція буде вимагати ще три додаткові аргументи як дані інструкції, надані оглядачем:
 
-- `title` - title of the movie as a `String`
-- `description` - details of the review as a `String`
-- `rating` - rating for the movie as a `u8`
+- `title` - назва фільму як `String`
+- `description` - деталі огляду як `String`
+- `rating` - рейтинг фільму як `u8`
 
-Within the instruction logic, we’ll populate the data of the new `movie_review` account with the instruction data. We’ll also set the `reviewer` field as the `initializer` account from the instruction context.
+У логіці інструкції ми заповнимо дані нового облікового запису `movie_review` даними інструкції. Ми також встановимо поле `reviewer` як обліковий запис `initializer` з контексту інструкції.
 
 ```rust
 #[program]
@@ -385,17 +385,17 @@ pub mod movie_review{
 }
 ```
 
-Next, let’s create the `AddMovieReview` struct that we used as the generic in the instruction's context. This struct will list the accounts the `add_movie_review` instruction requires.
+Далі створіть структуру `AddMovieReview`, яку ми використовували як загальний параметр у контексті інструкції. Ця структура буде містити перелік облікових записів, які потрібні для інструкції `add_movie_review`.
 
-Remember, you'll need the following macros:
+Пам'ятайте, вам знадобляться наступні макроси:
 
-- The `#[derive(Accounts)]` macro is used to deserialize and validate the list of accounts specified within the struct
-- The `#[instruction(...)]` attribute macro is used to access the instruction data passed into the instruction
-- The `#[account(...)]` attribute macro then specifies additional constraints on the accounts
+- Макрос атрибуту `#[derive(Accounts)]` використовується для десеріалізації та перевірки списку облікових записів, вказаних у межах структури.
+- Макрос атрибуту `#[instruction(...)]` використовується для доступу до даних інструкції, переданих у межах інструкції.
+- Макрос атрибуту `#[account(...)]` потім вказує додаткові обмеження для облікових записів.
 
-The `movie_review` account is a PDA that needs to be initialized, so we'll add the `seeds` and `bump` constraints as well as the `init` constraint with its required `payer` and `space` constraints.
+Обліковий запис `movie_review` є PDA, який потрібно ініціалізувати, тому ми додамо обмеження `seeds` та `bump`, а також обмеження `init` з необхідними обмеженнями `payer` та `space`.
 
-For the PDA seeds, we'll use the movie title and the reviewer's public key. The payer for the initialization should be the reviewer, and the space allocated on the account should be enough for the account discriminator, the reviewer's public key, and the movie review's rating, title, and description.
+Для PDA seeds ми використаємо назву фільму та публічний ключ оглядача. Платником для ініціалізації повинен бути оглядач, а простір, виділений для облікового запису, повинен бути достатнім для дискримінатора облікового запису, публічного ключа оглядача та рейтингу, назви та опису огляду фільму.
 
 ```rust
 #[derive(Accounts)]
@@ -415,19 +415,19 @@ pub struct AddMovieReview<'info> {
 }
 ```
 
-### 4. Update Movie Review
+### 4. Редагування огляду фільму
 
-Next, let’s implement the `update_movie_review` instruction with a context whose generic type is `UpdateMovieReview`.
+Далі давайте реалізуємо інструкцію `update_movie_review` з контекстом, чий загальний тип - `UpdateMovieReview`.
 
-Just as before, the instruction will require three additional arguments as instruction data provided by a reviewer:
+Так само, як і раніше, інструкція буде потребувати ще три додаткові аргументи як дані інструкції, надані оглядачем:
 
-- `title` - title of the movie
-- `description` - details of the review
-- `rating` - rating for the movie
+- `title` - назва фільму
+- `description` - деталі огляду
+- `rating` - рейтинг фільму
 
-Within the instruction logic we’ll update the `rating` and `description` stored on the `movie_review` account.
+У логіці інструкції ми оновимо `rating` та `description`, збережені в обліковому записі `movie_review`.
 
-While the `title` doesn't get used in the instruction function itself, we'll need it for account validation of `movie_review` in the next step.
+Хоча `title` не використовується у функції інструкції безпосередньо, він нам знадобиться для перевірки облікового запису `movie_review` в наступному кроці.
 
 ```rust
 #[program]
@@ -457,11 +457,11 @@ pub mod anchor_movie_review_program {
 }
 ```
 
-Next, let’s create the `UpdateMovieReview` struct to define the accounts that the `update_movie_review` instruction needs.
+Далі створіть структуру `UpdateMovieReview`, щоб визначити облікові записи, які потрібні для інструкції `update_movie_review`.
 
-Since the `movie_review` account will have already been initialized by this point, we no longer need the `init` constraint. However, since the value of `description` may now be different, we need to use the `realloc` constraint to reallocate the space on the account. Accompanying this, we need the `mut`, `realloc::payer`, and `realloc::zero` constraints.
+Оскільки обліковий запис `movie_review` буде вже ініціалізований на цьому етапі, нам вже не потрібно обмеження `init`. Однак, оскільки значення `description` може бути зараз іншим, нам потрібно використовувати обмеження `realloc` для перерозподілу простору на обліковому записі. При цьому нам потрібні обмеження `mut`, `realloc::payer` та `realloc::zero`.
 
-We'll also still need the `seeds` and `bump` constraints as we had them in `AddMovieReview`.
+Також нам все ще знадобляться обмеження `seeds` та `bump`, які ми використовували в `AddMovieReview`.
 
 ```rust
 #[derive(Accounts)]
@@ -482,17 +482,17 @@ pub struct UpdateMovieReview<'info> {
 }
 ```
 
-Note that the `realloc` constraint is set to the new space required by the `movie_review` account based on the updated value of `description`.
+Зверніть увагу, що обмеження `realloc` встановлене на новий простір, необхідне для облікового запису `movie_review` на основі оновленого значення `description`.
 
-Additionally, the `realloc::payer` constraint specifies that any additional lamports required or refunded will come from or be send to the `initializer` account.
+Додатково, обмеження `realloc::payer` вказує, що будь-які додаткові лампорти, необхідні або повернуті, будуть взяті з або надіслані на обліковий запис `initializer`.
 
-Finally, we set the `realloc::zero` constraint to `true` because the `movie_review` account may be updated multiple times either shrinking or expanding the space allocated to the account.
+Нарешті, ми встановлюємо обмеження `realloc::zero` на `true`, оскільки обліковий запис `movie_review` може бути оновлений декілька разів, або зменшуючи, або збільшуючи простір, виділений для облікового запису.
 
-### 5. Delete Movie Review
+### 5. Видалити огляд фільму
 
-Lastly, let’s implement the `delete_movie_review` instruction to close an existing `movie_review` account.
+Нарешті, давайте реалізуємо інструкцію `delete_movie_review`, щоб закрити існуючий обліковий запис `movie_review`.
 
-We'll use a context whose generic type is `DeleteMovieReview` and won't include any additional instruction data. Since we are only closing an account, we actually don't need any instruction logic inside the body of the function. The closing itself will be handled by the Anchor constraint in the `DeleteMovieReview` type.
+Ми використовуватимемо контекст, загальний тип якого - `DeleteMovieReview`, і не будемо включати жодних додаткових даних інструкції. Оскільки ми лише закриваємо обліковий запис, насправді нам не потрібна жодна логіка інструкції всередині тіла функції. Закриття буде виконане обмеженням Anchor в типі `DeleteMovieReview`.
 
 ```rust
 #[program]
@@ -509,7 +509,7 @@ pub mod anchor_movie_review_program {
 }
 ```
 
-Next, let’s implement the `DeleteMovieReview` struct.
+Далі давайте реалізуємо структуру `DeleteMovieReview`.
 
 ```rust
 #[derive(Accounts)]
@@ -528,17 +528,17 @@ pub struct DeleteMovieReview<'info> {
 }
 ```
 
-Here we use the `close` constraint to specify we are closing the `movie_review` account and that the rent should be refunded to the `initializer` account. We also include the `seeds` and `bump` constraints for the the `movie_review` account for validation. Anchor then handles the additional logic required to securely close the account.
+Тут ми використовуємо обмеження `close`, щоб вказати, що ми закриваємо обліковий запис `movie_review` і що оренда повинна бути повернена на обліковий запис `initializer`. Ми також включаємо обмеження `seeds` та `bump` для облікового запису `movie_review` для валідації. Anchor потім обробляє додаткову логіку, необхідну для безпечного закриття облікового запису.
 
-### 6. Testing
+### 6. Тестування 
 
-The program should be good to go! Now let's test it out. Navigate to `anchor-movie-review-program.ts` and replace the default test code with the following.
+Програма повинна бути готова до використання! Тепер давайте протестуємо її. Перейдіть до `anchor-movie-review-program.ts` і замініть тестовий код за замовчуванням на наступний.
 
-Here we:
+Тут ми:
 
-- Create default values for the movie review instruction data
-- Derive the movie review account PDA
-- Create placeholders for tests
+- Створюємо значення за замовчуванням для даних інструкції огляду фільму
+- Виводимо PDA облікового запису 
+- Створюємо заповнювачі для тестів
 
 ```typescript
 import * as anchor from "@coral-xyz/anchor"
@@ -573,9 +573,9 @@ describe("anchor-movie-review-program", () => {
 })
 ```
 
-Next, let's create the first test for the `addMovieReview` instruction. Note that we don't explicitly add `.accounts`. This is because the `Wallet` from `AnchorProvider` is automatically included as a signer, Anchor can infer certain accounts like `SystemProgram`, and Anchor can also infer the `movieReview` PDA from the `title` instruction argument and the signer's public key.
+Наступним кроком давайте проведемо перший тест інструкції `addMovieReview`. Зверніть увагу, що ми не додаємо `.accounts`. Це тому, що `Wallet` з `AnchorProvider` автоматично включений як підписувач, Anchor може виводити певні облікові записи, такі як `SystemProgram`, і Anchor також може виводити PDA облікового запису `movieReview` з аргументу `title` і публічного ключа підписувача.
 
-Once the instruction runs, we then fetch the `movieReview` account and check that the data stored on the account match the expected values.
+Після виконання інструкції ми отримаємо обліковий запис `movieReview` і перевіряємо, чи дані, збережені на обліковому записі, відповідають очікуваним значенням.
 
 ```typescript
 it("Movie review is added`", async () => {
@@ -592,7 +592,7 @@ it("Movie review is added`", async () => {
 })
 ```
 
-Next, let's create the test for the `updateMovieReview` instruction following the same process as before.
+Далі давайте створимо тест для інструкції `updateMovieReview`, використовуючи той же процес, що й раніше.
 
 ```typescript
 it("Movie review is updated`", async () => {
@@ -611,7 +611,7 @@ it("Movie review is updated`", async () => {
 })
 ```
 
-Next, create the test for the `deleteMovieReview` instruction
+Наступним кроком створимо тест для інструкції `deleteMovieReview`.
 
 ```typescript
 it("Deletes a movie review", async () => {
@@ -621,7 +621,7 @@ it("Deletes a movie review", async () => {
 })
 ```
 
-Lastly, run `anchor test` and you should see the following output in the console.
+Врешті-решт, виконайте команду `anchor test`, і ви повинні побачити такий вивід у консолі.
 
 ```console
   anchor-movie-review-program
@@ -633,23 +633,24 @@ Lastly, run `anchor test` and you should see the following output in the console
   3 passing (950ms)
 ```
 
-If you need more time with this project to feel comfortable with these concepts, feel free to have a look at the [solution code](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-pdas) before continuing.
+Якщо вам потрібно більше часу, щоб зрозуміти ці концепції, не соромтеся переглянути [код рішення](https://github.com/Unboxed-Software/anchor-movie-review-program/tree/solution-pdas) перед продовженням.
 
-# Challenge
+# Виклик
 
-Now it’s your turn to build something independently. Equipped with the concepts introduced in this lesson, try to recreate the Student Intro program that we've used before using the Anchor framework.
+Тепер ваша черга створити щось самостійно. Озброєні концепціями, введеними у цьому уроці, спробуйте відтворити програму "Student Intro", яку ми використовували раніше, використовуючи фреймворк Anchor.
 
-The Student Intro program is a Solana Program that lets students introduce themselves. The program takes a user's name and a short message as the instruction data and creates an account to store the data on-chain.
+Програма "Student Intro" - це програма Solana, яка дозволяє студентам представити себе. Програма приймає ім'я користувача та коротке повідомлення як дані інструкції та створює обліковий запис для зберігання цих даних ончейн.
 
-Using what you've learned in this lesson, build out this program. The program should include instructions to:
+Використовуючи те, що ви вивчили в цьому уроці, розширте цю програму. Програма повинна містити інструкції для:
 
-1. Initialize a PDA account for each student that stores the student's name and their short message
-2. Update the message on an existing account
-3. Close an existing account
-
-Try to do this independently if you can! But if you get stuck, feel free to reference the [solution code](https://github.com/Unboxed-Software/anchor-student-intro-program).
+1. Ініціалізації облікового запису PDA для кожного студента, який зберігає ім'я студента та їх коротке повідомлення.
+2. Оновлення повідомлення на існуючому обліковому записі.
+3. Закриття існуючого облікового запису.
 
 
-## Completed the lab?
+Спробуйте зробити це самостійно, якщо можете! Але якщо ви застрягнете, не соромтеся посилатися на [код рішення](https://github.com/Unboxed-Software/anchor-student-intro-program).
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=f58108e9-94a0-45b2-b0d5-44ada1909105)!
+
+## Завершили лабораторну? 
+
+Завантажте свій код на GitHub і [розкажіть нам, що ви думали про цей урок.](https://form.typeform.com/to/IPH0UGz7#answers-lesson=f58108e9-94a0-45b2-b0d5-44ada1909105)!
