@@ -191,19 +191,19 @@ const instruction = SystemProgram.nonceAuthorize({
 });
 ```
 
-## How to use the durable nonces
+## Як використовувати durable nonces  
 
-Now that we learned about the nonce account and its different operations, let's talk about how to use it. 
+Тепер, коли ми розглянули нонс-акаунти і різні операції з ним, поговоримо про те, як їх використовувати.  
 
-We'll discuss:
+Ми обговоримо:  
 
-1. Fetching the nonce account
-2. Using the nonce in the transaction to make a durable transaction.
-3. Submitting a durable transaction.
+1. Отримання нонс-акаунту.  
+2. Використання nonce у транзакції для створення довготривалої транзакції.  
+3. Відправка довготривалої транзакції.  
 
-### Fetching the nonce account
+### Отримання нонс-акаунту  
 
-We can fetch the nonce account to get the nonce value by fetching the account and serializing it:
+Ми можемо отримати дані нонс-акаунту, щоб дізнатися поточне значення nonce, запросивши інформацію про акаунт і перетворивши її у зручний для роботи формат:  
 
 ```ts
 const nonceAccount = await connection.getAccountInfo(nonceKeypair.publicKey);
@@ -211,16 +211,15 @@ const nonceAccount = await connection.getAccountInfo(nonceKeypair.publicKey);
 const nonce = NonceAccount.fromAccountData(nonceAccount.data); 
 ```
 
-### Using the nonce in the transaction to make a durable transaction
+### Використання nonce у транзакції для створення довговічної транзакції  
 
-To build a fully functioning durable transaction, we need the following:
+Щоб створити повноцінну довговічну транзакцію, необхідно виконати такі дії:  
 
-1. Use the nonce value in replacement of the recent blockhash.
-2. Add the nonceAdvance instruction as the first instruction in the transaction.
-3. Sign the transaction with the authority of the nonce account.
+1. Використати значення nonce замість останнього blockhash.  
+2. Додати інструкцію `nonceAdvance` як першу інструкцію в транзакції.  
+3. Підписати транзакцію уповноваженим ключем нонс-акаунту.  
 
-After building and signing the transaction we can serialize it and encode it into a base58 string, and we can save this string in some store to submit it later.
-
+Після створення та підписання транзакції її можна серіалізувати й закодувати у формат Base58-строки. Цей рядок можна зберегти у сховищі для подальшого надсилання.
 ```ts
   // Assemble the durable transaction
   const durableTx = new Transaction();
@@ -254,38 +253,39 @@ After building and signing the transaction we can serialize it and encode it int
   const serializedTx = base58.encode(durableTx.serialize({ requireAllSignatures: false }));
 ```
 
-### submitting a durable transaction:
+### відправлення довготривалої транзакції:  
 
-Now that we have a base58 encoded transaction, we can decode it and submit it:
+Тепер, коли у нас є транзакція, закодована у форматі base58, ми можемо її декодувати та відправити.
 
 ```ts
 const tx = base58.decode(serializedTx);
 const sig = await sendAndConfirmRawTransaction(connection, tx as Buffer);
 ```
 
-## Some important edge cases
+## Деякі важливі нетипові ситуації
 
-There are a few things that you need to consider when dealing with durable transactions:
-1. If the transaction fails due to an instruction other than the nonce advanced instruction.
-2. If the transaction fails due to the nonce advanced instruction.
+Є кілька моментів, які потрібно враховувати при роботі з довготривалими транзакціями:
 
-### If the transaction fails due to an instruction other than the nonce advanced instruction
+1. Якщо транзакція не вдається через інструкцію, відмінну від інструкції `nonce advance`.
+2. Якщо транзакція не вдається через інструкцію `nonce advance`.
+   
+### Якщо транзакція не вдається через інструкцію, відмінну від інструкції `nonce advance`
 
-In the normal case of failing transactions, the known behavior is that all the instructions in the transaction will get reverted to the original state. But in the case of a durable transaction, if any instruction fails that is not the advance nonce instruction, the nonce will still get advanced and all other instructions will get reverted. This feature is designed for security purposes, ensuring that once a user signs a transaction, if it fails, it cannot be used again.
+Зазвичай, коли транзакція не проходить, всі інструкції в транзакції повертаються до початкового стану. Але у випадку тривалої транзакції, якщо яка-небудь інструкція не вдається і це не інструкція `nonce advance`, сам nonce все одно буде оновлений, а всі інші інструкції будуть скасовані. Ця функція розроблена для безпеки, щоб гарантувати, що після невдалої транзакції її не вийде використати повторно.
 
-Presigned, never expiring, durable transactions are like signed paychecks. They can be dangerous in the right scenarios. This extra safety feature effectively "voids" the paycheck if handled incorrectly.
+Попередньо підписані, без терміну придатності, тривалі транзакції подібні до підписаних чеків. Вони можуть бути небезпечними в певних ситуаціях. Ця додаткова функція безпеки фактично "анулює" чек, якщо з ним неправильно поводитися.
 
-### If the transaction fails due to the nonce advanced instruction
+### Якщо транзакція не вдається через інструкцію `nonce advance`
 
-If a transaction fails because of the advance instruction, the entire transaction is reverted, meaning the nonce does not advance.
+Якщо транзакція не виконується через інструкцію `nonce advance`, то вся транзакція буде скасована. Це означає, що nonce не буде оновлений.
 
-# Lab
+# Лабораторна робота
 
-In this lab, we'll learn how to create a durable transaction. We'll focus on what you can and can't do with it. Additionally, we'll discuss some edge cases and how to handle them.
+У цій лабораторній роботі ми навчимося створювати довготривалу транзакцію. Ми зосередимося на тому, що можна і що не можна робити з нею. Окрім цього, розглянемо деякі крайні випадки та способи їх обробки.
 
-## 0. Getting started
+## 0. Почнемо
 
-Let's go ahead and clone our starter code
+Спершу склонуємо початковий код
 
 ```bash
 git clone https://github.com/Unboxed-Software/solana-lab-durable-nonces
@@ -294,39 +294,43 @@ git checkout starter
 npm install
 ```
 
-In the starter code you will find a file inside `test/index.ts`, with a testing skeleton, we'll write all of our code here.
+У початковому коді ви знайдете файл у `test/index.ts` з тестовим шаблоном. Увесь наш код будемо писати саме тут.
 
-We're going to use the local validator for this lab. However, feel free to use devnet if you'd like. ( If you have issues airdropping on devnet, check out [Solana's Faucet](https://faucet.solana.com/) )
+Ми будемо використовувати локального валідатора для цієї лабораторної роботи. Однак, якщо бажаєте, можете використовувати devnet. (Якщо виникають проблеми з отриманням токенів через airdrop на devnet, скористайтеся [Solana Faucet](https://faucet.solana.com/)).
 
-To run the local validator, you'll need to have it installed, if you don't you can refer to [installing the Solana CLI](https://docs.solanalabs.com/cli/install), once you install the CLI you'll have access to the `solana-test-validator`.
+Щоб запустити локального валідатора, вам потрібно його встановити. Якщо він ще не встановлений, зверніться до [інструкції з встановлення Solana CLI](https://docs.solanalabs.com/cli/install). Після встановлення CLI у вас з'явиться доступ до `solana-test-validator`.
 
-In a separate terminal run:
+У окремому терміналі запустіть команду:
+
 ```bash
 solana-test-validator
 ```
 
-In `test/index.ts` you'll see five tests, these will help us understand durable nonces better.
+У файлі `test/index.ts` ви побачите п’ять тестів, які допоможуть нам краще зрозуміти роботу тривалих nonce-значень.  
 
-We'll discuss each test case in depth.
+Ми детально розглянемо кожен із тестових випадків.
 
-## 1. Create the nonce account
+## 1. Створення nonce-акаунту
 
-Before we write any tests, let's create a helper function above the `describe` block, called `createNonceAccount`. 
+Перш ніж писати будь-які тести, створимо допоміжну функцію під назвою `createNonceAccount`. Цю функцію розмістимо перед блоком `describe`.  
 
-It will take the following parameters:
-- `Connection`: Connection to use
-- `payer`: The payer
-- `nonceKeypair`: The nonce keypair
-- `authority`: Authority over the nonce
+Функція прийматиме такі параметри:
+- `Connection`: з’єднання, яке буде використовуватися.
+- `payer`: платник.
+- `nonceKeypair`: пара ключів nonce.
+- `authority`: обліковий запис, який матиме право керування nonce.
 
-It will:
-1. Assemble and submit a transaction that will:
-   1. Allocate the account that will be the nonce account.
-   2. Initialize the nonce account using the `SystemProgram.nonceInitialize` instruction.
-2. Fetch the nonce account.
-3. Serialize the nonce account data and return it.
+Ця функція допоможе нам створити nonce-акаунт для подальшого використання в тестах.
 
-Paste the following somewhere above the `describe` block.
+Вона буде виконувати наступне:
+
+1. Збирати та відправляти транзакцію, яка:
+   1. Визначить акаунт, що стане nonce-акаунтом.
+   2. Ініціалізує nonce-акаунт за допомогою інструкції `SystemProgram.nonceInitialize`.
+2. Отримає дані nonce-акаунту.
+3. Серіалізує дані nonce-акаунту та поверне їх.
+
+Вставте наступний код десь вище блоку `describe`.
 ```ts
 async function createNonceAccount(
   connection: Connection,
@@ -364,24 +368,25 @@ async function createNonceAccount(
 };
 ```
 
-## 2. Test: Create and submit a durable transaction
+## 2. Тест: Створення та відправка тривалої транзакції
 
-To create and submit a durable transaction we must follow these steps:
+Щоб створити та відправити тривалу транзакцію, потрібно виконати такі кроки:
 
-1. Create a Durable Transaction.
-  1. Create the nonce account.
-  2. Create a new transaction.
-  3. Set the `recentBlockhash` to be the nonce value.
-  4. Add the `nonceAdvance` instruction as the first instruction in the transaction.
-  5. Add the transfer instruction (you can add any instruction you want here).
-  6. Sign the transaction with the keypairs that need to sign it, and make sure to add the nonce authority as a signer as well.
-  7. Serialize the transaction and encode it.
-  8. At this point you have a durable transaction, you can store it in a database or a file or send it somewhere else, etc.
-2. Submit the durable transaction.
-  1. Decode the serialized transaction.
-  2. Submit it using the `sendAndConfirmRawTransaction` function.
+1. **Створення тривалої транзакції:**
+   1. Створити нонс-акаунту.
+   2. Створити нову транзакцію.
+   3. Встановити `recentBlockhash` як значення nonce.
+   4. Додати інструкцію `nonceAdvance` як першу інструкцію в транзакції.
+   5. Додати інструкцію переказу (можна додати будь-яку інструкцію на ваш розсуд).
+   6. Підпишіть транзакцію за допомогою пар ключів, які повинні її підписати, і не забудьте також додати уповноважений нонс як підписанта.
+   7. Серіалізувати транзакцію та закодувати її.
+   8. На цьому етапі у вас є тривала транзакція, яку можна зберегти у базі даних, файлі або відправити в інше місце.
 
-We can put all of this together in our first test:
+2. **Відправка тривалої транзакції:**
+   1. Декодувати серіалізовану транзакцію.
+   2. Відправити її за допомогою функції `sendAndConfirmRawTransaction`.
+      
+Ми можемо зібрати все це разом у нашому першому тесті:
 ```ts
 it('Creates a durable transaction and submits it', async () => {
   const payer = await initializeKeypair(connection, {
@@ -444,15 +449,15 @@ it('Creates a durable transaction and submits it', async () => {
 });
 ```
 
-## 3. Test: Transaction fails if the nonce has advanced
+## Тест 3: Транзакція не виконується, якщо nonce було змінено
 
-Because we are using the nonce in place of the recent blockhash, the system will check to ensure that the nonce we provided matches the nonce in the `nonce_account`. Additionally with each transaction, we need to add the `nonceAdvance` instruction as the first instruction. This ensures that if the transaction goes through, the nonce will change, and no one will be able to submit it twice.
+Оскільки ми використовуємо nonce замість останнього blockhash, система перевірятиме, чи відповідає наданий нами nonce значенню в `nonce_account`. Крім того, у кожній транзакції потрібно додавати інструкцію `nonceAdvance` як першу. Це гарантує, що після успішного виконання транзакції nonce зміниться, і ніхто не зможе повторно її надіслати.
 
-Here is what we'll test:
-1. Create a durable transaction just like in the previous step.
-2. Advance the nonce.
-3. Try to submit the transaction, and it should fail.
-
+Ось що ми протестуємо:
+1. Створимо durable-транзакцію, як у попередньому кроці.
+2. Змусимо nonce змінитися (використаємо `nonceAdvance`).
+3. Спробуємо надіслати транзакцію — вона має завершитися помилкою.
+   
 ```ts
 it('Fails if the nonce has advanced', async () => {
   const payer = await initializeKeypair(connection, {
@@ -517,11 +522,11 @@ it('Fails if the nonce has advanced', async () => {
 });
 ```
 
-## 4. Test: Nonce account advances even if the transaction fails
+## Тест 4: Нонс-акаунт змінюється, навіть якщо транзакція не вдалася
 
-An important edge case to be aware of is that even if a transaction fails for any reason other than the nonce advance instruction, the nonce will still advance. This feature is designed for security purposes, ensuring that once a user signs a transaction and it fails, that durable transaction cannot be used again.
+Важливим нетиповим випадком, який варто врахувати, є те, що навіть якщо транзакція не вдалася з будь-якої причини, окрім інструкції зміни nonce, сам nonce все одно зміниться. Ця функція розроблена з метою безпеки, щоб гарантувати, що після підписання транзакції користувачем, навіть якщо вона не виконується, ця durable транзакція більше не може бути використана.
 
-The following code demonstrates this use case. We'll attempt to create a durable transaction to transfer 50 SOL from the payer to the recipient. However, the payer doesn't have enough SOL for the transfer, so the transaction will fail, but the nonce will still advance.
+Наступний код демонструє цей випадок. Ми спробуємо створити durable транзакцію для переведення 50 SOL від платника до одержувача. Однак у платника недостатньо SOL для виконання переказу, тому транзакція не вдасться, але nonce все одно зміниться.
 
 ```ts
 it('Advances the nonce account even if the transaction fails', async () => {
@@ -597,17 +602,17 @@ it('Advances the nonce account even if the transaction fails', async () => {
 });
 ```
 
-Notice that we are setting `skipPreflight: true` in the `sendAndConfirmRawTransaction` function. This step is crucial because, without it, the transaction would never reach the network. Instead, the library would reject it and throw an error, leading to a failure where the nonce does not advance.
+Зверніть увагу, що ми встановлюємо параметр `skipPreflight: true` у функції `sendAndConfirmRawTransaction`. Цей крок дуже важливий, оскільки без нього транзакція ніколи не досягне мережі. Натомість бібліотека відхилить її та викине помилку, що призведе до того, що nonce не зміниться.
 
-However, this is not the whole story. In the upcoming test case, we'll discover a scenario where even if the transaction fails, the nonce will not advance.
+Однак це не вся історія. У наступному тесті ми побачимо сценарій, коли навіть якщо транзакція не вдалася, nonce не зміниться.
 
-## 5. Test: Nonce account will not advance if the transaction fails because of the nonce advance instruction
+## 5. Тест: Нонс-акаунт не зміниться, якщо транзакція не вдалася через інструкцію зміни nonce
 
-For the nonce to advance, the `advanceNonce` instruction must succeed. Thus, if the transaction fails for any reason related to this instruction, the nonce will not advance.
+Для того, щоб nonce змінився, інструкція `nonceAdvance` повинна бути виконана успішно. Тому якщо транзакція не вдалася з будь-якої причини, пов'язаної з цією інструкцією, nonce не зміниться.
 
-A well-formatted `nonceAdvance` instruction will only ever fail if the nonce authority did not sign the transaction.
+Правильно сформульована інструкція `nonceAdvance` може не спрацювати тільки в тому випадку, якщо уповноважений на зміну nonce не підписав транзакцію.
 
-Let's see this in action.
+Давайте подивимося на це в дії.
 
 ```ts
 it('The nonce account will not advance if the transaction fails because the nonce auth did not sign the transaction', async () => {
@@ -671,9 +676,9 @@ it('The nonce account will not advance if the transaction fails because the nonc
 });
 ```
 
-## 6. Test sign transaction and then change nonce authority
+## 6. Тест: Підписати транзакцію, а потім змінити уповноваження для nonce
 
-The last test case we'll go over is creating a durable transaction. Try to send it with the wrong nonce authority (it will fail). Change the nonce authority and send it with the correct one this time and it will succeed.
+Останній тест, який ми розглянемо, полягає в створенні тривалої транзакції. Спробуйте надіслати її з неправильним уповноваженням nonce (це призведе до помилки). Потім змініть уповноваженя nonce і надішліть транзакцію з правильним — вона буде успішною.
 
 ```ts
 it('Submits after changing the nonce auth to an already signed address', async () => {
@@ -768,17 +773,17 @@ it('Submits after changing the nonce auth to an already signed address', async (
 });
 ```
 
-## 8. Run the tests
+## 8. Запустіть тести
 
-Finally, let's run the tests:
+Нарешті, давайте запустимо тести:
 ```bash
 npm start
 ```
 
-Make sure they are all passing. 
+Переконайтесь, що всі тести проходять успішно.
 
-And congratulations! You now know how durable nonces work!
+Вітаємо! Тепер ви знаєте, як працюють тривалі (durable) nonce.
 
-# Challenge
+# Завдання
 
-Write a program that creates a durable transaction and saves it to a file, then create a separate program that reads the durable transaction file and sends it to the network.
+Напишіть програму, яка створює тривалу транзакцію та зберігає її у файл, а потім створіть окрему програму, яка читає файл з цією тривалою транзакцією та відправляє її в мережу.
