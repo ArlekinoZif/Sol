@@ -149,9 +149,7 @@ pub mod my_program {
 }
 ```
 
-In this example, the `test_function` uses the `cfg!` macro to check the value of the `local-testing` feature at runtime. If the `local-testing` feature is enabled, the first code path is executed. If the `local-testing` feature is not enabled, the second code path is executed instead.
-
-Зрозуміло! Ось оновлений переклад з урахуванням вашого уточнення:
+У цьому прикладі функція `test_function` використовує макрос `cfg!` для перевірки значення функції `local-testing` під час виконання програми. Якщо функція `local-testing` увімкнена, виконується перший шлях коду. Якщо функція `local-testing` не увімкнена, виконується другий шлях коду.
 
 ## Інструкції лише для адміністраторів
 
@@ -159,18 +157,19 @@ In this example, the `test_function` uses the `cfg!` macro to check the value of
 
 Наприклад, якщо ваша програма для стейкінгу NFT повинна змінити токен винагороди, не буде можливості оновити програму без повторного розгортання. Якби тільки був спосіб для адміністраторів програми оновлювати певні значення... О, це можливо!
 
-По-перше, вам потрібно структурувати програму так, щоб значення, які ви очікуєте змінити, зберігалися в акаунті, а не були жорстко закодовані в коді програми.
+По-перше, вам потрібно структурувати програму так, щоб значення, які ви плануєте змінити, зберігалися в акаунті, а не були жорстко закодовані в коді програми.
 
-Далі потрібно забезпечити, щоб цей акаунт міг оновлювати лише відомий **уповноважений акаунт** програми або, як ми його називаємо, адміністратор. Це означає, що будь-які інструкції, що змінюють дані в цьому акаунті, повинні мати обмеження, що визначають, хто може підписувати інструкцію. Це звучить досить просто в теорії, але є одна основна проблема: як програма визначить, хто є авторизованим адміністратором?
-There are a few solutions, each with their benefits and drawbacks:
+Далі потрібно забезпечити, щоб цей акаунт міг оновлювати лише відомий уповноважений акаунт програми або, як ми його називаємо, адміністратор. Це означає, що будь-які інструкції, що змінюють дані в цьому акаунті, повинні мати обмеження, що визначають, хто може підписувати інструкцію. Це звучить досить просто в теорії, але є одна основна проблема: як програма визначить, хто є авторизованим адміністратором?
 
-1. Hard-code an admin public key that can be used in the admin-only instruction constraints.
-2. Make the program's upgrade authority the admin.
-3. Store the admin in the config account and set the first admin in an `initialize` instruction.
+Є кілька рішень, кожне з яких має свої переваги та недоліки:  
 
-### Create the config account
+1. Жорстко закодувати публічний ключ адміністратора, який можна використовувати в обмеженнях інструкцій лише для адміністраторів.  
+2. Зробити уповноважений акаунт програми адміністратором.  
+3. Зберігати адміністратора в config-акаунті та встановлювати першого адміністратора за допомогою інструкції `initialize`.  
 
-The first step is adding what we'll call a "config" account to your program. You can customize this to suit your needs, but we suggest a single global PDA. In Anchor, that simply means creating an account struct and using a single seed to derive the account's address.
+### Створення config-акаунта
+
+Перший крок — додати до вашої програми те, що ми називаємо "config" акаунтом. Ви можете налаштувати його відповідно до ваших потреб, але ми пропонуємо використовувати єдиний глобальний PDA. У Anchor це просто означає створення структури акаунта та використання одного seed для визначення адреси акаунта.
 
 ```rust
 pub const SEED_PROGRAM_CONFIG: &[u8] = b"program_config";
@@ -182,15 +181,15 @@ pub struct ProgramConfig {
 }
 ```
 
-The example above shows a hypothetical config account for the NFT staking program example we've referenced throughout the lesson. It stores data representing the token that should be used for rewards and the amount of tokens to give out for each day of staking.
+У наведеному прикладі показано гіпотетичний config-акаунт для програми стейкінгу NFT, про яку йшлося протягом уроку. Він зберігає дані, що представляють токен, який слід використовувати для винагород, і кількість токенів, що видаються за кожен день стейкінгу.
 
-With the config account defined, ensure that the rest of your code references this account when using these values. That way, if the data in the account changes, the program adapts accordingly.
+Після визначення config-акаунта переконайтеся, що решта вашого коду посилається на цей акаунт під час використання цих значень. Таким чином, якщо дані в акаунті зміняться, програма адаптується відповідно.
 
-### Constrain config updates to hard-coded admins
+### Обмежити оновлення config-акаунта лише для жорстко закодованих адміністраторів
 
-You'll need a way to initialize and update the config account data. That means you need to have one or more instructions that only an admin can invoke. The simplest way to do this is to hard-code an admin's public key in your code. You can then add a simple signer check into your instruction's account validation that compares the signer to this public key.
+Вам потрібен спосіб ініціалізувати та оновлювати дані config-акаунта. Це означає, що потрібно створити одну або кілька інструкцій, які може викликати лише адміністратор. Найпростіший спосіб реалізувати це — жорстко закодувати публічний ключ адміністратора у вашому коді. Ви можете додати просту перевірку підписанта в інструкцію, яка порівнює підписанта з цим публічним ключем під час перевірки акаунта.
 
-In Anchor, constraining an `update_program_config` instruction to only be usable by a hard-coded admin might look like this:
+У Anchor обмеження інструкції `update_program_config` для використання лише жорстко закодованим адміністратором може виглядати так:
 
 ```rust
 #[program]
@@ -221,22 +220,22 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-Before instruction logic even executes, a check will be performed to make sure the instruction's signer matches the hard-coded `ADMIN_PUBKEY`. Notice that the example above doesn't show the instruction that initializes the config account, but it should have similar constraints to ensure that an attacker can't initialize the account with unexpected values.
+Перед виконанням логіки інструкції буде виконана перевірка, щоб переконатися, що підписант інструкції збігається з жорстко закодованим `ADMIN_PUBKEY`. Зверніть увагу, що в наведеному прикладі не показано інструкцію, яка ініціалізує config-акаунт, але вона повинна мати подібні обмеження, щоб запобігти тому, щоб зловмисник ініціалізував акаунт з непередбачуваними значеннями.
 
-While this approach works, it also means keeping track of an admin wallet on top of keeping track of a program's upgrade authority. With a few more lines of code, you could simply restrict an instruction to only be callable by the upgrade authority. The only tricky part is getting a program's upgrade authority to compare against.
+Хоча цей підхід працює, він вимагає відстеження гаманця адміністратора, а також гаманця для уповноваженого акаунта програми. З кількома додатковими рядками коду ви могли б просто обмежити інструкцію так, щоб її міг викликати тільки уповноважений акаунт програми. Єдина складність — отримати значення уповноваженого акаунта для порівняння.
 
-### Constrain config updates to the program's upgrade authority
+### Обмежити оновлення config-акаунта уповноваженим акаунтом програми
 
-Fortunately, every program has a program data account that translates to the Anchor `ProgramData` account type and has the `upgrade_authority_address` field. The program itself stores this account's address in its data in the field `programdata_address`.
+На щастя, кожна програма має акаунт даних програми, який відповідає типу акаунта `ProgramData` в Anchor і має поле `upgrade_authority_address`. Програма зберігає адресу цього акаунта у своїх даних у полі `programdata_address`.
 
-So, in addition to the two accounts required by the instruction in the hard-coded admin example, this instruction requires the `program` and the `program_data` accounts.
+Отже, окрім двох акаунтів, які потрібні для інструкції в прикладі з жорстко закодованим адміністратором, ця інструкція також вимагає акаунтів `program` та `program_data`.
 
-The accounts then need the following constraints:
+Ці акаунти повинні мати такі обмеження:
 
-1. A constraint on `program` ensuring that the provided `program_data` account matches the program's `programdata_address` field
-2. A constraint on the `program_data` account ensuring that the instruction's signer matches the `program_data` account's `upgrade_authority_address` field.
+1. Обмеження на `program`, забезпечує, щоб наданий акаунт `program_data` відповідав полю `programdata_address` .  
+2. Обмеження на акаунт `program_data`, забезпечує, щоб підписант інструкції відповідав полю `upgrade_authority_address` акаунта `program_data`.  
 
-When completed, that looks like this:
+Коли це завершено, виглядає ось так:  
 
 ```rust
 ...
@@ -253,13 +252,13 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-Again, the example above doesn't show the instruction that initializes the config account, but it should have the same constraints to ensure that an attacker can't initialize the account with unexpected values.
+Знову ж таки, в наведеному прикладі не показано інструкцію, яка ініціалізує config-акаунт, але вона повинна мати ті ж обмеження, щоб зловмисник не зміг ініціалізувати акаунт з непередбачуваними значеннями.
 
-If this is the first time you've heard about the program data account, it's worth reading through [this Notion doc](https://www.notion.so/29780c48794c47308d5f138074dd9838) about program deploys.
+Якщо ви вперше чуєте про акаунт даних програми, варто ознайомитися з [цією статтею на Notion](https://www.notion.so/29780c48794c47308d5f138074dd9838) про запуск програм.
 
-### Constrain config updates to a provided admin
+### Обмежити оновлення config-акаунта тільки для зазначеного адміністратора.
 
-Both of the previous options are fairly secure but also inflexible. What if you want to update the admin to be someone else? For that, you can store the admin on the config account.
+Обидва попередні варіанти досить безпечні, але також не гнучкі. Що робити, якщо ви хочете змінити адміністратора на іншого? Для цього можна зберігати адміністратора в config-акаунті.
 
 ```rust
 pub const SEED_PROGRAM_CONFIG: &[u8] = b"program_config";
@@ -272,7 +271,7 @@ pub struct ProgramConfig {
 }
 ```
 
-Then you can constrain your "update" instructions with a signer check matching against the config account's `admin` field.
+Тоді ви можете обмежити свої інструкції "update" перевіркою підписанта, який має співпадати з полем `admin` у config-акаунті.
 
 ```rust
 ...
@@ -288,63 +287,63 @@ pub struct UpdateProgramConfig<'info> {
 }
 ```
 
-There's one catch here: in the time between deploying a program and initializing the config account, _there is no admin_. This means that the instruction for initializing the config account can't be constrained to only allow admins as callers. That means it could be called by an attacker looking to set themselves as the admin.
+Є одна проблема: між запуском програми та ініціалізацією config-акаунта _немає адміністратора_. Це означає, що інструкція для ініціалізації config-акаунта не може бути обмежена тільки для виклику адміністраторами. Отже, зловмисник може викликати її, щоб встановити себе адміністратором.
 
-While this sounds bad, it really just means that you shouldn't treat your program as "initialized" until you've initialized the config account yourself and verified that the admin listed on the account is who you expect. If your deploy script deploys and then immediately calls `initialize`, it's very unlikely that an attacker is even aware of your program's existence, much less trying to make themselves the admin. If, by some crazy stroke of bad luck, someone "intercepts" your program, you can close the program with the upgrade authority and redeploy.
+Хоча це звучить погано, насправді це просто означає, що не слід вважати вашу програму "ініціалізованою", поки ви самі не ініціалізуєте config-акаунт і не перевірите, що адміністратор, вказаний на акаунті, є тим, кого ви очікуєте. Якщо ваш скрипт запуску виконує запуск і одразу ж викликає `initialize`, навряд чи зловмисник навіть знає про існування вашої програми, не кажучи вже про спроби стати адміністратором. Якщо, через якесь неймовірне нещастя, хтось "перехопить" вашу програму, ви можете закрити програму за допомогою уповноваженого акаунта і повторно її запускати.
 
-# Lab
+# Лабораторна робота
 
-Now, let's go ahead and try this out together. For this lab, we'll work with a simple program enabling USDC payments. The program collects a small fee to facilitate the transfer. Note that this is somewhat contrived since you can do direct transfers without an intermediary contract, but it simulates how some complex DeFi programs work.
+Тепер давайте спробуємо це разом. Для цієї лабораторної роботи ми будемо працювати з простою програмою для оплат через USDC. Програма стягує невелику комісію для здійснення переказу. Зверніть увагу, що це дещо штучний приклад, оскільки ви можете робити прямі перекази без посередницького контракту, але він імітує роботу деяких складних DeFi програм.
 
-We'll quickly learn while testing our program that it could benefit from the flexibility provided by an admin-controlled configuration account and some feature flags.
+Під час тестування нашої програми ми швидко зрозуміємо, що вона могла б виграти від гнучкості, яку надає config-акаунт, контрольований адміністратором, і деякі маркери функцій.
 
-### 1. Starter
+### 1. Початковий етап
 
-Download the starter code from the `starter` branch of [this repository](https://github.com/Unboxed-Software/solana-admin-instructions/tree/starter). The code contains a program with a single instruction and a single test in the `tests` directory.
+Завантажте початковий код з гілки `starter` цього [репозиторію](https://github.com/Unboxed-Software/solana-admin-instructions/tree/starter). Код містить програму з однією інструкцією та одним тестом в директорії `tests`.
 
-Let's quickly walk through how the program works.
+Швидко пройдемося по тому, як працює програма.
 
-The `lib.rs` file includes a constant for the USDC address and a single `payment` instruction. The `payment` instruction simply calls the `payment_handler` function in the `instructions/payment.rs` file where the instruction logic is contained.
+Файл `lib.rs` містить константу для адреси USDC і одну інструкцію `payment`. Інструкція `payment` просто викликає функцію `payment_handler` у файлі `instructions/payment.rs`, де міститься логіка інструкції.
 
-The `instructions/payment.rs` file contains both the `payment_handler` function as well as the `Payment` account validation struct representing the accounts required by the `payment` instruction. The `payment_handler` function calculates a 1% fee from the payment amount, transfers the fee to a designated token account, and transfers the remaining amount to the payment recipient.
+Файл `instructions/payment.rs` містить як функцію `payment_handler`, так і структуру підтвердження акаунтів `Payment`, яка представляє акаунти, необхідні для виконання інструкції `payment`. Функція `payment_handler` обчислює комісію 1% від суми платежу, переказує комісію на вказаний токен-акаунт і передає залишок суми отримувачу платежу.
 
-Finally, the `tests` directory has a single test file, `config.ts`, that simply invokes the `payment` instruction and asserts that the corresponding token account balances have been debited and credited accordingly.
+Нарешті, в директорії `tests` є один тестовий файл `config.ts`, який просто викликає інструкцію `payment` і перевіряє, чи були правильно дебетовані та зараховані баланси відповідних токен-акаунтів.
 
-Before we continue, take a few minutes to familiarize yourself with these files and their contents.
+Перед тим, як продовжити, витратьте кілька хвилин, щоб ознайомитися з цими файлами та їх вмістом.
 
-### 2. Run the existing test
+### 2. Запустіть існуючий тест
 
-Let's start by running the existing test.
+Давайте почнемо з запуску існуючого тесту.
 
-Ensure you use `yarn` or `npm install` to install the dependencies in the `package.json` file. Then, be sure to run `anchor keys list` to get the public key for your program printed to the console. This differs based on your local keypair, so you need to update `lib.rs` and `Anchor.toml` to use *your* key.
+Переконайтеся, що ви використовуєте `yarn` або `npm install` для встановлення залежностей з файлу `package.json`. Потім, обов'язково запустіть команду `anchor keys list`, щоб вивести публічний ключ вашої програми в консоль. Це залежить від вашої локальної пари ключів, тому вам потрібно оновити файли `lib.rs` і `Anchor.toml`, щоб використовувати *ваш* ключ.
 
-Finally, run `anchor test` to start the test. It should fail with the following output:
+Нарешті, запустіть команду `anchor test`, щоб почати тест. Тест має завершитися з помилкою і вивести наступний результат:
 
 ```
 Error: failed to send transaction: Transaction simulation failed: Error processing Instruction 0: incorrect program id for instruction
 ```
 
-This error is because we're attempting to use the mainnet USDC mint address (as hard-coded in the `lib.rs` file of the program), but that mint doesn't exist in the local environment. 
+Ця помилка виникає тому, що ми намагаємося використовувати мінт-адресу USDC в Mainnet (жорстко вказану в файлі `lib.rs` програми), але цей токен не існує в локальному середовищі.
 
-### 3. Adding a `local-testing` feature
+### 3. Додавання `local-testing`
 
-We need a mint we can use locally *and* hard-code into the program to fix this. Since the local environment is reset often during testing, you'll need to store a keypair that you can use to recreate the same mint address every time.
+Нам потрібен мінт-акаунт, який ми можемо використовувати в локальному середовищі *і* жорстко закодувати в програмі, щоб виправити цю проблему. Оскільки локальне середовище часто скидається під час тестування, вам потрібно зберігати пару ключів, яку ви можете використовувати для відновлення тієї ж адреси мінту щоразу.
 
-Additionally, you don't want to change the hard-coded address between local and mainnet builds since that could introduce human error (and is just annoying). So we'll create a `local-testing` feature that, when enabled, will make the program use our local mint but otherwise use the production USDC mint.
+Крім того, вам не варто змінювати жорстко закодовану адресу між Mainnet та локальним середовищами, оскільки це може призвести до людської помилки (та й це просто незручно). Тому ми створимо маркер `local-testing`, який при активації змусить програму використовувати наш локальний мінт-акаунт, а в іншому випадку використовувати мінт-акаунт USDC для продакшн.
 
-Generate a new keypair by running `solana-keygen grind`. Run the following command to generate a keypair with a public key that begins with "env".
+Згенеруйте нову пару ключів, використовуючи команду `solana-keygen grind`. Виконайте наступну команду, щоб створити пару ключів з публічним ключем, що починається з "env".
 
 ```
 solana-keygen grind --starts-with env:1
 ```
 
-Once a keypair is found, you should see an output similar to the following:
+Як тільки пара ключів буде знайдена, ви побачите результат, схожий на наступний:
 
 ```
 Wrote keypair to env9Y3szLdqMLU9rXpEGPqkjdvVn8YNHtxYNvCKXmHe.json
 ```
 
-The keypair is written to a file in your working directory. Now that we have a placeholder USDC address, let's modify the `lib.rs` file. Use the `cfg` attribute to define the `USDC_MINT_PUBKEY` constant depending on whether the `local-testing` feature is enabled or disabled. Remember to set the `USDC_MINT_PUBKEY` constant for `local-testing` with the one generated in the previous step rather than copying the one below.
+Пара ключів записується у файл у вашій робочій директорії. Тепер, коли у нас є мінт-адреса для USDC, давайте змінимо файл `lib.rs`. Використовуйте атрибут `cfg`, щоб визначити константу `USDC_MINT_PUBKEY` залежно від того, чи увімкнена, чи вимкнена функція `local-testing`. Пам'ятайте, що для `local-testing` необхідно встановити константу `USDC_MINT_PUBKEY` з тією, яку ви створили на попередньому кроці, а не копіювати ту, що наведена нижче.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -372,7 +371,7 @@ pub mod config {
 }
 ```
 
-Next, add the `local-testing` feature to the `Cargo.toml` file located in `/programs`.
+Далі додайте функцію `local-testing` до файлу `Cargo.toml`, що знаходиться в `/programs`.
 
 ```
 [features]
@@ -380,7 +379,7 @@ Next, add the `local-testing` feature to the `Cargo.toml` file located in `/prog
 local-testing = []
 ```
 
-Next, update the `config.ts` test file to create a mint using the generated keypair. Start by deleting the `mint` constant.
+Далі оновіть тестовий файл `config.ts`, щоб створити мінт за допомогою згенерованої пари ключів. Почніть із видалення константи `mint`.
 
 ```typescript
 const mint = new anchor.web3.PublicKey(
@@ -413,13 +412,13 @@ before(async () => {
 ...
 ```
 
-Lastly, run the test with the `local-testing` feature enabled.
+Нарешті, запустіть тест із увімкненою функцією `local-testing`.
 
 ```
 anchor test -- --features "local-testing"
 ```
 
-You should see the following output:
+Ви повинні побачити такий вивід:
 
 ```
 config
@@ -429,18 +428,18 @@ config
 1 passing (3s)
 ```
 
-Boom. Just like that, you've used features to run two different code paths for different environments.
+Бум. Ось так ви використали функції для запуску двох різних шляхів виконання коду для різних середовищ.
 
-### 4. Program Config
+### 4. Налаштування програми
 
-Features are great for setting different values at compilation, but what if you wanted to be able to dynamically update the fee percentage used by the program? Let's make that possible by creating a Program Config account that allows us to update the fee without upgrading the program.
+Функції чудово підходять для встановлення різних значень під час компіляції, але що робити, якщо ви хочете мати можливість динамічно оновлювати відсоток комісії, що використовується програмою? Давайте зробимо це можливим, створивши акаунт налаштувань програми (Program Config), який дозволить нам оновлювати комісію без необхідності оновлювати саму програму.
 
-To begin, let's first update the `lib.rs` file to:
+Щоб почати, спочатку оновимо файл `lib.rs`, виконавши такі дії:
 
-1. Include a `SEED_PROGRAM_CONFIG` constant, which will be used to generate the PDA for the program config account.
-2. Include an `ADMIN` constant, which will be used as a constraint when initializing the program config account. Run the `solana address` command to get your address to use as the constant's value.
-3. Include a `state` module that we'll implement shortly.
-4. Include the `initialize_program_config` and `update_program_config` instructions and calls to their "handlers," both of which we'll implement in another step.
+1. Додамо константу `SEED_PROGRAM_CONFIG`, яка буде використовуватися для створення PDA (Програмно визначеної адреси) для config-акаунта програми.
+2. Додамо константу `ADMIN`, яка буде використовуватися як обмеження під час ініціалізації config-акаунта програми. Використайте команду `solana address`, щоб отримати вашу адресу для використання як значення цієї константи.
+3. Додамо модуль `state`, який ми реалізуємо найближчим часом.
+4. Додамо інструкції `initialize_program_config` і `update_program_config` разом із викликами до їхніх "обробників" (handlers), які ми реалізуємо на наступних етапах.
 
 ```rust
 use anchor_lang::prelude::*;
@@ -485,11 +484,11 @@ pub mod config {
 }
 ```
 
-### 5. Program Config State
+### 5. Стан Program Config
 
-Next, let's define the structure for the `ProgramConfig` state. This account will store the admin, the token account where fees are sent, and the fee rate. We'll also specify the number of bytes required to store this structure.
+Тепер визначимо структуру для стану `ProgramConfig`. Цей акаунт буде зберігати адміністратора, токен-акаунт, куди відправляються комісії, і ставку комісії. Ми також визначимо кількість байтів, необхідних для зберігання цієї структури.
 
-Create a new file called `state.rs` in the `/src` directory and add the following code.
+Створіть новий файл під назвою `state.rs` у директорії `/src` і додайте такий код:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -506,13 +505,13 @@ impl ProgramConfig {
 }
 ```
 
-### 6. Add Initialize Program Config Account Instruction
+### 6. Додати інструкцію ініціалізації config-акаунта програми
 
-Now let's create the instruction logic for initializing the program config account. It should only be callable by a transaction signed by the `ADMIN` key and should set all the properties on the `ProgramConfig` account.
+Тепер створимо логіку інструкції для ініціалізації config-акаунта програми. Вона повинна викликатися лише транзакцією, підписаною ключем `ADMIN`, і має встановлювати всі властивості акаунта `ProgramConfig`.
 
-Create a folder called `program_config` at the path `/src/instructions/program_config`. This folder will store all instructions related to the program config account.
+Створіть папку під назвою `program_config` за шляхом `/src/instructions/program_config`. У цій папці будуть зберігатися всі інструкції, пов’язані з config-акаунтом програми.
 
-Within the `program_config` folder, create a file called `initialize_program_config.rs` and add the following code.
+У папці `program_config` створіть файл під назвою `initialize_program_config.rs` і додайте такий код:
 
 ```rust
 use crate::state::ProgramConfig;
@@ -541,11 +540,11 @@ pub fn initialize_program_config_handler(ctx: Context<InitializeProgramConfig>) 
 }
 ```
 
-### 7. Add Update Program Config Fee Instruction
+### 7. Додайте інструкцію, що дозволить змінювати комісію в Program Config 
 
-Next, implement the instruction logic for updating the config account. The instruction should require that the signer match the `admin` stored in the `program_config` account.
+Наступним кроком реалізуйте логіку інструкції для оновлення config-акаунта. Інструкція повинна вимагати, щоб підписант відповідав значенню `admin`, яке зберігається в config-акаунті програми.
 
-Within the `program_config` folder, create a file called `update_program_config.rs` and add the following code.
+У папці `program_config` створіть файл із назвою `update_program_config.rs` і додайте до нього наступний код.
 
 ```rust
 use crate::state::ProgramConfig;
@@ -580,9 +579,9 @@ pub fn update_program_config_handler(
 }
 ```
 
-### 8. Add mod.rs and update instructions.rs
+### 8. Додайте mod.rs та оновіть instructions.rs
 
-Next, let's expose the instruction handlers we created so that the call from `lib.rs` doesn't show an error. Start by adding a file `mod.rs` in the `program_config` folder. Add the code below to make the two modules, `initialize_program_config` and `update_program_config` accessible.
+Далі відкриємо доступ до обробників інструкцій, які ми створили, щоб виклик із lib.rs не спричиняв помилок. Почніть із додавання файлу `mod.rs` у папку `program_config`. Додайте наведений нижче код, щоб зробити два модулі, `initialize_program_config` та `update_program_config`, доступними.
 
 ```rust
 mod initialize_program_config;
@@ -592,7 +591,7 @@ mod update_program_config;
 pub use update_program_config::*;
 ```
 
-Now, update `instructions.rs` at the path `/src/instructions.rs`. Add the code below to make the two modules, `program_config` and `payment` accessible.
+Тепер оновіть файл `instructions.rs`, розташований за шляхом `/src/instructions.rs`. Додайте наведений нижче код, щоб зробити модулі `program_config` і `payment` доступними.
 
 ```rust
 mod program_config;
@@ -602,9 +601,9 @@ mod payment;
 pub use payment::*;
 ```
 
-### 9. Update Payment Instruction
+### 9. Оновлення інструкції оплати
 
-Lastly, let's update the payment instruction to check that the `fee_destination` account in the instruction matches the `fee_destination` stored in the program config account. Then update the instruction's fee calculation to be based on the `fee_basis_point` stored in the program config account.
+Останнім кроком давайте оновимо інструкцію оплати, щоб перевірити, чи збігається акаунт `fee_destination` в інструкції з акаунтом `fee_destination`, що зберігається в конфігураційному акаунті програми. Потім оновимо обчислення комісії в інструкції, щоб вона базувалась на значенні `fee_basis_point`, яке зберігається в config-акаунті програми.
 
 ```rust
 use crate::state::ProgramConfig;
@@ -681,9 +680,9 @@ pub fn payment_handler(ctx: Context<Payment>, amount: u64) -> Result<()> {
 }
 ```
 
-### 10. Test
+### 10. Тестування
 
-Now that we're done implementing our new program configuration struct and instructions, let's move on to testing our updated program. To begin, add the PDA for the program config account to the test file.
+Тепер, коли ми завершили впровадження нової структури конфігурації програми та інструкцій, перейдемо до тестування оновленої програми. Для початку додайте PDA для config-акаунту програми до тестового файлу.
 
 ```typescript
 describe("config", () => {
@@ -695,14 +694,14 @@ describe("config", () => {
 ...
 ```
 
-Next, update the test file with three more tests testing that:
+Далі оновіть тестовий файл, додавши три нові тести, які перевіряють:
 
-1. The program config account is initialized correctly
-2. The payment instruction is functioning as intended
-3. The config account can be updated successfully by the admin
-4. The config account cannot be updated by someone other than the admin
+1. Чи config-акаунт програми правильно ініціалізується.  
+2. Чи інструкція для платежів працює належним чином.  
+3. Чи може адміністратор успішно оновити config-акаунт.  
+4. Чи неможливо оновити config-акаунт кимось, хто не є адміністратором.  
 
-The first test initializes the program config account and verifies that the correct fee is set and that the correct admin is stored on the program config account.
+Перший тест ініціалізує config-акаунт програми та перевіряє, чи правильно встановлено комісію та чи коректно збережено адміністратора в config-акаунті програми.
 
 ```typescript
 it("Initialize Program Config Account", async () => {
@@ -731,7 +730,7 @@ it("Initialize Program Config Account", async () => {
 })
 ```
 
-The second test verifies that the payment instruction is working correctly, with the fee being sent to the fee destination and the remaining balance being transferred to the receiver. Here we update the existing test to include the `programConfig` account.
+Другий тест перевіряє, чи інструкція для платежів працює правильно: комісія відправляється на акаунт призначення комісії, а залишок переказується отримувачу. Тут ми оновлюємо наявний тест, щоб включити акаунт `programConfig`.
 
 ```typescript
 it("Payment completes successfully", async () => {
@@ -767,7 +766,7 @@ it("Payment completes successfully", async () => {
 })
 ```
 
-The third test attempts to update the fee on the program config account, which should be successful.
+Третій тест намагається оновити комісію в config-акаунті програми, і це має пройти успішно.
 
 ```typescript
 it("Update Program Config Account", async () => {
@@ -790,7 +789,7 @@ it("Update Program Config Account", async () => {
 })
 ```
 
-The fourth test tries to update the fee on the program config account, where the admin is not the one stored on the program config account, and this should fail.
+Четвертий тест намагається оновити комісію в config-акаунті програми, але адміністратор не є тим, хто збережений у config-акаунті програми, тому це має завершитися невдачею.
 
 ```typescript
 it("Update Program Config Account with unauthorized admin (expect fail)", async () => {
@@ -812,13 +811,13 @@ it("Update Program Config Account with unauthorized admin (expect fail)", async 
 })
 ```
 
-Finally, run the test using the following command:
+Нарешті, запустіть тест за допомогою наступної команди:
 
 ```
 anchor test -- --features "local-testing"
 ```
 
-You should see the following output:
+Ви повинні побачити наступний результат:
 
 ```
 config
@@ -830,15 +829,15 @@ config
 4 passing (8s)
 ```
 
-And that's it! You've made the program a lot easier to work with moving forward. If you want to take a look at the final solution code, you can find it on the `solution` branch of [the same repository](https://github.com/Unboxed-Software/solana-admin-instructions/tree/solution).
+І це все! Тепер програмою набагато простіше користуватися надалі. Якщо ви хочете переглянути остаточний код рішення, ви можете знайти його в гілці `solution` [того ж репозиторію](https://github.com/Unboxed-Software/solana-admin-instructions/tree/solution).
 
-# Challenge
+# Завдання
 
-Now, it's time for you to do some of this on your own. We mentioned being able to use the program's upgrade authority as the initial admin.  Go ahead and update the lab's `initialize_program_config` so that only the upgrade authority can call it rather than having a hardcoded `ADMIN`.
+Тепер настав час вам зробити це самостійно. Ми згадували, що можна використовувати уповноважений акаунт програми як початкового адміністратора. Спробуйте оновити `initialize_program_config` у лабораторній роботі, щоб лише уповноважений акаунт міг викликати її, замість використання жорстко закодованого `ADMIN`.
 
-Note that when run on a local network, the anchor test' command starts a new test validator using `solana-test-validator`. This test validator uses a non-upgradeable loader. The non-upgradeable loader makes it so the program's `program_data` account isn't initialized when the validator starts. You'll remember from the lesson that this account is how we can access the upgrade authority from the program.
+Зверніть увагу, що коли ви запускаєте команду `anchor test` на локальній мережі, вона ініціалізує новий тестовий валідатор за допомогою `solana-test-validator`. Цей тестовий валідатор використовує неоновлюваний завантажувач. Нееоновлюваний завантажувач означає, що акаунт `program_data` програми не ініціалізується при запуску валідатора. Ви пам'ятаєте з уроку, що цей акаунт дозволяє нам отримати доступ до уповноваженого акаунту програми.
 
-To work around this, you can add a `deploy` function to the test file that runs the deploy command for the program with an upgradeable loader. To use it, run `anchor test --skip-deploy` and call the `deploy` function within the test to run the deploy command after the test validator has started.
+Щоб обійти це, ви можете додати функцію `deploy` до тестового файлу, яка виконує команду розгортання програми за допомогою оновлюваного завантажувача. Для цього запустіть `anchor test --skip-deploy` і викликайте функцію `deploy` в тесті, щоб виконати команду розгортання після запуску тестового валідатора.
 
 ```typescript
 import { execSync } from "child_process"
@@ -858,15 +857,14 @@ before(async () => {
 })
 ```
 
-For example, the command to run the test with features would look like this:
+Наприклад, команда для запуску тесту з використанням features виглядатиме ось так:
 
 ```
 anchor test --skip-deploy -- --features "local-testing"
 ```
 
-Try doing this on your own, but if you get stuck, feel free to reference the `challenge` branch of [the same repository](https://github.com/Unboxed-Software/solana-admin-instructions/tree/challenge) to see one possible solution.
+Спробуй зробити це самостійно, але якщо виникнуть труднощі, не соромся звернутися до гілки `challenge` цього ж репозиторію: [the challenge branch](https://github.com/Unboxed-Software/solana-admin-instructions/tree/challenge), щоб побачити один із можливих варіантів рішення.
 
+## Завершили лабораторну роботу?
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=02a7dab7-d9c1-495b-928c-a4412006ec20)!
+Опублікуйте свій код на GitHub та [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=02a7dab7-d9c1-495b-928c-a4412006ec20)!
