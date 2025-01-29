@@ -1,124 +1,124 @@
 ---
-title: Generalized State Compression
-objectives:
-- Explain the logic flow behind Solana state compression
-- Explain the difference between a Merkle tree and a concurrent Merkle tree
-- Implement generic state compression in basic Solana programs
+заголовок: Generalized State Compression
+цілі:
+- Пояснити логіку стиснення стану в Solana  
+- Пояснити різницю між деревом Меркля та одночасним деревом Меркля  
+- Реалізувати загальне стиснення стану в базових програмах Solana
 ---
 
-# Summary
-- State Compression on Solana is most commonly used for compressed NFTs, but it's possible to use it for arbitrary data
-- State Compression lowers the amount of data you have to store onchain by leveraging Merkle trees.
-- Merkle trees store a single hash that represents an entire binary tree of hashes. Each leaf on a Merkle tree is a hash of that leaf's data.
-- Concurrent Merkle trees are a specialized version of Merkle trees that allow concurrent updates.
-- Because data in a state-compressed program is not stored onchain, you have to user indexers to keep an off-chain cache of the data and then verify that data against the onchain Merkle tree.
+# Підсумок
+- Стиснення стану на Solana найчастіше використовується для стиснених NFT, але його можна застосовувати і для довільних даних.
+- Стиснення стану зменшує обсяг даних, які потрібно зберігати ончейн, використовуючи дерева Меркля.
+- Дерева Меркля зберігають один хеш, що представляє ціле бінарне дерево хешів. Кожен лист дерева Меркля — це хеш даних цього листа.
+- Одночасні дерева Меркля — це спеціалізована версія дерев Меркля, що дозволяє виконувати одночасні оновлення.
+- Оскільки дані у програмі зі стисненим станом не зберігаються ончейн, вам потрібно використовувати індексатори для підтримки кешу даних офф-чейн, а потім перевіряти ці дані з ончейн-деревом Меркля.
 
-# Lesson
+# Урок
 
-Previously, we discussed state compression in the context of compressed NFTs. At the time of writing, compressed NFTs represent the most common use case for state compression, but it’s possible to use state compression within any program. In this lesson, we’ll discuss state compression in more generalized terms so that you can apply it to any of your programs.
+Раніше ми обговорювали стиснення стану в контексті стиснених NFT. На момент написання стиснуті NFT є найбільш поширеним випадком використання стиснення стану, але стиснення стану можна застосовувати в будь-якій програмі. У цьому уроці ми обговоримо стиснення стану в більш загальних термінах, щоб ви могли застосувати це до будь-якої з ваших програм.
 
-## A theoretical overview of state compression
+## Теоретичний огляд стиснення стану
 
-In traditional programs, data is serialized (typically using borsh) and then stored directly in an account. This allows the data to be easily read and written through Solana programs. You can “trust” the data stored in the accounts because it can’t be modified except through the mechanisms surfaced by the program.
+У традиційних програмах дані серіалізуються (зазвичай за допомогою borsh), а потім зберігаються безпосередньо в акаунті. Це дозволяє легко читати та записувати дані через програми Solana. Ви можете "довіряти" даним, що зберігаються в акаунтах, оскільки їх не можна змінити, окрім як через механізми, які надає програма.
 
-State compression effectively asserts that the most important piece of this equation is how “trustworthy” the data is. If all we care about is the ability to trust that data is what it claims to be, then we can actually get away with ***not*** storing the data in an account onchain. Instead, we can store hashes of the data where the hashes can be used to prove or verify the data. The data hash takes up significantly less storage space than the data itself. We can then store the actual data somewhere much cheaper and worry about verifying it against the onchain hash when the data is accessed.
+Стиснення стану фактично стверджує, що найважливішою частиною цього рівняння є те, наскільки "надійними" є дані. Якщо все, що нас цікавить, — це можливість довіряти тим даним, що вони справжні, то ми насправді можемо обійтися ***без*** зберігання даних в акаунті ончейн. Замість цього ми можемо зберігати хеші даних, які можна використовувати для доведення або перевірки цих даних. Хеш даних займає значно менше місця для зберігання, ніж самі дані. Потім ми можемо зберігати самі дані в набагато дешевшому місці та турбуватися про перевірку їх на відповідність хешу ончейн, коли дані будуть доступні.
 
-The specific data structure used by the Solana State Compression program is a special binary tree structure known as a **concurrent Merkle tree**. This tree structure hashes pieces of data together in a deterministic way to compute a single, final hash that gets stored onchain. This final hash is significantly smaller in size than all the original data combined, hence the “compression.” The steps to this process are:
+Структурою даних, яку використовує програма стиснення стану Solana, є спеціальна бінарна структура дерева, відома як **одночасне (concurrent) дерево Меркла**. Ця структура хешує частини даних разом у детермінований спосіб, щоб обчислити єдиний фінальний хеш, який зберігається ончейн. Цей фінальний хеш є значно меншим за розміром, ніж усі початкові дані разом, звідси й назва — "стиснення". Процес відбувається у таких кроках:
 
-1. Take any piece of data
-2. Create a hash of this data
-3. Store this hash as a “leaf” at the bottom of the tree
-4. Each leaf pair is then hashed together, creating a “branch”
-5. Each branch is then hashed together
-6. Continually climb the tree and hash adjacent branches together
-7. Once at the top of the tree, a final ”root hash” is produced
-8. Store the root hash onchain as verifiable proof of the data within each leaf
-9. Anyone wanting to verify that the data they have matches the “source of truth” can go through the same process and compare the final hash without having to store all the data onchain
+1. Візьміть будь-який фрагмент даних.  
+2. Створіть хеш для цих даних.  
+3. Збережіть цей хеш як “листок” у нижній частині дерева.  
+4. Кожну пару листків хешуйте разом, створюючи “гілку”.  
+5. Кожну пару гілок хешуйте разом.  
+6. Продовжуйте підніматися по дереву, хешуючи сусідні гілки разом.  
+7. Діставшись верхівки дерева, отримайте фінальний “кореневий хеш”.  
+8. Збережіть кореневий хеш ончейн як доказ, що підтверджує дані в кожному листку.  
+9. Кожен, хто хоче перевірити, чи відповідають його дані "джерелу істини", може пройти той самий процес і порівняти фінальний хеш, не зберігаючи всі дані ончейн.
 
-This involves a few rather serious development tradeoffs:
+Це включає кілька досить серйозних компромісів у розробці:
 
-1. Since the data is no longer stored in an account onchain, it is more difficult to access.
-2. Once the data has been accessed, developers must decide how often their applications will verify the data against the onchain hash.
-3. Any changes to the data will require sending the entirety of the previously hashed data *and* the new data into an instruction. Developer may also have to provide additional data relevant to the proofs required to verify the original data against the hash.
+1. Оскільки дані більше не зберігаються в ончейн, доступ до них стає складнішим.  
+2. Після отримання доступу до даних розробники повинні вирішити, як часто їхні програми перевірятимуть дані на відповідність хешу в блокчейні.  
+3. Будь-які зміни даних вимагатимуть надсилання всієї попередньо хешованої інформації *та* нових даних у виклик інструкції. Розробникам, можливо, також доведеться надати додаткові дані, необхідні для перевірки оригінальних даних на відповідність хешу.
 
-Each of these will be a consideration when determining **if**, **when**, and **how** to implement state compression for your program.
+Кожен із цих аспектів потрібно враховувати, визначаючи, **чи**, **коли** і **як** впроваджувати стиснення стану у вашу програму.
 
-### Concurrent Merkle trees
+### Одночасні дерева Меркла  
 
-A **Merkle tree** is a binary tree structure represented by a single hash. Every leaf node in the structure is a hash of its inner data while every branch is a hash of its child leaf hashes. In turn, branches are also hashed together until, eventually, one final root hash remains.
+**Дерево Меркла** — це бінарна структура дерева, яка представляється одним хешем. Кожен лист дерева є хешем своїх внутрішніх даних, а кожна гілка — це хеш хешів дочірніх листків. У свою чергу, гілки також хешуються разом, доки в результаті не залишається один фінальний кореневий хеш.
 
-Since the Merkle tree is represented as a single hash, any modification to leaf data changes the root hash. This causes an issue when multiple transactions in the same slot are attempting to modify leaf data. Since these transactions must execute in series, all but the first will fail since the root hash and proof passed in will have been invalidated by the first transaction to be executed. In other words, a standard Merkle tree can only modify a single leaf per slot. In a hypothetical state-compressed program that relies on a single Merkle tree for its state, this severely limits throughput.
+Оскільки дерево Меркла представляється одним хешем, будь-яка зміна даних листка змінює кореневий хеш. Це створює проблему, коли кілька транзакцій в одному слоті намагаються змінити дані листка. Оскільки ці транзакції повинні виконуватись послідовно, усі, окрім першої, завершаться невдачею, оскільки кореневий хеш і доказ, передані в транзакції, будуть анульовані першою транзакцією, яка виконається. Іншими словами, стандартне дерево Меркла може змінювати лише один листок за слот. У гіпотетичній програмі зі стисненим станом, яка покладається на одне дерево Меркла для свого стану, це суттєво обмежує пропускну здатність.
 
-This can be solved with a **concurrent Merkle tree**. A concurrent Merkle tree is a Merkle tree that stores a secure changelog of the most recent changes along with their root hash and the proof to derive it. When multiple transactions in the same slot try to modify leaf data, the changelog can be used as a source of truth to allow for concurrent changes to be made to the tree.
+Цю проблему можна вирішити за допомогою **одночасного дерева Меркла**. Одночасне дерево Меркла — це дерево Меркла, яке зберігає безпечний журнал змін із найновішими змінами разом із їхнім кореневим хешем і доказом для його отримання. Коли кілька транзакцій у тому самому слоті намагаються змінити дані листків, журнал змін можна використовувати як джерело істини, щоб дозволити одночасне внесення змін до дерева.
 
-In other words, while an account storing a Merkle tree would have only the root hash, a concurrent Merkle tree will also contain additional data that allows subsequent writes to successfully occur. This includes:
+Іншими словами, тоді як акаунт, який зберігає дерево Меркла, матиме лише кореневий хеш, одночасне дерево Меркла також міститиме додаткові дані, які дозволяють успішно виконувати наступні записи. Це включає:
 
-1. The root hash - The same root hash that a standard Merkle tree has.
-2. A changelog buffer - This buffer contains proof data pertinent to recent root hash changes so that subsequent writes in the same slot can still be successful.
-3. A canopy - When performing an update action on any given leaf, you need the entire proof path from that leaf to the root hash. The canopy stores intermediate proof nodes along that path so they don’t all have to be passed into the program from the client. 
+1. Кореневий хеш — такий самий кореневий хеш, який має стандартне дерево Меркла.  
+2. Буфер журналу змін — цей буфер містить дані доказів, що стосуються останніх змін кореневого хеша, щоб наступні записи в тому ж слоті могли бути успішними.  
+3. Навіс (canopy) — під час оновлення будь-якого листка необхідно мати весь ланцюжок доказів від цього листка до кореневого хеша. Навіс зберігає проміжні вузли цього ланцюжка, щоб їх не потрібно було щоразу передавати з клієнта в програму.
 
-As a program architect, you control three values directly related to these three items. Your choice determines the size of the tree, the cost to create the tree, and the number of concurrent changes that can be made to the tree:
+Як архітектор програми, ви керуєте трьома параметрами, які безпосередньо пов’язані з цими трьома елементами. Ваш вибір визначає розмір дерева, вартість його створення та кількість одночасних змін, які можна вносити до дерева:
 
-1. Max depth
-2. Max buffer size
-3. Canopy depth
+1. Максимальна глибина (Max depth)  
+2. Максимальний розмір буфера (Max buffer size)  
+3. Глибина навісу (Canopy depth)
 
-The **max depth** is the maximum number of hops to get from any leaf to the root of the tree. Since Merkle trees are binary trees, every leaf is connected only to one other leaf. Max depth can then logically be used to calculate the number of nodes for the tree with `2 ^ maxDepth`.
+**Максимальна глибина** (max depth) — це максимальна кількість кроків (перехід між вузлами), необхідних для переходу від будь-якого листка до кореня дерева. Оскільки дерева Меркла є бінарними деревами, кожен листок з’єднаний тільки з одним іншим листком. Тому максимальна глибина може логічно використовуватися для обчислення кількості вузлів (nodes) у дереві за допомогою формули `2 ^ maxDepth`.
 
-The **max buffer size** is effectively the maximum number of concurrent changes that you can make to a tree within a single slot with the root hash still being valid. When multiple transactions are submitted in the same slot, each of which is competing to update leafs on a standard Merkle tree, only the first to run will be valid. This is because that “write” operation will modify the hash stored in the account. Subsequent transactions in the same slot will be trying to validate their data against a now-outdated hash. A concurrent Merkle tree has a buffer so that the buffer can keep a running log of these modifications. This allows the State Compression Program to validate multiple data writes in the same slot because it can look up what the previous hashes were in the buffer and compare against the appropriate hash.
+**Максимальний розмір буфера** (max buffer size) — це фактично максимальна кількість одночасних змін, які можна внести до дерева в межах одного слота, зберігаючи при цьому кореневий хеш чинним. Коли кілька транзакцій подаються в одному слоті, і кожна з них намагається оновити листя в стандартному дереві Меркла, лише перша, яка виконується, буде чинною. Це тому, що операція "запису" змінює хеш, що зберігається в акаунті. Наступні транзакції в тому ж слоті намагатимуться перевірити свої дані проти тепер уже застарілого хешу. Одночасне дерево Меркла має буфер, який зберігає поточний журнал цих змін. Це дозволяє програмі зі стисненням стану перевіряти кілька записів даних в одному слоті, оскільки вона може звертатися до попередніх хешів у буфері та порівнювати їх з відповідними хешами.
 
-The **canopy depth** is the number of proof nodes that are stored onchain for any given proof path. Verifying any leaf requires the complete proof path for the tree. The complete proof path is made up of one proof node for every “layer” of the tree, i.e. a max depth of 14 means there are 14 proof nodes. Every proof node passed into the program adds 32 bytes to a transaction, so large trees would quickly exceed the maximum transaction size limit. Caching proof nodes onchain in the canopy helps improve program composability.
+**Глибина навісу** (canopy depth) — це кількість вузлів доказу, які зберігаються ончейн для будь-якого шляху доказу. Для перевірки будь-якого листка потрібен повний шлях доказу для дерева. Повний шлях доказу складається з одного вузла доказу для кожного “шару” дерева, тобто при максимальній глибині 14 буде 14 вузлів доказу. Кожен вузол доказу, що передається в програму, додає 32 байти до транзакції, тому для великих дерев швидко перевищується максимальний ліміт розміру транзакції. Кешування вузлів доказу в ончейн-навісі допомагає покращити сумісність програми.
 
-Each of these three values, max depth, max buffer size, and canopy depth, comes with a tradeoff. Increasing the value of any of these values increases the size of the account used to store the tree, thus increasing the cost of creating the tree.
+Кожне з трьох значень — максимальна глибина (max depth), максимальний розмір буфера (max buffer size) та глибина навісу (canopy depth) — має свої компроміси. Збільшення будь-якого з цих параметрів призводить до збільшення розміру акаунту, який використовується для зберігання дерева, а отже, збільшує вартість його створення.
 
-Choosing the max depth is fairly straightforward as it directly relates to the number of leafs and therefore the amount of data you can store. If you need 1 million cNFTs on a single tree where each cNFT is a leaf of the tree, find the max depth that makes the following expression true: `2^maxDepth > 1 million`. The answer is 20.
+Вибір максимальної глибини (max depth) досить простий, оскільки він безпосередньо пов'язаний із кількістю листків у дереві, тобто обсягом даних, які можна зберігати. Наприклад, якщо вам потрібно 1 мільйон cNFT на одному дереві, де кожен cNFT є листком дерева, вам слід знайти максимальну глибину, яка задовольняє вираз: `2^maxDepth > 1 мільйон`. Відповідь: 20.
 
-Choosing a max buffer size is effectively a question of throughput: how many concurrent writes do you need? The larger the buffer, the higher the throughput.
+Вибір максимального розміру буфера (max buffer size) фактично визначає пропускну здатність: скільки одночасних записів вам потрібно? Чим більший буфер, тим вища пропускна здатність.
 
-Lastly, the canopy depth will determine your program’s composability. State compression pioneers have made it clear that omitting a canopy is a bad idea. Program A can’t call your state-compressed program B if doing so maxes out the transaction size limits. Remember, program A also has required accounts and data in addition to required proof paths, each of which take up transaction space.
+Нарешті, глибина навісу (canopy depth) впливатиме на можливість інтеграції вашої програми з іншими. Піонери у сфері компресії стану чітко заявляють, що відсутність навісу — це погана ідея. Наприклад, програма A не зможе викликати вашу стиснену програму B, якщо це призведе до перевищення ліміту розміру транзакції. Не забувайте, що програма A також має свої необхідні акаунти та дані, окрім необхідних шляхів доказу, кожен із яких займає місце в транзакції.
 
-### Data access on a state-compressed program
+### Доступ до даних у програмі зі стисненням стану
 
-A state-compressed account doesn’t store the data itself. Rather, it stores the concurrent Merkle tree structure discussed above. The raw data itself lives only in the blockchain’s cheaper **ledger state.** This makes data access somewhat more difficult, but not impossible.
+Акаунт із стисненням стану не зберігає самі дані. Натомість він зберігає структуру одночасного дерева Меркла, про яку згадувалося раніше. Сирі дані зберігаються лише у дешевшому **стані реєстру** (ledger state) блокчейну. Це ускладнює доступ до даних, але не робить його неможливим.
 
-The Solana ledger is a list of entries containing signed transactions. In theory, this can be traced back to the genesis block. This effectively means any data that has ever been put into a transaction exists in the ledger.
+The Solana ledger — це список записів, які містять підписані транзакції. У теорії, це можна простежити до самого першого блоку (genesis block). Це фактично означає, що будь-які дані, які коли-небудь були передані у транзакціях, існують у журналі.
 
-Since the state compression hashing process occurs onchain, all the data exists in the ledger state and could theoretically be retrieved from the original transaction by replaying the entire chain state from the beginning. However, it’s much more straightforward (though still complicated) to have an **indexer** track and index this data as the transactions occur. This ensures there is an off-chain “cache” of the data that anyone can access and subsequently verify against the onchain root hash.
+Оскільки процес хешування під час стиснення стану відбувається ончейн, всі дані існують у стані реєстру і теоретично можуть бути отримані з оригінальної транзакції шляхом повторного програвання всього стану блокчейну від самого початку. Однак набагато простіше (хоча все ще складно) використовувати **індексатор**, який відстежує та індексує ці дані в міру виконання транзакцій. Це забезпечує наявність поза ланцюгом "кешу" даних, до якого кожен може отримати доступ і згодом верифікувати ці дані з ончейн кореневим хешем.
 
-This process is complex, but it will make sense after some practice.
+Цей процес є складним, але з практикою все стане зрозумілим.
 
-## State compression tooling
+## Інструменти для стиснення стану
 
-The theory described above is essential to properly understanding state compression. But you don’t have to implement any of it from scratch. Brilliant engineers have laid most of the groundwork for you in the form of the SPL State Compression Program and the Noop Program.
+Теорія, описана вище, є важливою для правильного розуміння стиснення стану. Однак вам не потрібно реалізовувати це з нуля. Видатні інженери вже зробили більшу частину роботи за вас у формі SPL State Compression Program та Noop Program.
 
-### SPL State Compression and Noop Programs
+### Програми SPL State Compression та Noop
 
-The SPL State Compression Program exists to make the process of creating and updating concurrent Merkle trees repeatable and composable throughout the Solana ecosystem. It provides instructions for initializing Merkle trees, managing tree leafs (i.e. add, update, remove data), and verifying leaf data.
+Програма SPL State Compression створена для того, щоб зробити процес створення та оновлення одночасних дерев Меркла повторюваним і сумісним у всій екосистемі Solana. Вона надає інструкції для ініціалізації дерев Меркла, управління листками дерев (тобто додавання, оновлення, видалення даних) та перевірки даних листків.
 
-The State Compression Program also leverages a separate “no op” program whose primary purpose is to make leaf data easier to index by logging it to the ledger state. When you want to store compressed data, you pass it to the State Compression program where it gets hashed and emitted as an “event” to the Noop program. The hash gets stored in the corresponding concurrent Merkle tree, but the raw data remains accessible through the Noop program’s transaction logs.
+Програма State Compression також використовує окрему програму «no op», основна мета якої — полегшити індексацію даних листків, записуючи їх у стан реєстру. Коли ви хочете зберігати стиснені дані, ви передаєте їх у програму State Compression, де вони хешуються і відправляються як «подія» до програми Noop. Хеш зберігається у відповідному одночасному дереві Меркла, але необроблені дані залишаються доступними через журнали транзакцій програми Noop.
 
-### Index data for easy lookup
+### Індексація даних для зручного пошуку
 
-Under normal conditions, you would typically access onchain data by fetching the appropriate account. When using state compression, however, it’s not so straightforward.
+За нормальних умов ви зазвичай отримуєте доступ до ончейн-даних, отримуючи відповідний акаунт. Однак при використанні стиснення стану це не так просто.
 
-As mentioned above, the data now exists in the ledger state rather than in an account. The easiest place to find the full data is in the logs of the Noop instruction. Unfortunately, while this data will in a sense exist in the ledger state forever, it will likely be inaccessible through validators after a certain period of time.
+Як згадувалося вище, дані тепер існують у стані реєстру, а не в акаунті. Найзручніше місце для пошуку повних даних — це логи інструкції Noop. На жаль, хоча ці дані певною мірою існуватимуть у стані реєстру назавжди, вони, ймовірно, стануть недоступними через валідатори після певного періоду часу.
 
-To save space and be more performant, validators don’t retain every transaction back to the genesis block. The specific amount of time you’ll be able to access the Noop instruction logs related to your data will vary based on the validator. Eventually, you’ll lose access to it if you’re relying directly on instruction logs.
+Щоб заощадити місце та забезпечити вищу продуктивність, валідатори не зберігають усі транзакції, починаючи з генезисного блоку. Конкретний період, протягом якого ви зможете отримати доступ до логів інструкцій Noop, пов’язаних із вашими даними, залежатиме від валідатора. Зрештою, ви втратите доступ до них, якщо будете покладатися безпосередньо на логи інструкцій.
 
-Technically, you *can* replay the transaction state back to the genesis block but the average team isn’t going to do that, and it certainly won’t be performant. The [Digital Asset Standard (DAS)](https://docs.helius.dev/compression-and-das-api/digital-asset-standard-das-api) has been adopted by many RPC providers to enable efficient queries of compressed NFTs and other assets. However, at the time of writing, it doesn’t support arbitrary state compression. Instead, you have two primary options:
+Технічно, ви *можете* відтворити стан транзакції, починаючи з генезисного блоку, але середньостатистична команда цього не робитиме, і це, безумовно, не буде ефективним. [Digital Asset Standard (DAS)](https://docs.helius.dev/compression-and-das-api/digital-asset-standard-das-api) був прийнятий багатьма постачальниками RPC для забезпечення ефективних запитів стислих NFT та інших активів. Однак на момент написання статті він не підтримує довільне стиснення стану. Натомість у вас є два основні варіанти:
 
-1. Use an indexing provider that will build a custom indexing solution for your program that observes the events sent to the Noop program and stores the relevant data off-chain.
-2. Create your own pseudo-indexing solution that stores transaction data off-chain.
+1. Використовувати постачальника індексації, який створить кастомне рішення для індексації вашої програми, спостерігаючи за подіями, що надсилаються до програми Noop, і зберігаючи відповідні дані офф-чейн.
+2. Створити власне псевдо-рішення для індексації, яке зберігатиме дані транзакцій офф-чейн.
 
-For many dApps, option 2 makes plenty of sense. Larger-scale applications may need to rely on infrastructure providers to handle their indexing.
+Для багатьох dApp варіант 2 є цілком логічним. Для більших за масштабами додатків може знадобитись спиратися на інфраструктурних постачальників для обробки індексації.
 
-## State compression development process
+## Процес розробки за допомогою стиснення стану
 
-### Create Rust types
+### Створення типів Rust
 
-As with a typical Anchor program, one of the first things you should do is define your program’s Rust types. However, Rust types in a traditional Anchor program often represent accounts. In a state-compressed program, your account state will only store the Merkle tree. The more “usable” data schema will just be serialized and logged to the Noop program.
+Як і в типовій програмі на Anchor, одним із перших кроків є визначення типів Rust для вашої програми. Однак типи Rust в традиційній програмі Anchor часто представляють акаунти. У програмі зі стисненням стану, стан вашого акаунта буде зберігати лише дерево Меркла. Більш «корисна» схема даних буде серіалізована та записана до програми Noop.
 
-This type should include all the data stored in the leaf node and any contextual information needed to make sense of the data. For example, if you were to create a simple messaging program, your `Message` struct might look as follows:
+Цей тип повинен містити всі дані, що зберігаються в листовому вузлі, а також будь-яку контекстуальну інформацію, необхідну для того, щоб зрозуміти ці дані. Наприклад, якщо ви створюєте просту програму для обміну повідомленнями, ваша структура `Message` може виглядати так:
 
 ```rust
 #[derive(AnchorSerialize)]
@@ -137,17 +137,17 @@ impl MessageLog {
 }
 ```
 
-To be abundantly clear, **this is not an account that you will be able to read from**. Your program will be creating an instance of this type from instruction inputs, not constructing an instance of this type from account data that it reads. We’ll discuss how to read data in a later section.
+Щоб було абсолютно зрозуміло, **це не обліковий запис, з якого ви зможете читати дані**. Ваша програма створюватиме екземпляр цього типу з вхідних даних інструкції, а не конструюватиме екземпляр цього типу з даних облікового запису, які вона зчитує. Ми обговоримо, як читати дані, у наступному розділі.
 
-### Initialize a new tree
+### Ініціалізація нового дерева
 
-Clients will create and initialize the Merkle tree account in two separate instructions. The first is simply allocating the account by calling System Program. The second will be an instruction that you create on a custom program that initializes the new account. This initialization is effectively just recording what the max depth and buffer size for the Merkle tree should be.
+Клієнти створюватимуть та ініціалізуватимуть обліковий запис дерева Меркла у двох окремих інструкціях. Перша інструкція просто виділяє обліковий запис, викликаючи System Program. Друга буде інструкцією, яку ви створите в користувацькій програмі для ініціалізації нового облікового запису. Ця ініціалізація фактично зводиться до запису максимальної глибини та розміру буфера для дерева Меркла.
 
-All this instruction needs to do is build a CPI to invoke the `init_empty_merkle_tree` instruction on the State Compression Program. Since this requires the max depth and max buffer size, these will need to be passed in as arguments to the instruction.
+Усе, що потрібно зробити цій інструкції, — це створити CPI для виклику інструкції `init_empty_merkle_tree` у State Compression Program. Оскільки це вимагає максимальну глибину та максимальний розмір буфера, ці параметри потрібно передати як аргументи до інструкції.
 
-Remember, the max depth refers to the maximum number of hops to get from any leaf to the root of the tree. Max buffer size refers to the amount of space reserved for storing a changelog of tree updates. This changelog is used to ensure that your tree can support concurrent updates within the same block.
+Пам’ятайте, що максимальна глибина стосується максимальної кількості переходів від будь-якого листка до кореня дерева. Максимальний розмір буфера стосується обсягу простору, зарезервованого для збереження журналу змін дерева. Цей журнал використовується для забезпечення того, щоб ваше дерево могло підтримувати одночасні оновлення в межах одного блоку.
 
-For example, if we were initializing a tree for storing messages between users, the instruction might look like this:
+Наприклад, якщо ми ініціалізуємо дерево для зберігання повідомлень між користувачами, інструкція може виглядати так:
 
 ```rust
 pub fn create_messages_tree(
@@ -183,15 +183,15 @@ pub fn create_messages_tree(
 }
 ```
 
-### Add hashes to the tree
+### Додавання хешів до дерева
 
-With an initialized Merkle tree, it’s possible to start adding data hashes. This involves passing the uncompressed data to an instruction on your program that will hash the data, log it to the Noop program, and use the State Compression Program’s `append` instruction to add the hash to the tree. The following discuss what your instruction needs to do in depth:
+Після ініціалізації дерева Меркла можна починати додавати хеші даних. Це передбачає передачу некомпресованих даних до інструкції у вашій програмі, яка буде хешувати ці дані, записувати їх у програму Noop і використовувати інструкцію `append` з програми State Compression для додавання хеша до дерева. Далі детально обговорюється, що має виконувати ваша інструкція:
 
-1. Use the `hashv` function from the `keccak` crate to hash the data. In most cases, you’ll want to also hash the owner or authority of the data as well to ensure that it can only be modified by the proper authority.
-2. Create a log object representing the data you wish to log to the Noop Program, then call `wrap_application_data_v1` to issue a CPI to the Noop program with this object. This ensures that the uncompressed data is readily available to any client looking for it. For broad use cases like cNFTs, that would be indexers. You might also create your own observing client to simulate what indexers are doing but specific to your application.
-3. Build and issue a CPI to the State Compression Program’s `append` instruction. This takes the hash computed in step 1 and adds it to the next available leaf on your Merkle tree. Just as before, this requires the Merkle tree address and the tree authority bump as signature seeds.
+1. Використовуйте функцію `hashv` з бібліотеки `keccak` для хешування даних. У більшості випадків також потрібно хешувати власника або уповноважений акаунт даних, щоб гарантувати, що їх можна змінювати лише відповідним уповноваженим акаунтом.
+2. Створіть об'єкт журналу, який представляє дані, які потрібно записати у програму Noop, а потім викличте `wrap_application_data_v1`, щоб виконати CPI до програми Noop з цим об'єктом. Це забезпечує доступність не стиснених даних для будь-якого клієнта, який їх шукає. Для широких випадків використання, таких як cNFT, це будуть індексатори. Ви також можете створити власного клієнта-спостерігача, щоб імітувати роботу індексаторів, але зосереджуючись на вашій конкретній програмі.
+3. Створіть та виконайте CPI до інструкції `append` програми State Compression. Ця інструкція приймає хеш, обчислений на першому етапі, та додає його до наступного доступного листка у вашому дереві Меркла. Для цього обовʼязково потрібно мати адресу дерева Меркла, та уповноважений bump, який виконує роль seed-підписанта
 
-When all this is put together using the messaging example, it looks something like this:
+Коли все це зібрати разом, використовуючи приклад з обміном повідомленнями, це виглядає приблизно так:
 
 ```rust
 // Instruction for appending a message to a tree.
@@ -227,23 +227,23 @@ pub fn append_message(ctx: Context<MessageAccounts>, message: String) -> Result<
 }
 ```
 
-### Update hashes
+### Оновлення хешів
 
-To update data, you need to create a new hash to replace the hash at the relevant leaf on the Merkle tree. To do this, your program needs access to four things:
+Щоб оновити дані, потрібно створити новий хеш, який замінить хеш на відповідному листі дерева Меркла. Для цього вашій програмі потрібно мати доступ до чотирьох елементів:
 
-1. The index of the leaf to update
-2. The root hash of the Merkle tree
-3. The original data you wish to modify
-4. The updated data
+1. Індекс листа, який потрібно оновити
+2. Кореневий хеш дерева Меркла
+3. Оригінальні дані, які ви хочете замінити
+4. Оновлені дані
 
-Given access to this data, a program instruction can follow very similar steps as those used to append the initial data to the tree:
+Маючи доступ до цих даних, інструкція програми може виконати подібні кроки, як і для додавання початкових даних до дерева:
 
-1. **Verify update authority** - The first step is new. In most cases, you want to verify update authority. This typically involves proving that the signer of the `update` transaction is the true owner or authority of the leaf at the given index. Since the data is compressed as a hash on the leaf, we can’t simply compare the `authority` public key to a stored value. Instead, we need to compute the previous hash using the old data and the `authority` listed in the account validation struct. We then build and issue a CPI to the State Compression Program’s `verify_leaf` instruction using our computed hash.
-2. **Hash the new data** - This step is the same as the first step from appending initial data. Use the `hashv` function from the `keccak` crate to hash the new data and the update authority, each as their corresponding byte representation.
-3. **Log the new data** - This step is the same as the second step from appending initial data. Create an instance of the log struct and call `wrap_application_data_v1` to issue a CPI to the Noop program.
-4. **Replace the existing leaf hash** - This step is slightly different than the last step of appending initial data. Build and issue a CPI to the State Compression Program’s `replace_leaf` instruction. This uses the old hash, the new hash, and the leaf index to replace the data of the leaf at the given index with the new hash. Just as before, this requires the Merkle tree address and the tree authority bump as signature seeds.
+1. **Підтвердження акаунту, що може здійснювати оновлення** - Перший крок є новим. В більшості випадків потрібно підтвердити право на оновлення. Це зазвичай включає доведення того, що підписант транзакції `update` є справжнім власником або уповноваженим акаунтом для листка на заданому індексі. Оскільки дані стиснуті у вигляді хешу на листку, ми не можемо просто порівняти публічний ключ `authority` з збереженим значенням. Натомість нам потрібно обчислити попередній хеш, використовуючи старі дані та `authority`, вказаний в структурі валідації акаунту. Потім ми будуємо та видаємо CPI для інструкції `verify_leaf` програми State Compression, використовуючи наш обчислений хеш.
+2. **Хешування нових даних** - Цей крок такий самий, як і перший крок при додаванні початкових даних. Використовуйте функцію `hashv` з бібліотеки `keccak`, щоб хешувати нові дані та авторитет оновлення, кожен з яких представлений відповідним байтовим форматом.
+3. **Логування нових даних** - Цей крок такий самий, як і другий крок при додаванні початкових даних. Створіть екземпляр структури журналу та викличте `wrap_application_data_v1`, щоб виконати CPI до програми Noop.
+4. **Заміна існуючого хешу листка** - Цей крок дещо відрізняється від останнього кроку додавання початкових даних. Створіть і виконайте CPI до інструкції `replace_leaf` програми State Compression. Це використовує старий хеш, новий хеш та індекс листка для заміни даних листка на вказаному індексі новим хешем. Для цього обовʼязково потрібно мати адресу дерева Меркла, та уповноважений bump, який виконує роль seed-підписанта
 
-Combined into a single instruction, this process looks as follows:
+Поєднавши все це в одну інструкцію, процес виглядатиме так:
 
 ```rust
 pub fn update_message(
@@ -313,31 +313,31 @@ pub fn update_message(
 }
 ```
 
-### Delete hashes
+### Видалення хешів
 
-At the time of writing, the State Compression Program doesn’t provide an explicit `delete` instruction. Instead, you’ll want to update leaf data with data that indicates the data as “deleted.” The specific data will depend on your use case and security concerns. Some may opt to set all data to 0, whereas others might store a static string that all “deleted” items will have in common.
+На момент написання програми State Compression не надає явної інструкції `delete`. Замість цього, вам слід оновити дані листка таким чином, щоб ці дані вказували на те, що вони є "видаленими". Конкретні дані залежать від вашого випадку використання та вимог до безпеки. Деякі можуть вирішити встановити всі дані в 0, в той час як інші можуть зберігати статичний рядок, який буде спільним для всіх "видалених" елементів.
 
-### Access data from a client
+### Доступ до даних через клієнта
 
-The discussion so far has covered 3 of the 4 standard CRUD procedures: Create, Update, and Delete. What’s left is one of the more difficult concepts in state compression: reading data.
+Обговорення, що було вище, охоплює 3 з 4 стандартних процедур CRUD: створення, оновлення та видалення. Те, що залишилось — одна з найскладніших концепцій у стані компресії: читання даних.
 
-Accessing data from a client is tricky primarily because the data isn’t stored in a format that is easy to access. The data hashes stored in the Merkle tree account can’t be used to reconstruct the initial data, and the data logged to the Noop program isn’t available indefinitely.
+Доступ до даних через клієнта є складним, оскільки дані не зберігаються у форматі, який легко отримати. Хеші даних, що зберігаються в акаунті дерева Меркла, не можуть бути використані для відновлення початкових даних, а дані, записані в програму Noop, не доступні безкінечно.
 
-Your best bet is one of two options:
+Ваші найкращі варіанти — це один з двох підходів:
 
-1. Work with an indexing provider to create a custom indexing solution for your program, then write client-side code based on how the indexer gives you access to the data.
-2. Create your own pseudo-indexer as a lighter-weight solution.
+1. Працювати з постачальником індексації для створення індивідуального рішення з індексації для вашої програми, а потім написати код на стороні клієнта, який буде використовувати дані індексації.
+2. Створити власний псевдо-індексатор як легшу альтернативу.
 
-If your project is truly decentralized such that many participants will interact with your program through means other than your own frontend, then option 2 might not be sufficient. However, depending on the scale of the project or whether or not you’ll have control over most program access, it can be a viable approach.
+Якщо ваш проект справді є децентралізованим, і багато учасників будуть взаємодіяти з вашою програмою іншими способами, окрім вашого власного фронтенду, то варіант 2 може виявитися недостатнім. Однак залежно від масштабів проекту чи того, чи матимете ви контроль над більшістю доступів до програми, це може бути життєздатним підходом.
 
-There is no “right” way to do this. Two potential approaches are:
+Немає "правильного" способу це зробити. Є два потенційних підходи:
 
-1. Store the raw data in a database at the same time as sending it to the program, along with the leaf that the data is hashed and stored to.
-2. Create a server that observes your program’s transactions, looks up the associated Noop logs, decodes the logs, and stores them.
+1. Зберігати сирі дані в базі даних одночасно з їх відправкою до програми, разом із листом, до якого ці дані були хешовані та збережені.
+2. Створити сервер, який спостерігає за транзакціями вашої програми, шукає відповідні логи Noop, декодує їх і зберігає.
 
-We’ll do a little bit of both when writing tests in this lesson’s lab (though we won’t persist data in a db - it will only live in memory for the duration of the tests).
+Ми застосуємо обидва підходи під час написання тестів у лабораторній роботі цього уроку (хоча ми не будемо зберігати дані в базі даних – вони існуватимуть в пам’яті лише під час виконання тестів).
 
-The setup for this is somewhat tedious. Given a particular transaction, you can fetch the transaction from the RPC provider, get the inner instructions associated with the Noop program, use the `deserializeApplicationDataEvent` function from the `@solana/spl-account-compression` JS package to get the logs, then deserialize them using Borsh. Below is an example based on the messaging program used above.
+Налаштування для цього є дещо стомлюючим. Маючи певну транзакцію, ви можете отримати її від RPC-провайдера, отримати внутрішні інструкції, пов’язані з програмою Noop, скористатися функцією `deserializeApplicationDataEvent` з пакета `@solana/spl-account-compression` для JS, щоб отримати логи, а потім десеріалізувати їх за допомогою Borsh. Нижче наведено приклад на основі програми для обміну повідомленнями, яку ми розглядали вище.
 
 ```tsx
 export async function getMessageLog(connection: Connection, txSignature: string) {
@@ -394,23 +394,23 @@ export async function getMessageLog(connection: Connection, txSignature: string)
 }
 ```
 
-## Conclusion
+## Висновок
 
-Generalized state compression can be difficult but is absolutely possible to implement with the available tools. Additionally, the tools and programs will only get better over time. If you come up with solutions that improve your development experience, please share with the community!
+Реалізація узагальненої компресії стану може бути складною, але вона цілком можлива завдяки доступним інструментам. Ба більше, ці інструменти та програми будуть лише покращуватись із часом. Якщо ви знайдете рішення, які полегшують процес розробки, обов’язково поділіться ними з спільнотою!
 
-# Lab
+# Лабораторна робота
 
-Let’s practice generalized state compression by creating a new Anchor program. This program will use custom state compression to power a simple note-taking app.
+Давайте попрактикуємось у використанні узагальненої компресії стану, створивши нову програму на Anchor. Ця програма буде використовувати кастомну компресію стану для роботи простого додатка для ведення нотаток.
 
-### 1. Project setup
+### 1. Налаштування проєкту
 
-Start by initializing an Anchor program:
+Почніть із ініціалізації програми Anchor:
 
 ```bash
 anchor init compressed-notes
 ```
 
-We’ll be using the `spl-account-compression` crate with the `cpi` feature enabled. Let’s add it as a dependency in `programs/compressed-notes/Cargo.toml`.
+Ми будемо використовувати бібліотеку `spl-account-compression` із увімкненою опцією `cpi`. Додайте її як залежність у файл `programs/compressed-notes/Cargo.toml`.
 
 ```toml
 [dependencies]
@@ -419,7 +419,7 @@ spl-account-compression = { version="0.2.0", features = ["cpi"] }
 solana-program = "1.16.0"
 ```
 
-We’ll be testing locally but we need both the Compression program and the Noop program from Mainnet. We’ll need to add these to the `Anchor.toml` in the root directory so they get cloned to our local cluster.
+Ми будемо проводити тестування локально, але нам потрібні програма Compression та програма Noop з Mainnet. Необхідно додати їх до файлу `Anchor.toml` у кореневій директорії, щоб вони були скопійовані до нашого локального кластеру.
 
 ```toml
 [test.validator]
@@ -432,7 +432,7 @@ address = "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV"
 address = "cmtDvXumGCrqC1Age74AVPhSRVXJMd8PJS91L8KbNCK"
 ```
 
-Lastly, let’s prepare the `lib.rs` file for the rest of the Demo. Remove the `initialize` instruction and the `Initialize` accounts struct, then add the imports shown in the code snippet below (be sure to put in ***your*** program id):
+Нарешті, підготуємо файл `lib.rs` для решти Демо. Видаліть інструкцію `initialize` та структуру акаунтів `Initialize`, після чого додайте імпорти, показані в наведеному нижче кодовому фрагменті (переконайтеся, що вказали ***ваш*** ідентифікатор програми):
 
 ```rust
 use anchor_lang::{
@@ -462,17 +462,17 @@ pub mod compressed_notes {
 }
 ```
 
-For the rest of this Demo, we’ll be making updates to the program code directly in the `lib.rs` file. This simplifies the explanations a bit. You’re welcome to modify the structure as you will.
+Для решти цієї демонстрації ми будемо вносити зміни безпосередньо у програмний код у файлі `lib.rs`. Це трохи спрощує пояснення. Ви можете змінювати структуру програми на свій розсуд.
 
-Feel free to build before continuing. This ensures your environment is working properly and shortens future build times.
+Не соромтеся виконати збірку перед тим, як продовжити. Це дозволить переконатися, що ваше середовище працює належним чином, і зменшить час на майбутню роботу.
 
-### 2. Define `Note` schema
+### 2. Визначення схеми `Note`
 
-Next, we’re going to define what a note looks like within our program. Notes should have the following properties:
+Наступним кроком ми визначимо, як виглядає запис у нашій програмі. Записи повинні мати такі властивості:
 
-- `leaf_node` - this should be a 32-byte array representing the hash stored on the leaf node
-- `owner` - the public key of the note owner
-- `note` - the string representation of the note
+- `leaf_node` — це масив з 32 байт, що представляє хеш, збережений на вузлі листа.
+- `owner` — публічний ключ власника запису.
+- `note` — рядкове представлення запису.
 
 ```rust
 #[derive(AnchorSerialize)]
@@ -490,17 +490,17 @@ impl NoteLog {
 }
 ```
 
-In a traditional Anchor program, this would be an account struct, but since we’re using state compression, our accounts won’t be mirroring our native structures. Since we don’t need all the functionality of an account, we can just use the `AnchorSerialize` derive macro rather than the `account` macro.
+У традиційній програмі Anchor це була б структура акаунта, але оскільки ми використовуємо стиснення стану, наші акаунти не відображатимуть наші нативні структури. Оскільки нам не потрібна вся функціональність акаунта, ми можемо використати макрос `AnchorSerialize` замість макроса `account`.
 
-### 3. Define input accounts and constraints
+### 3. Визначення акаунтів введення та обмежень
 
-As luck would have it, every one of our instructions will be using the same accounts. We’ll create a single `NoteAccounts` struct for our account validation. It’ll need the following accounts:
+Як не дивно, всі наші інструкції будуть використовувати однакові акаунти. Ми створимо єдину структуру `NoteAccounts` для валідації акаунтів. Вона потребує наступних акаунтів:
 
-- `owner` - this is the creator and owner of the note; should be a signer on the transaction
-- `tree_authority` - the authority for the Merkle tree; used for signing compression-related CPIs
-- `merkle_tree` - the address of the Merkle tree used to store the note hashes; will be unchecked since it is validated by the State Compression Program
-- `log_wrapper` - the address of the Noop Program
-- `compression_program` - the address of the State Compression Program
+- `owner` - це творець та власник запису; має бути підписантом транзакції.
+- `tree_authority` - уповноважений акаунт для дерева Меркла; використовується для підписання CPIs, пов'язаних зі стисненням.
+- `merkle_tree` - адреса дерева Меркла, яке використовується для зберігання хешів записів; буде неперевіреним, оскільки воно перевіряється програмою State Compression.
+- `log_wrapper` - адреса програми Noop.
+- `compression_program` - адреса програми State Compression.
 
 ```rust
 #[derive(Accounts)]
@@ -529,16 +529,16 @@ pub struct NoteAccounts<'info> {
 }
 ```
 
-### 4. Create `create_note_tree` instruction
+### 4. Створення інструкції `create_note_tree`
 
-Next, let’s create our `create_note_tree` instruction. Remember, clients will have already allocated the Merkle tree account but will use this instruction to initialize it.
+Далі давайте створимо інструкцію `create_note_tree`. Пам’ятайте, що клієнти вже виділили акаунт для дерева Меркла, але використовуватимуть цю інструкцію для його ініціалізації.
 
-All this instruction needs to do is build a CPI to invoke the `init_empty_merkle_tree` instruction on the State Compression Program. To do this, it needs the accounts listed in the `NoteAccounts` account validation struct. It also needs two additional arguments:
+Ця інструкція повинна лише побудувати CPI для виклику інструкції `init_empty_merkle_tree` в програмі State Compression. Для цього їй потрібні акаунти, вказані в структурі валідації акаунтів `NoteAccounts`. Також необхідно передати два додаткові аргументи:
 
-1. `max_depth` - the max depth of the Merkle tree
-2. `max_buffer_size` - the max buffer size of the Merkle tree
+1. `max_depth` - максимальна глибина дерева Меркла
+2. `max_buffer_size` - максимальний розмір буфера дерева Меркла
 
-These values are required for initializing the data on the Merkle tree account. Remember, the max depth refers to the maximum number of hops to get from any leaf to the root of the tree. Max buffer size refers to the amount of space reserved for storing a changelog of tree updates. This changelog is used to ensure that your tree can support concurrent updates within the same block.
+Ці значення необхідні для ініціалізації даних на акаунті дерева Меркла. Пам'ятайте, що максимальна глибина вказує на максимальну кількість переходів від будь-якого листка до кореня дерева. Максимальний розмір буфера вказує на кількість місця, зарезервованого для зберігання журналу змін дерева. Цей журнал змін використовується для забезпечення підтримки одночасних оновлень у межах одного блоку.
 
 ```rust
 #[program]
@@ -580,13 +580,13 @@ pub mod compressed_notes {
 }
 ```
 
-Ensure that your signer seeds on the CPI include both the Merkle tree address and the tree authority bump.
+Переконайтесь, що ваші сіди підписанта для CPI включають як адресу дерева Меркла, так і bump-значення уповноваженого акаунту дерева.
 
-### 5. Create `append_note` instruction
+### 5. Створення інструкції `append_note`
 
-Now, let’s create our `append_note` instruction. This instruction needs to take the raw note as a String and compress it into a hash that we’ll store on the Merkle tree. We’ll also log the note to the Noop program so the entirety of the data exists within the chain’s state.
+Тепер давайте створимо нашу інструкцію `append_note`. Ця інструкція повинна приймати сирий запис як рядок і стискати його в хеш, який ми зберігатимемо в дереві Меркла. Також ми будемо записувати нотатки до програми Noop, щоб усі дані існували в стані ланцюга.
 
-The steps here are as follows:
+Кроки для цього процесу такі:
 
 1. Use the `hashv` function from the `keccak` crate to hash the note and owner, each as their corresponding byte representation. It’s ***crucial*** that you hash the owner as well as the note. This is how we’ll verify note ownership before updates in the update instruction.
 2. Create an instance of the `NoteLog` struct using the hash from step 1, the owner’s public key, and the raw note as a String. Then call `wrap_application_data_v1` to issue a CPI to the Noop program, passing the instance of `NoteLog`. This ensures the entirety of the note (not just the hash) is readily available to any client looking for it. For broad use cases like cNFTs, that would be indexers. You might create your observing client to simulate what indexers are doing but for your own application.
