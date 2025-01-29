@@ -588,9 +588,9 @@ pub mod compressed_notes {
 
 Кроки для цього процесу такі:
 
-1. Use the `hashv` function from the `keccak` crate to hash the note and owner, each as their corresponding byte representation. It’s ***crucial*** that you hash the owner as well as the note. This is how we’ll verify note ownership before updates in the update instruction.
-2. Create an instance of the `NoteLog` struct using the hash from step 1, the owner’s public key, and the raw note as a String. Then call `wrap_application_data_v1` to issue a CPI to the Noop program, passing the instance of `NoteLog`. This ensures the entirety of the note (not just the hash) is readily available to any client looking for it. For broad use cases like cNFTs, that would be indexers. You might create your observing client to simulate what indexers are doing but for your own application.
-3. Build and issue a CPI to the State Compression Program’s `append` instruction. This takes the hash computed in step 1 and adds it to the next available leaf on your Merkle tree. Just as before, this requires the Merkle tree address and the tree authority bump as signature seeds.
+1. Використовуйте функцію `hashv` з бібліотеки `keccak` для хешування нотатки та публічної адреси власника, кожен у вигляді відповідного байтового представлення. **Вкрай важливо** хешувати не лише нотатку, а й публічну адресу власника. Це дозволить перевірити право власності на нотатку перед її оновленням в інструкції оновлення.
+2. Створіть екземпляр структури `NoteLog`, використовуючи хеш із першого кроку, публічний ключ власника та саму нотатку у вигляді рядка. Потім викличте `wrap_application_data_v1`, щоб здійснити CPI-виклик до Noop-програми, передавши екземпляр `NoteLog`. Це гарантує, що повна нотатка (а не лише її хеш) буде доступна будь-якому клієнту, який її шукає. Для широких випадків використання, таких як cNFT, це можуть бути індексери. Ви також можете створити власний спостерігаючий клієнт, щоб імітувати роботу індексерів, але конкретно для вашого застосунку.
+3. Побудуйте та виконайте CPI-виклик до інструкції `append` у State Compression Program. Вона бере хеш, обчислений на першому кроці, і додає його до наступного доступного листа у вашому дереві Меркла. Для цього обовʼязково потрібно мати адресу дерева Меркла, та уповноважений bump, який виконує роль seed-підписанта
 
 ```rust
 #[program]
@@ -634,24 +634,24 @@ pub mod compressed_notes {
 }
 ```
 
-### 6. Create `update_note` instruction
+### 6. Створення інструкції `update_note`  
 
-The last instruction we’ll make is the `update_note` instruction. This should replace an existing leaf with a new hash representing the new updated note data.
+Остання інструкція, яку ми створимо, — це `update_note`. Вона має замінити існуючий лист новим хешем, що представляє оновлені дані нотатки.  
 
-For this to work, we’ll need the following parameters:
+Щоб це працювало, нам знадобляться такі параметри:
 
-1. `index` - the index of the leaf we are going to update
-2. `root` - the root hash of the Merkle tree
-3. `old_note` - the string representation of the old note we’re updating
-4. `new_note` - the string representation of the new note we want to update to
+1. `index` – індекс листа, який ми збираємося оновити  
+2. `root` – кореневий хеш дерева Меркла  
+3. `old_note` – текстове представлення старої нотатки, яку оновлюємо  
+4. `new_note` – текстове представлення нової нотатки, на яку оновлюємо
 
-Remember, the steps here are similar to `append_note`, but with some minor additions and modifications:
+Зазначте, що кроки тут схожі на `append_note`, але з деякими доповненнями та змінами:
 
-1. The first step is new. We need to first prove that the `owner` calling this function is the true owner of the leaf at the given index. Since the data is compressed as a hash on the leaf, we can’t simply compare the `owner` public key to a stored value. Instead, we need to compute the previous hash using the old note data and the `owner` listed in the account validation struct. We then build and issue a CPI to the State Compression Program’s `verify_leaf` instruction using our computed hash.
-2. This step is the same as the first step from creating the `append_note` instruction. Use the `hashv` function from the `keccak` crate to hash the new note and its owner, each as their corresponding byte representation.
-3. This step is the same as the second step from creating the `append_note` instruction. Create an instance of the `NoteLog` struct using the hash from step 2, the owner’s public key, and the new note as a string. Then call `wrap_application_data_v1` to issue a CPI to the Noop program, passing the instance of `NoteLog`
-4. This step is slightly different than the last step from creating the `append_note` instruction. Build and issue a CPI to the State Compression Program’s `replace_leaf` instruction. This uses the old hash, the new hash, and the leaf index to replace the data of the leaf at the given index with the new hash. Just as before, this requires the Merkle tree address and the tree authority bump as signature seeds.
-
+1. Перший крок новий. Спочатку потрібно довести, що `owner`, який викликає цю функцію, є справжнім власником листа за вказаним індексом. Оскільки дані стиснуті як хеш на листі, ми не можемо просто порівняти публічний ключ `owner` зі збереженим значенням. Замість цього, ми повинні обчислити попередній хеш, використовуючи старі дані нотатки та `owner`, який вказаний у структурі перевірки акаунта. Потім ми будуємо і виконуємо CPI до інструкції `verify_leaf` програми State Compression, використовуючи наш обчислений хеш.
+2. Цей крок є таким самим, як перший крок при створенні інструкції `append_note`. Використайте функцію `hashv` з бібліотеки `keccak` для хешування нової нотатки та її власника, кожен з яких має бути представленим у вигляді відповідних байтів.
+3. Цей крок такий самий, як другий крок при створенні інструкції `append_note`. Створіть екземпляр структури `NoteLog`, використовуючи хеш з кроку 2, публічний ключ власника та нову нотатку у вигляді рядка. Потім викликайте `wrap_application_data_v1`, щоб надіслати CPI до програми Noop, передаючи екземпляр `NoteLog`.
+4. Цей крок трохи відрізняється від останнього кроку при створенні інструкції `append_note`. Побудуйте та надішліть CPI до інструкції `replace_leaf` програми State Compression. Це використовує старий хеш, новий хеш та індекс листа для заміни даних листа за вказаним індексом на новий хеш. Для цього обовʼязково потрібно мати адресу дерева Меркла, та уповноважений bump, який виконує роль seed-підписанта.
+   
 ```rust
 #[program]
 pub mod compressed_notes {
@@ -723,17 +723,17 @@ pub mod compressed_notes {
 }
 ```
 
-### 7. Client test setup
+### 7. Налаштування тестового середовища клієнта  
 
-We’re going to write a few tests to ensure that our program works as expected. First, let’s do some setup.
+Ми напишемо кілька тестів, щоб переконатися, що наша програма працює належним чином. Спочатку виконаємо налаштування.  
 
-We’ll be using the `@solana/spl-account-compression` package. Go ahead and install it:
+Ми будемо використовувати пакет `@solana/spl-account-compression`. Встановіть його:
 
 ```bash
 yarn add @solana/spl-account-compression
 ```
 
-Next, we’re going to give you the contents of a utility file we’ve created to make testing easier. Create a `utils.ts` file in the `tests` directory, add in the below, then we’ll explain it. 
+Далі ми надамо вам вміст файлу з утилітами, який ми створили для спрощення тестування. Створіть файл `utils.ts` у директорії `tests`, додайте в нього наведений нижче код, а потім ми пояснимо його.
 
 ```tsx
 import {
@@ -842,24 +842,24 @@ export async function getNoteLog(connection: Connection, txSignature: string) {
 }
 ```
 
-There are 3 main things in the above file:
+У цьому файлі є три основні елементи:  
 
-1. `NoteLog` - a class representing the note log we’ll find in the Noop program logs. We’ve also added the borsh schema as `NoteLogBorshSchema` for deserialization.
-2. `getHash` - a function that creates a hash of the note and note owner so we can compare it to what we find on the Merkle tree
-3. `getNoteLog` - a function that looks through the provided transaction’s logs, finds the Noop program logs, then deserializes and returns the corresponding Note log.
+1. **`NoteLog`** — клас, що представляє лог нотатки, який ми знайдемо в логах Noop-програми. Ми також додали Borsh-схему `NoteLogBorshSchema` для десеріалізації.  
+2. **`getHash`** — функція, яка створює хеш нотатки та її власника, щоб ми могли порівняти його з тим, що міститься в дереві Меркла.  
+3. **`getNoteLog`** — функція, яка переглядає логи транзакції, знаходить логи Noop-програми, а потім десеріалізує їх і повертає відповідний лог нотатки.
 
-### 8. Write client tests
+### 8. Написання тестів для клієнта
 
-Now that we’ve got our packages installed and utility file ready, let’s dig into the tests themselves. We’re going to create four of them:
+Тепер, коли ми встановили всі необхідні пакети й файл утиліт готовий, давайте перейдемо до самих тестів. Ми створимо чотири з них:
 
-1. Create Note Tree - this will create the Merkle tree we’ll be using to store note hashes
-2. Add Note - this will call our `append_note` instruction
-3. Add Max Size Note - this will call our `append_note` instruction with a note that maxes out the 1232 bytes allowed in a single transaction
-4. Update First Note - this will call our `update_note` instruction to modify the first note we added
+1. Створення дерева нотаток - це створить дерево Меркла, яке ми використовуватимемо для зберігання хешів нотаток.
+2. Додавання нотатки - це викличе нашу інструкцію `append_note`.
+3. Додавання максимальної за розміром нотатки - це викличе нашу інструкцію `append_note` з нотаткою, що досягає 1232 байтів, дозволених в одній транзакції.
+4. Оновлення першої нотатки - це викличе нашу інструкцію `update_note`, щоб змінити першу додану нотатку.
 
-The first test is mostly just for setup. In the last three tests, we’ll be asserting each time that the note hash on the tree matches what we would expect given the note text and signer.
+Перший тест здебільшого служить для налаштування. У наступних трьох тестах ми щоразу перевірятимемо, чи збігається хеш нотатки в дереві з тим, що ми очікуємо, враховуючи текст нотатки та підписанта.
 
-Let’s start with our imports. There are quite a few from Anchor, `@solana/web3.js`, `@solana/spl-account-compression`, and our own utils file.
+Розпочнемо з наших імпортів. Їх буде досить багато з бібліотек Anchor, `@solana/web3.js`, `@solana/spl-account-compression` та нашого власного файлу утиліту.
 
 ```tsx
 import * as anchor from "@coral-xyz/anchor"
@@ -883,7 +883,7 @@ import { getHash, getNoteLog } from "./utils"
 import { assert } from "chai"
 ```
 
-Next, we’ll want to set up the state variables we’ll be using throughout our tests. This includes the default Anchor setup as well as generating a Merkle tree keypair, the tree authority, and some notes.
+Далі ми налаштуємо змінні стану, які використовуватимемо в тестах. Це включає стандартне налаштування Anchor, а також генерування ключа для дерева Меркла, уповноваженого акаунту дерева та деяких нотаток.
 
 ```tsx
 describe("compressed-notes", () => {
@@ -917,10 +917,10 @@ describe("compressed-notes", () => {
 });
 ```
 
-Finally, let’s start with the tests themselves. First the `Create Note Tree` test. This test will do two things:
+Нарешті, давайте почнемо з самих тестів. Перший тест — `Create Note Tree`. Цей тест виконає дві дії:
 
-1. Allocate a new account for the Merkle tree with a max depth of 3, max buffer size of 8, and canopy depth of 0
-2. Initialize this new account using our program’s `createNoteTree` instruction
+1. Виділить новий акаунт для Merkle дерева з максимальною глибиною 3, максимальною розміром буфера 8 і глибиною навісу 0
+2. Ініціалізує цей новий акаунт, використовуючи інструкцію нашої програми `createNoteTree`
 
 ```tsx
 it("Create Note Tree", async () => {
@@ -956,7 +956,7 @@ it("Create Note Tree", async () => {
 })
 ```
 
-Next, we’ll create the `Add Note` test. It should call `append_note` with `firstNote`, then check that the onchain hash matches our computed hash and that the note log matches the text of the note we passed into the instruction.
+Далі ми створимо тест `Add Note`. Він має викликати `append_note` з `firstNote`, а потім перевіряти, що хеш на ланцюгу збігається з нашим обчисленим хешем і що лог нотатки збігається з текстом нотатки, яку ми передали в інструкцію.
 
 ```tsx
 it("Add Note", async () => {
@@ -978,7 +978,7 @@ it("Add Note", async () => {
 })
 ```
 
-Next, we’ll create the `Add Max Size Note` test. It is the same as the previous test, but with the second note. 
+Далі ми створимо тест `Add Max Size Note`. Він аналогічний попередньому тесту, але з другою нотаткою.
 
 ```tsx
 it("Add Max Size Note", async () => {
@@ -1001,11 +1001,11 @@ it("Add Max Size Note", async () => {
 })
 ```
 
-Lastly, we’ll create the `Update First Note` test. This is slightly more complex than adding a note. We’ll do the following:
+Останнім кроком ми створимо тест `Update First Note`. Це трохи складніше, ніж додавання нотатки. Ми зробимо наступне:
 
-1. Get the Merkle tree root as it’s required by the instruction.
-2. Call the `update_note` instruction of our program, passing in the index 0 (for the first note), the Merkle tree root, the first note, and the updated data. Remember, it needs the first note and the root because the program must verify the entire proof path for the note’s leaf before it can be updated. 
-
+1. Отримати корінь Меркле-дерева, оскільки він потрібен для інструкції.
+2. Викликати інструкцію `update_note` нашої програми, передаючи індекс 0 (для першої нотатки), корінь дерева Меркла, першу нотатку та оновлені дані. Пам'ятайте, що програма повинна перевірити весь шлях доказу для листа нотатки перед оновленням.
+   
 ```tsx
 it("Update First Note", async () => {
   const merkleTreeAccount =
@@ -1035,16 +1035,18 @@ it("Update First Note", async () => {
 })
 ```
 
-That’s it, congrats! Go ahead and run `anchor test` and you should get four passing tests.
+Ось і все, вітаю! Запустіть команду `anchor test`, і ви повинні побачити чотири успішні тести.
 
-If you’re running into issues, feel free to go back through some of the demo or look at the full solution code in the [Compressed Notes repository](https://github.com/unboxed-software/anchor-compressed-notes). 
+Якщо виникають проблеми, не соромтесь повернутися до демо або переглянути повний код рішення в [репозиторії Compressed Notes](https://github.com/unboxed-software/anchor-compressed-notes).
 
-# Challenge
+# Завдання
 
-Now that you’ve practiced the basics of state compression, add a new instruction to the Compressed Notes program. This new instruction should allow users to delete an existing note. keep in mind that you can’t remove a leaf from the tree, so you’ll need to decide what “deleted” looks like for your program. Good luck!
+Тепер, коли ви освоїли основи стиснення стану, додайте нову інструкцію до програми Compressed Notes. Ця нова інструкція повинна дозволяти користувачам видаляти існуючі нотатки. Пам'ятайте, що ви не можете просто видалити лист з дерева, тому вам потрібно буде вирішити, як саме виглядатиме "видалена" нотатка для вашої програми. Удачі!
 
-If you'd like a very simple example of a delete function, check out the [`solution` branch on GitHub](https://github.com/Unboxed-Software/anchor-compressed-notes/tree/solution).
+Якщо вам потрібен дуже простий приклад функції видалення, подивіться на гілку [`solution`](https://github.com/Unboxed-Software/anchor-compressed-notes/tree/solution) на GitHub.
 
-## Completed the lab?
+## Закінчили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=60f6b072-eaeb-469c-b32e-5fea4b72d1d1)!
+Ось інший варіант перекладу:
+
+Запишіть свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=60f6b072-eaeb-469c-b32e-5fea4b72d1d1)!
