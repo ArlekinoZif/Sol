@@ -1,106 +1,106 @@
 ---
-title: Course Guide
-objectives:
-- understand what web3 is
-- understand what Solana is
-- learn how this course is structured
-- know how to get the most from this course
+заголовок: Посібник курсу  
+цілі:  
+- зрозуміти, що таке web3  
+- зрозуміти, що таке Solana  
+- дізнатися, як структурований цей курс  
+- знати, як отримати максимум від цього курсу  
 ---
 
-## Welcome!
+## Ласкаво просимо!
 
-Welcome to the best starting point for developers looking to learn web3 and blockchain!
+Ласкаво просимо до найкращої стартової точки для розробників, які хочуть вивчити web3 і блокчейн!
 
-## What is web 3?
+## Що таке web3?
 
-Typically, in older systems, people interact with each other through third-party platforms:
+У старих системах люди зазвичай взаємодіють один з одним через платформи третіх сторін:
 
-- User accounts are stored on large platforms like Google, X (formerly known as Twitter), and Meta (Facebook, Instagram). These accounts can be removed at will by the companies, and items 'owned' by these accounts may be lost forever. 
+- Облікові записи користувачів зберігаються на великих платформах, таких як Google, X (раніше Twitter) та Meta (Facebook, Instagram). Ці облікові записи можуть бути видалені на розсуд компаній, а предмети, «належні» цим обліковим записам, можуть бути втрачені назавжди.  
 
-- Accounts that store and transfer value - like payment cards, bank accounts, and stock trading accounts - are handled by large platforms like credit card companies, money transfer organizations, and stock exchanges. In many cases, these companies take a piece (around 1% - 3%) of every transaction that occurs on their platforms. They may often slow transaction settlement down, to benefit the organization. In some cases the item being transferred may not belong to the recipient at all but is rather held on the recipient's behalf.
+- Облікові записи, які зберігають і передають вартість — як платіжні картки, банківські рахунки та рахунки для торгівлі акціями — обробляються великими платформами, такими як кредитні компанії, організації з переказу грошей і фондові біржі. У багатьох випадках ці компанії забирають частку (близько 1% - 3%) від кожної транзакції, що відбувається на їхніх платформах. Вони можуть часто сповільнювати обробку транзакцій, щоб отримати вигоду для своєї організації. У деяких випадках товар, який передається, може зовсім не належати отримувачу, а утримуватися від його імені.
+  
+Web3 — це еволюція інтернету, яка дозволяє людям **проводити транзакції безпосередньо один з одним**:
 
-Web3 is an evolution of the internet that allows people to **transact directly with each other**:
+- Користувачі володіють своїми акаунтами, представленими їхнім гаманцем.
 
-- Users own their accounts, represented by their wallet.
+- Обмін цінностями може здійснюватися безпосередньо між користувачами.
 
-- Transfers of value can occur directly between users.
+- Токени — що представляють валюти, цифрове мистецтво, квитки на події, нерухомість чи будь-що інше — повністю знаходяться під контролем користувача.
+  
+Звичайні сфери використання Web3:  
 
-- Tokens - representing currencies, digital art, event tickets, real estate, or whatever else - are fully under the custody of the user.
+- Продаж товарів і послуг онлайн із майже нульовими комісіями та миттєвим розрахунком.  
 
-Common uses of web3 include:
+- Продаж цифрових або фізичних товарів із гарантією справжності кожного предмета та можливістю відрізнити копії від оригіналів.  
 
-- Selling goods and services online with near-zero fees and instant settlement.
+- Миттєві глобальні платежі без витрат і затримок, пов’язаних із традиційними компаніями з грошових переказів.
+  
+## Що таке Solana?  
 
-- Selling digital or physical items, ensuring that each item is genuine and that copies are distinguishable from original items. 
+Solana дозволяє людям **здійснювати прямі транзакції миттєво та майже безкоштовно**.  
 
-- Instant global payments, without the time and expense of traditional money transfer companies.
+Порівняно зі старішими платформами, такими як Bitcoin і Ethereum, Solana є:  
 
-## What is Solana?
+- Значно швидшою — більшість транзакцій виконуються за секунду-дві.  
 
-Solana allows people to **transact directly with each other instantly at almost no cost**.
+- Надзвичайно дешевою — комісії за транзакції (які в старіших мережах називаються 'gas fees') зазвичай становлять $0.00025 (набагато менше одного цента) незалежно від суми, що передається.
 
-Compared to older platforms like Bitcoin and Ethereum, Solana is:
+- Високодецентралізованою, з одним із найвищих коефіцієнтів Накамото (показник децентралізації) серед усіх мереж proof-of-stake.  
 
-- Significantly faster - most transactions complete in a second or two.
+Багато поширених варіантів використання Solana можливі тільки в цій мережі через високі комісії та повільний час обробки транзакцій у старіших блокчейнах.
 
-- Massively cheaper - transaction fees (referred to as 'gas fees' in older networks) are typically $0.00025 (much less than one penny) regardless of the value of what's being transferred.
+## Що я вивчу на цьому курсі?  
 
-- Highly decentralized, having one of the highest Nakamoto coefficients (decentralization score) of any proof-of-stake network.
+На цьому курсі ви:  
 
-Many of the common use cases on Solana are only possible on Solana, due to the high costs and slow translation times of older blockchains.
+- Створите веб-застосунки, які дозволяють користувачам входити в систему за допомогою web3-гаманців  
+- Навчитеся передавати токени (наприклад, USDC, токен, що представляє долари США) між користувачами  
+- Інтегруєте інструменти, такі як Solana Pay, у ваші застосунки  
+- Побудуєте застосунок для рецензій на фільми, який працює в реальному часі на блокчейні Solana. Ви створите як веб-інтерфейс, так і ончейн-програму та базу даних для застосунку  
+- Зможете мінтити масштабні колекції NFT
 
-## What will I learn in this course?
+І багато іншого. Ми постійно оновлюємо цей курс, тож коли в екосистемі Solana з’являються нові технології, ви знайдете відповідний курс саме тут.
 
-In this course, you'll:
+## Що потрібно перед початком?
 
- - Create web apps that allow people to log on using web3 wallets
- - Transfer tokens (like USDC, a token that represents US dollars) between people
- - Learn to integrate tools like Solana Pay into your existing apps 
- - Build a film review application, that runs in real-time on the Solana blockchain. You'll build both a web front-end and the onchain program and database for the app.
- - Mint large-scale NFT collections
+Вам **не** потрібен попередній досвід роботи з блокчейном або знання Rust, щоб пройти цей курс! Але вам знадобиться:
 
-And much more. We're keeping this course updated so as new tech joins the Solana ecosystem you'll find a course right here.
+- Комп’ютер із Linux, Mac або Windows.  
+  Користувачам Windows слід встановити [Windows Terminal](https://aka.ms/terminal) і [WSL](https://learn.microsoft.com/en-us/windows/wsl/).
+- Базовий досвід програмування на JavaScript / TypeScript. Ми також використовуватимемо Rust, але пояснюватимемо його в процесі.
+- Базове володіння командним рядком.  
+- Базові навички роботи з git (через командний рядок або у вашому улюбленому графічному інтерфейсі).
+  
+## Як структурований цей курс?
 
-## What do I need before I start?
+Курс поділений на два напрями:
 
-You **don't** need previous blockchain experience, or Rust knowledge, to follow this course! You do need:
+- **Розробка клієнтської частини** – створення веб- та мобільних додатків, які взаємодіють із популярними ончейн-програмами Solana. Ці уроки охоплюють такі теми, як перекази токенів, мінт і створення клієнтів для довільних програм. У цьому напрямі ви використовуватимете базові навички TypeScript. Якщо ви хочете додати у свої додатки оплату через блокчейн, NFT, перевірку походження через блокчейн тощо, цей напрям буде найкращим вибором для початку.
 
-- A Linux, Mac or Windows computer. 
-  Windows machines should have [Windows Terminal](https://aka.ms/terminal) and [WSL](https://learn.microsoft.com/en-us/windows/wsl/) installed.
-- Basic JavaScript / TypeScript programming experience. We'll also use some Rust but we'll explain the Rust as we go. 
-- Basic use of the command line 
-- Basic use of git (either via the command line or your favorite GUI)
+- **Розробка ончейн-програм** – створення кастомних додатків, що працюють безпосередньо на блокчейні. Якщо ви хочете створити новий фінансовий або обліковий додаток, використовувати ончейн-дані з інших джерел або зберігати довільні дані в блокчейні, цей напрям для вас. Для цього напряму ви використовуватимете Rust.
+  
+Модулі охоплюють конкретну тему та поділяються на окремі уроки.  
 
-## How is this course structured?
+Кожен урок починається зі списку цілей – тобто того, що ви вивчите під час уроку.  
 
-There are two tracks:
+Потім йде короткий розділ 'Стислий виклад', щоб ви могли швидко ознайомитися з матеріалом, зрозуміти, що розглядається в уроці, і вирішити, чи варто його проходити.
 
- - **Client-side development** - building web and mobile apps that interact with popular onchain Solana programs. These lessons cover things like token transfers, minting, and creating clients for arbitrary programs. You will use basic TypeScript skills for this track. If you want to add blockchain payments, NFTs, blockchain provenance, etc. to your apps this is the best track to start with. 
+Далі кожен урок має три розділи:
 
- - **Onchain program development** - creating custom apps that run on the blockchain. If you want to make a new finance or accounting app, use data from outside Solana onchain, or use the blockchain to store arbitrary data, this track is for you. You will use Rust for this track.
+- **Огляд** - огляд містить пояснювальний текст, приклади та фрагменти коду. Вам _не_ потрібно писати код разом із прикладами, що наводяться тут. Метою є просто прочитати та ознайомитися з темами уроку.
 
-Modules cover a particular topic. These are broken down into individual lessons.
+- **Лабораторна робота** - практичний проект, який _обов'язково потрібно_ виконати разом із уроком. Це другий етап знайомства з контентом, а також ваша перша можливість поглибити знання та _зробити завдання_.
 
-Each lesson starts by listing the lesson objectives - ie, what you'll be learning in the lesson.
+- **Завдання** - ще один проект із кількома простими запитами, які ви повинні виконати самостійно.
 
-Then there's a brief 'Summary' so that you can glance through, get a sense of what the lesson covers, and decide if the lesson is for you or not.
+## Як ефективно використовувати цей курс?
 
-Then each lesson has three sections:
+Уроки тут дуже ефективні, але кожен має свій досвід і здібності, які не можуть бути враховані статичним контентом. З урахуванням цього ось три рекомендації, як отримати максимальну користь від курсу:
 
-- **Overview** - the overview contains explanatory text, examples, and code snippets. You are _not_ expected to code along with any of the examples shown here. The goal is to simply read through and get initial exposure to the lesson topics.
+1. **Будьте абсолютно чесними з собою** - це може звучати трохи нечітко, але бути чесним з собою щодо того, як добре ви розумієте певну тему, є важливим для її освоєння. Дуже легко прочитати щось і подумати: "так, я розумію", а потім зрозуміти, що насправді не розібрався. Будьте чесними з собою під час проходження кожного уроку. Будь ласка, не вагайтеся повторювати розділи, якщо потрібно, або робити додаткові дослідження, якщо формулювання уроку вам не зовсім підходить.
 
-- **Lab** - a practical project you _absolutely should_ code along with. This is your second exposure to the content as well as your first opportunity to dive in and _do the thing_.
+2. **Виконуйте всі лабораторні роботи та завдання** - це підтримує перший пункт. Дуже важко обманювати себе щодо того, як добре ви розумієте щось, коли ви намагаєтесь це зробити. Виконуйте всі лабораторні роботи та завдання, щоб перевірити свій рівень і повторюйте їх за потреби. Ми надаємо код рішень для кожної лабораторної роботи, але обов'язково використовуйте його як корисний ресурс, а не як опору.
 
-- **Challenge** - another project, with just a few simple prompts that you should take and implement independently.
-
-## How do I use the course effectively?
-
-The lessons here are very effective, but everyone comes from different backgrounds and aptitudes that can't be taken into account by static content. With that in mind, here are three recommendations for how to get the most out of the course:
-
-1. **Be brutally honest with yourself** - this may sound a little vague, but being honest with yourself about how well you understand a certain topic is essential to mastering it. It's really easy to read a thing and think "yeah, yeah I get it," only to realize later that you actually didn't. Be honest with yourself while going through each lesson. Please don't hesitate to repeat sections if you need to or do outside research when the lesson phrasing doesn't quite work for you.
-
-2. **Do every lab and challenge** - this supports the first point. It's pretty tough to lie to yourself about how well you know something when you make yourself try to do it. Do every lab and every challenge to test where you're at and repeat them as needed. We provide solution code for every lab, but be sure to use it as a helpful resource rather than a crutch.
-
-3. **Go above and beyond** - this sounds cliche, but don't just stop at what the lab and challenges ask you to do. Get creative! Take the projects and make them your own. Build past them. The more you practice the better you get.
-
-Alright, that's it for the pep talk. Get after it!
+3. **Перевищуйте очікування** - це може звучати банально, але не зупиняйтесь на тому, що просять зробити лабораторні роботи та завдання. Будьте креативними! Візьміть проекти і зробіть їх своїми. Розвивайте їх далі. Чим більше ви практикуєтесь, тим кращими стаєте.
+   
+Гаразд, досить мотиваційних розмов. Вперед!
