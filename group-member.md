@@ -1,38 +1,38 @@
 ---
-title: Group, Group Pointer, Member, Member Pointer
-objectives:
- - Create an NFT collection using the group, group pointer, member, and member pointer extensions.
- - Update the authority and max size of a group.
+назва: Група, Вказівник Групи, Учасник, Вказівник Учасника (Group, Group Pointer, Member, Member Pointer)
+завдання:  
+ - Створити NFT колекцію за допомогою розширень group, group pointer, member, member pointer.
+ - Оновити уповноважений акаунт та максимальний розмір групи.
 ---
 
-# Summary
+# Стислий виклад  
 
- - 'token groups' are commonly used to implement NFT collections.
- - The `group pointer` extension sets a group account on the token mint, to hold token group information. 
- - The `group` extension allows us to save group data within the mint itself.
- - The `member pointer` extension sets an individual member account on the token mint, to hold information about the token's membership within a group.
- - The `member` extension allows us to save member data within the mint itself.
+- 'групи токенів' зазвичай використовуються для реалізації NFT-колекцій.  
+- Розширення `group pointer` встановлює акаунт групи на мінт токена для зберігання інформації про групу токенів.  
+- Розширення `group` дозволяє зберігати дані групи безпосередньо в мінт акаунті.  
+- Розширення `member pointer` встановлює індивідуальний акаунт учасника на мінт токена для зберігання інформації про членство токена в групі.  
+- Розширення `member` дозволяє зберігати дані учасника безпосередньо в мінт акаунті.  
 
-# Overview
-SPL tokens are valuable alone but can be combined for extra functionality. We can do this in the Token Extensions Program by combining the `group`, `group pointer`, `member`, and `member pointer` extensions. The most common use case for these extensions is to create a collection of NFTs. 
+# Огляд  
+SPL-токени цінні самі по собі, але їх можна поєднувати для розширення функціональності. Це можна зробити в програмі Token Extensions, комбінуючи розширення `group`, `group pointer`, `member` та `member pointer`. Найпоширеніший сценарій використання цих розширень — створення колекції NFT.
 
-To create a collection of NFTs we need two parts: the "collection" NFT and all of the NFTs within the collection. We can do this entirely using token extensions. The "collection" NFT can be a single mint combining the `metadata`, `metadata pointer`, `group`, and `group pointer` extensions. And then each individual NFT within the collection can be an array of  mints combining the `metadata`, `metadata pointer`, `member`, and `member pointer` extensions.
+Щоб створити колекцію NFT, нам потрібні дві частини: NFT "колекція" та всі NFT у цій колекції. Ми можемо зробити це повністю за допомогою розширень токенів. NFT "колекція" може бути єдиним мінт-акаунтом, що поєднує розширення `metadata`, `metadata pointer`, `group` і `group pointer`. А кожен окремий NFT у колекції може бути одним із мінт-акаунтів у масиві, що поєднує розширення `metadata`, `metadata pointer`, `member` і `member pointer`.
 
-Although NFT collections are a common use-case, groups and members can be applied to any token type.
+Хоча колекції NFT є поширеним прикладом використання, групи та учасники можуть бути застосовані до будь-якого типу токенів.
 
-A quick note on `group pointer` vs `group`. The `group pointer` extension saves the address of any onchain account that follows to the [Token-Group Interface](https://github.com/solana-labs/solana-program-library/tree/master/token-group/interface). While the `group` extension saves the Token-Group Interface data directly within the mint account. Generally, these are used together where the `group pointer` points to the mint itself. The same is true for `member pointer` vs `member`, but with the member data.
+Коротке зауваження щодо різниці між `group pointer` і `group`. Розширення `group pointer` зберігає адресу будь-якого акаунта ончейн, який відповідає [Token-Group Interface](https://github.com/solana-labs/solana-program-library/tree/master/token-group/interface). В той час як розширення `group` зберігає дані Token-Group Interface безпосередньо в мінт-акаунті. Як правило, ці розширення використовуються разом, де `group pointer` вказує на сам мінт. Те ж саме стосується `member pointer` і `member`, але для даних учасника.
 
-NOTE: A group can have many members, but a member can only belong to one group.
+УВАГА: Група може мати багато учасників, але учасник може належати лише одній групі.
 
-## Group and Group Pointer
+## Група та вказівник групи (Group і Group Pointer)
 
-The `group` and `group pointer` extensions define a token group. The onchain data is as follows:
+Розширення `group` та `group pointer` визначають групу токенів. Ось як виглядають дані ончейн:
 
-- `update_authority`: The authority that can sign to update the group.
-- `mint`: The mint of the group token.
-- `size`: The current number of group members.
-- `max_size`: The maximum number of group members.
-
+- `update_authority`: Уповноважений акаунт, що може підписувати транзакцію для оновлення групи.
+- `mint`: Мінт токену групи.
+- `size`: Поточна кількість учасників групи.
+- `max_size`: Максимальна кількість учасників групи.
+  
 ```rust
 type OptionalNonZeroPubkey = Pubkey; // if all zeroes, interpreted as `None`
 type PodU32 = [u8; 4];
@@ -53,17 +53,17 @@ pub struct TokenGroup {
 }
 ```
 
-### Creating a mint with group and group pointer
+### Створення мінт акаунта з розширенням group і group pointer  
 
-Creating a mint with the `group` and `group pointer` involves four instructions:
- - `SystemProgram.createAccount`
- - `createInitializeGroupPointerInstruction`
- - `createInitializeMintInstruction`
- - `createInitializeGroupInstruction`
+Створення мінт акаунта з `group` і `group pointer` включає чотири інструкції:  
+- `SystemProgram.createAccount`  
+- `createInitializeGroupPointerInstruction`  
+- `createInitializeMintInstruction`  
+- `createInitializeGroupInstruction`
 
-The first instruction `SystemProgram.createAccount` allocates space on the blockchain for the mint account. However like all Token Extensions Program mints, we need to calculate the size and cost of the mint. This can be accomplished by using `getMintLen` and `getMinimumBalanceForRentExemption`. In this case, we'll call `getMintLen` with only the `ExtensionType.GroupPointer`. Then we add `TOKEN_GROUP_SIZE` to the mint length to account for the group data.
+Перша інструкція `SystemProgram.createAccount` виділяє простір на блокчейні для мінт акаунта. Однак, як і у випадку з усіма мінт акаунтами Token Extensions Program, нам потрібно обчислити розмір і вартість мінт акаунта. Це можна зробити за допомогою `getMintLen` і `getMinimumBalanceForRentExemption`. У цьому випадку ми викликаємо `getMintLen`, використовуючи тільки `ExtensionType.GroupPointer`. Потім додаємо `TOKEN_GROUP_SIZE` до довжини мінт акаунта, щоб врахувати дані групи.
 
-To get the mint length and create account instruction, do the following:
+Щоб отримати розмір мінт акаунта та створити інструкцію, виконайте наступне:
 
 ```ts
 // get mint length
@@ -81,7 +81,7 @@ const createAccountInstruction = SystemProgram.createAccount({
 })
 ```
 
-The second instruction `createInitializeGroupPointerInstruction` initializes the group pointer. It takes the mint, optional authority that can set the group address, address that holds the group and the owning program as it's arguments.
+Друга інструкція `createInitializeGroupPointerInstruction` ініціалізує group pointer. Вона приймає мінт акаунт, необов’язковий уповноважений акаунт, що може встановлювати адресу групи, адресу яка зберігає групу, і програму-власника як аргументи.
 
 ```ts
 const initializeGroupPointerInstruction = createInitializeGroupPointerInstruction(
@@ -92,7 +92,7 @@ const initializeGroupPointerInstruction = createInitializeGroupPointerInstructio
 )
 ```
 
-The third instruction `createInitializeMintInstruction` initializes the mint.
+Третя інструкція `createInitializeMintInstruction` ініціалізує мінт акаунт.
 
 ```ts
 const initializeMintInstruction = createInitializeMintInstruction(
@@ -104,7 +104,7 @@ const initializeMintInstruction = createInitializeMintInstruction(
 )
 ```
 
-The fourth instruction `createInitializeGroupInstruction` actually initializes the group and stores the configuration on the group account.
+Четверта інструкція `createInitializeGroupInstruction` фактично ініціалізує групу і зберігає конфігурацію на акаунті групи.
 
 ```ts
 const initializeGroupInstruction = createInitializeGroupInstruction({
@@ -117,7 +117,7 @@ const initializeGroupInstruction = createInitializeGroupInstruction({
 })      
 ```
 
-Finally, we add the instructions to the transaction and submit it to the Solana network.
+Нарешті, ми додаємо інструкції до транзакції і відправляємо її в мережу Solana.
 ```ts
 const mintTransaction = new Transaction().add(
   createAccountInstruction,
@@ -134,9 +134,9 @@ const signature = await sendAndConfirmTransaction(
 )
 ```
 
-## Update group authority
+## Оновлення уповноваженого акаунту групи
 
-To update the authority of a group, we just need the `tokenGroupUpdateGroupAuthority` function.
+Для оновлення уповноваженого акаунту групи, нам просто потрібно використати функцію `tokenGroupUpdateGroupAuthority`.
 
 ```ts
 import { tokenGroupUpdateGroupAuthority } from "@solana/spl-token"
@@ -153,9 +153,9 @@ const signature = await tokenGroupUpdateGroupAuthority(
 )
 ```
 
-## Update max size of a group
+## Оновлення максимального розміру групи
 
-To update the max size of a group we just need the `tokenGroupUpdateGroupMaxSize` function.
+Для оновлення максимального розміру групи, нам просто потрібно використати функцію `tokenGroupUpdateGroupMaxSize`.
 
 ```ts
 import { tokenGroupUpdateGroupMaxSize } from "@solana/spl-token"
@@ -172,13 +172,13 @@ const signature = tokenGroupUpdateGroupMaxSize(
 )
 ```
 
-## Member and Member Pointer
+## Учасник і Вказівник на Учасника (Member і Member Pointer)  
 
-The `member` and `member pointer` extensions define a token member. The onchain data is as follows:
+Розширення `member` і `member pointer` визначають участь токена в групі. Ончейн-дані містять:  
 
-- `mint`: The mint of the member token.
-- `group`: The address of the group account.
-- `member_number`: The member number (index within the group).
+- `mint`: Мінт акаунт токена-учасника.  
+- `group`: Адреса акаунта групи.  
+- `member_number`: Номер учасника (індекс у межах групи).
 
 ```rust
 /// Type discriminant: [254, 50, 168, 134, 88, 126, 100, 186]
@@ -194,17 +194,17 @@ pub struct TokenGroupMember {
 }
 ```
 
-### Creating a mint with member pointer
-Creating a mint with the `member pointer` and `member` extensions involves four instructions:
+### Створення мінт акаунта з розширеннями Member pointer
+Створення мінт акаунта з розширеннями `member pointer` і `member` включає чотири інструкції:  
 
-- `SystemProgram.createAccount`
-- `createInitializeGroupMemberPointerInstruction`
-- `createInitializeMintInstruction`
-- `createInitializeMemberInstruction`
+- `SystemProgram.createAccount`  
+- `createInitializeGroupMemberPointerInstruction`  
+- `createInitializeMintInstruction`  
+- `createInitializeMemberInstruction`  
 
-The first instruction `SystemProgram.createAccount` allocates space on the blockchain for the mint account. However, like all Token Extensions Program mints, we need to calculate the size and cost of the mint. This can be accomplished by using `getMintLen` and `getMinimumBalanceForRentExemption`. In this case, we'll call `getMintLen` with the `ExtensionType.GroupMemberPointer`. Then we have to add `TOKEN_GROUP_MEMBER_SIZE` to the mint length to account for the member data.
+Перша інструкція `SystemProgram.createAccount` виділяє місце в блокчейні для мінт акаунта. Однак, як і для всіх мінтів у Token Extensions Program, потрібно розрахувати його розмір і вартість. Це можна зробити за допомогою `getMintLen` і `getMinimumBalanceForRentExemption`. У цьому випадку викликаємо `getMintLen` із `ExtensionType.GroupMemberPointer`. Потім додаємо `TOKEN_GROUP_MEMBER_SIZE` до довжини мінта, щоб урахувати дані про учасника.  
 
-To get the mint length and create account instruction, do the following:
+Щоб отримати довжину мінта та створити інструкцію для акаунта, виконайте наступне:
 ```ts
 // get mint length
 const extensions = [ExtensionType.GroupMemberPointer];
@@ -220,7 +220,7 @@ const createAccountInstruction = SystemProgram.createAccount({
   programId: TOKEN_2022_PROGRAM_ID,
 });
 ```
-The second instruction `createInitializeGroupMemberPointerInstruction` initializes the group member pointer. It takes the mint, optional authority that can set the group address, address that holds the group, and the owning program as its arguments.
+Друга інструкція `createInitializeGroupMemberPointerInstruction` ініціалізує вказівник на учасника групи.  Вона використовує мінт, необов'язковий уповноважений акаунт який може встановлювати адресу групи, адресу яка зберігає групу, та програму-власника, як свої аргументи.
 
 ```ts
 const initializeGroupMemberPointerInstruction = createInitializeGroupMemberPointerInstruction(
@@ -230,7 +230,7 @@ const initializeGroupMemberPointerInstruction = createInitializeGroupMemberPoint
   TOKEN_2022_PROGRAM_ID
 );
 ```
-The third instruction `createInitializeMintInstruction` initializes the mint.
+Третя інструкція `createInitializeMintInstruction` ініціалізує мінт.
 
 ```ts
 const initializeMintInstruction = createInitializeMintInstruction(
@@ -241,7 +241,7 @@ const initializeMintInstruction = createInitializeMintInstruction(
   TOKEN_2022_PROGRAM_ID
 );
 ```
-The fourth instruction `createInitializeMemberInstruction` actually initializes the member and stores the configuration on the member account. This function takes the group address as an argument and associates the member with that group.
+Четверта інструкція `createInitializeMemberInstruction` фактично ініціалізує учасника та зберігає конфігурацію в акаунті учасника. Ця функція приймає адресу групи як аргумент і асоціює учасника з цією групою.
 
 ```ts
 const initializeMemberInstruction = createInitializeMemberInstruction({
@@ -254,7 +254,7 @@ const initializeMemberInstruction = createInitializeMemberInstruction({
 });
 ```
 
-Finally, we add the instructions to the transaction and submit it to the Solana network.
+Нарешті, ми додаємо інструкції до транзакції та відправляємо її в мережу Solana.
 
 ```ts
 const mintTransaction = new Transaction().add(
@@ -272,10 +272,10 @@ const signature = await sendAndConfirmTransaction(
 );
 ```
 
-## Fetch group and member data
+## Отримання даних про групу та учасника  
 
-### Get group pointer state
-To retrieve the state of the `group pointer` for a mint, we need to fetch the account using `getMint` and then parse this data using the `getGroupPointerState` function. This returns us the `GroupPointer` struct.
+### Отримання стану `group pointer`  
+Щоб отримати стан `group pointer` для мінт акаунта, потрібно отримати акаунт за допомогою `getMint`, а потім проаналізувати ці дані за допомогою функції `getGroupPointerState`. Це поверне нам структуру `GroupPointer`.
 
 ```ts
 /** GroupPointer as stored by the program */
@@ -287,7 +287,7 @@ export interface GroupPointer {
 }
 ```
 
-To get the `GroupPointer` data, call the following:
+Щоб отримати дані `GroupPointer`, викличте наступне:
 
 ```ts
 const groupMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRAM_ID);
@@ -295,8 +295,8 @@ const groupMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRA
 const groupPointerData: GroupPointer = getGroupPointerState(groupMint);
 ```
 
-### Get group state
-To retrieve the group state for a mint, we need to fetch the account using `getMint` and then parse this data using the `getTokenGroupState` function. This returns the `TokenGroup` struct.
+### Отримання стану групи
+Щоб отримати стан групи для мінт акаунта, потрібно отримати акаунт за допомогою `getMint`, а потім обробити ці дані за допомогою функції `getTokenGroupState`. Це поверне структуру `TokenGroup`.
 
 ```ts
 export interface TokenGroup {
@@ -311,7 +311,7 @@ export interface TokenGroup {
 }
 ```
 
-To get the `TokenGroup` data, call the following:
+Щоб отримати дані `TokenGroup`, викликайте наступне:
 
 ```ts
 const groupMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRAM_ID);
@@ -319,8 +319,8 @@ const groupMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRA
 const groupData: TokenGroup = getTokenGroupState(groupMint);
 ```
 
-### Get group member pointer state
-To retrieve the `member pointer` state for a mint, we fetch the mint with `getMint` and then parse with `getGroupMemberPointerState`. This returns us the `GroupMemberPointer` struct.
+### Отримання стану вказівника учасника групи
+Щоб отримати стан `member pointer` для мінт акаунту, ми отримуємо мінт за допомогою `getMint` і потім розбираємо його за допомогою `getGroupMemberPointerState`. Це повертає нам структуру `GroupMemberPointer`.
 
 ```ts
 /** GroupMemberPointer as stored by the program */
@@ -332,7 +332,7 @@ export interface GroupMemberPointer {
 }
 ```
 
-To get the `GroupMemberPointer` data, call the following:
+Щоб отримати дані `GroupMemberPointer`, викликайте наступне:
 
 ```ts
 const memberMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRAM_ID);
@@ -340,8 +340,8 @@ const memberMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGR
 const memberPointerData = getGroupMemberPointerState(memberMint);
 ```
 
-### Get group member state
-To retrieve a mint's `member` state, we fetch the mint with `getMint` and then parse with `getTokenGroupMemberState`. This returns the `TokenGroupMember` struct.
+### Отримати стан учасника групи
+Щоб отримати стан `member` для мінт акаунта, ми отримуємо мінт за допомогою `getMint`, а потім розбираємо ці дані за допомогою `getTokenGroupMemberState`. Це повертає структуру `TokenGroupMember`.
 
 ```ts
 export interface TokenGroupMember {
@@ -354,20 +354,20 @@ export interface TokenGroupMember {
 }
 ```
 
-To get the `TokenGroupMember` data, call the following:
+Щоб отримати дані `TokenGroupMember`, викликайте наступне:
 
 ```ts
 const memberMint = await getMint(connection, mint, "confirmed", TOKEN_2022_PROGRAM_ID);
 const memberData = getTokenGroupMemberState(memberMint);
 ```
 
-# Lab
-In this lab we'll create a Cool Cats NFT collection using the `group`, `group pointer`, `member` and `member pointer` extensions in conjunction with the `metadata` and `metadata pointer` extensions. 
+# Лабораторна робота
+У цій лабораторній роботі ми створимо колекцію NFT Cool Cats, використовуючи розширення `group`, `group pointer`, `member` та `member pointer` разом з розширеннями `metadata` та `metadata pointer`.
 
-The Cool Cats NFT collection will have a group NFT with three member NFTs within it.
+Колекція NFT Cool Cats матиме групу NFT з трьома учасниками NFT всередині(наприклад три різні картинки).
 
-### 1. Getting started
-To get started, clone [this](https://github.com/Unboxed-Software/solana-lab-group-member) repository's `starter` branch.
+### 1. Початок роботи
+Для початку клонувати гілку `starter` [цього](https://github.com/Unboxed-Software/solana-lab-group-member) репозиторію.
 
 ```bash
 git clone https://github.com/Unboxed-Software/solana-lab-group-member.git
@@ -376,41 +376,41 @@ git checkout starter
 npm install
 ```
 
-The `starter` code comes with:
+Цей код у гілці `starter` містить наступне:
 
- - `index.ts`: creates a connection object and calls `initializeKeypair`. This is where we will write our script.
- - `assets`:  folder which contains the image for our NFT collection.
- - `helper.ts`: helper functions for uploading metadata.
+- **`index.ts`**: створює об'єкт підключення та викликає функцію `initializeKeypair`. Тут ми будемо писати наш скрипт.
+- **`assets`**: папка, яка містить зображення для нашої NFT колекції.
+- **`helper.ts`**: допоміжні функції для завантаження метаданих.
+  
+### 2. Запуск валідатор ноди  
 
-### 2. Run validator node
+У рамках цього гайду ми запустимо власну валідатор ноду.  
 
-For the sake of this guide, we'll be running our own validator node.
-
-In a separate terminal, run the following command: `solana-test-validator`. This will run the node and also log out some keys and values. The value we need to retrieve and use in our connection is the JSON RPC URL, which in this case is `http://127.0.0.1:8899`. We then use that in the connection to specify to use the local RPC URL.
+У окремому терміналі виконайте команду: `solana-test-validator`. Це запустить ноду та виведе деякі ключі й значення. Значення, яке нам потрібно отримати для підключення, — це JSON RPC URL. У цьому випадку це `http://127.0.0.1:8899`. Потім ми використовуємо його в підключенні, щоб вказати локальний RPC URL.
 
 `const connection = new Connection("http://127.0.0.1:8899", "confirmed");`
 
-With the validator setup correctly, you may run `index.ts` and confirm everything is working.
+Після правильного налаштування валідатора ви можете запустити `index.ts` і переконатися, що все працює.
 
 ```bash
 npx esrun src/index.ts
 ```
 
-### 3. Setup group metadata
-Before creating our group NFT, we must prepare and upload the group metadata. We are using devnet Irys (Arweave) to upload the image and metadata. This functionality is provided for you in the `helpers.ts`.
+### 3. Налаштування метаданих групи  
+Перед створенням нашого групи NFT потрібно підготувати та завантажити метадані групи. Для цього ми використовуємо devnet Irys (Arweave) для завантаження зображення та метаданих. Ця функціональність уже реалізована у файлі `helpers.ts`.
 
-For ease of this lesson, we've provided assets for the NFTs in the `assets` directory. 
+### Для зручності цього уроку ми надали ресурси для NFT у директорії `assets`.  
 
-If you'd like to use your own files and metadata feel free!
+Якщо хочете використовувати власні файли та метадані — будь ласка!  
 
-To get our group metadata ready we have to do the following:
-1. We need to format our metadata for upload using the `LabNFTMetadata` interface from `helper.ts`
-2. Call the `uploadOffChainMetadata` from `helpers.ts`
-3. Format everything including the resulting uri from the previous step into the  
+Щоб підготувати метадані для групи, потрібно виконати такі кроки:  
+1. Відформатувати метадані для завантаження, використовуючи інтерфейс `LabNFTMetadata` із `helper.ts`.  
+2. Викликати функцію `uploadOffChainMetadata` із `helpers.ts`.  
+3. Відформатувати все, включно з отриманим `uri` з попереднього кроку.
 
-We need to format our metadata for upload (`LabNFTMetadata`), upload the image and metadata (`uploadOffChainMetadata`), and finally format everything into the `TokenMetadata` interface from the `@solana/spl-token-metadata` library.
+Нам потрібно відформатувати метадані для завантаження (`LabNFTMetadata`), завантажити зображення та метадані (`uploadOffChainMetadata`), а потім усе відформатувати у інтерфейс `TokenMetadata` з бібліотеки `@solana/spl-token-metadata`.  
 
-Note: We are using devnet Irys, which is free to upload to under 100kb.
+**Примітка:** Ми використовуємо devnet Irys, який дозволяє безкоштовно завантажувати файли розміром до 100 КБ.
 
 ```ts
 // Create group metadata
@@ -445,25 +445,25 @@ const collectionTokenMetadata: TokenMetadata = {
 }
 ```
 
-Feel free to run the script and make sure everything uploads.
+Можете запустити скрипт і переконатися, що все завантажується коректно.
 
 ```bash
 npx esrun src/index.ts
 ```
 
-### 3. Create a mint with group and group pointer
-Let's create the group NFT by creating a mint with the `metadata`, `metadata pointer`, `group` and `group pointer` extensions.
+### 3. Створення мінт акаунта з group` і group pointer 
+Створимо груповий NFT, створивши мінт акаунт із розширеннями `metadata`, `metadata pointer`, `group` і `group pointer`.  
 
-This NFT is the visual representation of our collection.
+Цей NFT є візуальним представленням нашої колекції.  
 
-Let's first define the inputs to our new function `createTokenGroup`:
+Спочатку визначимо вхідні дані для нашої нової функції `createTokenGroup`:
 
-- `connection`: Connection to the blockchain
-- `payer`: The keypair paying for the transaction
-- `mintKeypair`: The mint keypair
-- `decimals`: The mint decimals ( 0 for NFTs )
-- `maxMembers`: The maximum number of members allowed in the group
-- `metadata`: The metadata for the group mint
+- `connection`: з'єднання з блокчейном  
+- `payer`: пара ключів, яка оплачує транзакцію  
+- `mintKeypair`: пара ключів мінт акаунта  
+- `decimals`: кількість знаків після коми у мінт акаунті (0 для NFT)  
+- `maxMembers`: максимальна кількість учасників у групі  
+- `metadata`: метадані для мінт акаунта групи
 
 ```ts
 export async function createTokenGroup(
@@ -476,18 +476,18 @@ export async function createTokenGroup(
 ): Promise<TransactionSignature>
 ```
 
-To make our NFT, we will store the metadata directly on the mint account using the `metadata` and `metadata pointer` extensions. We'll also save some info about the group with the `group` and `group pointer` extensions.
+Щоб створити наш NFT, ми збережемо метадані безпосередньо в мінт акаунті, використовуючи розширення `metadata` та `metadata pointer`. Також збережемо інформацію про групу за допомогою розширень `group` та `group pointer`.  
 
-To create our group NFT, we need the following instructions:
+Для створення групи NFT нам потрібні такі інструкції:
 
-- `SystemProgram.createAccount`: Allocates space on Solana for the mint account. We can get the `mintLength` and `mintLamports` using `getMintLen` and `getMinimumBalanceForRentExemption` respectively.
-- `createInitializeGroupPointerInstruction`: Initializes the group pointer
-- `createInitializeMetadataPointerInstruction`: Initializes the metadata pointer
-- `createInitializeMintInstruction`: Initializes the mint
-- `createInitializeGroupInstruction`: Initializes the group
-- `createInitializeInstruction`: Initializes the metadata
+- `SystemProgram.createAccount`: Виділяє простір у Solana для мінт акаунта. Ми можемо отримати `mintLength` і `mintLamports`, використовуючи `getMintLen` та `getMinimumBalanceForRentExemption` відповідно.  
+- `createInitializeGroupPointerInstruction`: Ініціалізує `group pointer`.  
+- `createInitializeMetadataPointerInstruction`: Ініціалізує `metadata pointer`.  
+- `createInitializeMintInstruction`: Ініціалізує мінт акаунт.  
+- `createInitializeGroupInstruction`: Ініціалізує групу.  
+- `createInitializeInstruction`: Ініціалізує метадані.
 
-Finally, we need to add all of these instructions to a transaction and send it to the Solana network, and return the signature. We can do this by calling `sendAndConfirmTransaction`.
+Нарешті, нам потрібно додати всі ці інструкції до транзакції, надіслати її в мережу Solana і отримати підпис. Це можна зробити, викликавши `sendAndConfirmTransaction`.
 
 ```ts
 import {
@@ -595,7 +595,7 @@ export async function createTokenGroup(
 }
 ```
 
-Now that we have our function, let's call it in our `index.ts` file.
+Тепер, коли у нас є функція, викличемо її у файлі `index.ts`.
 
 ```ts
 // Create group
@@ -611,7 +611,7 @@ const signature = await createTokenGroup(
 console.log(`Created collection mint with metadata:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
 ```
 
-Before we run the script, lets fetch the newly created group NFT and print it's contents. Let's do this in `index.ts`:
+Перед тим як запустити скрипт, отримаємо щойно створену групу NFT і виведемо її вміст. Зробимо це у файлі `index.ts`:
 
 ```ts
 // Fetch the group
@@ -631,25 +631,25 @@ console.log("Uri: ", fetchedGroupMetadata?.uri);
 console.log("\n------------------------------------\n");
 ```
 
-Now we can run the script and see the group NFT we created.
+Тепер можемо запустити скрипт і побачити створену групу NFT.
 
 ```bash
 npx esrun src/index.ts
 ```
 
-### 4. Setup member NFT Metadata
+### 4. Налаштування метаданих учасника NFT  
 
-Now that we've created our group NFT, we can create the member NFTs. But before we actually create them, we need to prepare their metadata.
+Тепер, коли ми створили груповий NFT, можемо створити NFT учасників. Але перед цим потрібно підготувати їхні метадані.  
 
-The flow is the exact same to what we did with the group NFT.
+Процес такий самий, як і для групи NFT:  
 
-1. We need to format our metadata for upload using the `LabNFTMetadata` interface from `helper.ts`
-2. Call the `uploadOffChainMetadata` from `helpers.ts`
-3. Format everything including the resulting uri from the previous step into the `TokenMetadata` interface from the `@solana/spl-token-metadata` library.
+1. Форматуємо метадані для завантаження, використовуючи інтерфейс `LabNFTMetadata` із `helper.ts`.  
+2. Викликаємо `uploadOffChainMetadata` із `helpers.ts`.  
+3. Форматуємо все, включаючи отриманий `uri`, у `TokenMetadata` із бібліотеки `@solana/spl-token-metadata`.
 
-However, since we have three members, we'll loop through each step for each member.
+Оскільки у нас є три учасники, ми повторимо кожен крок для кожного з них.  
 
-First, let's define the metadata for each member:
+Спочатку визначимо метадані для кожного учасника:
 ```ts
 // Define member metadata
 const membersMetadata: LabNFTMetadata[] = [
@@ -686,7 +686,7 @@ const membersMetadata: LabNFTMetadata[] = [
 ];
 ```
 
-Now let's loop through each member and upload their metadata.
+Тепер пройдемося по кожному учаснику і завантажимо їхні метадані.
 
 ```ts
 // Upload member metadata
@@ -698,9 +698,9 @@ for (const member of membersMetadata) {
 }
 ```
 
-Finally, let's format the metadata for each member into the `TokenMetadata` interface:
+Нарешті, відформатуємо метадані для кожного учасника у формат `TokenMetadata`:  
 
-Note: We'll want to carry over the keypair since we'll need it to create the member NFTs.
+Примітка: Нам потрібно зберегти пару ключів, оскільки вона знадобиться для створення NFT учасників.
 
 ```ts
 // Format token metadata
@@ -717,18 +717,18 @@ const memberTokenMetadata: { mintKeypair: Keypair, metadata: TokenMetadata }[] =
 }))
 ```
 
-### 5. Create member NFTs
-Just like the group NFT, we need to create the member NFTs. Let's do this in a new file called `create-member.ts`. It will look very similar to the `create-group.ts` file, except we'll use the `member` and `member pointer` extensions instead of the `group` and `group pointer` extensions.
+### 5. Створення NFT учасників 
+Як і з групою NFT, нам потрібно створити NFT учасників. Давайте зробимо це в новому файлі під назвою `create-member.ts`. Він буде дуже схожий на файл `create-group.ts`, але замість розширень `group` і `group pointer` ми використовуватимемо розширення `member` і `member pointer`.
 
-First, let's define the inputs to our new function `createTokenMember`:
+Спочатку визначимо вхідні параметри для нашої нової функції `createTokenMember`:  
 
-- `connection`: Connection to the blockchain
-- `payer`: The keypair paying for the transaction
-- `mintKeypair`: The mint keypair
-- `decimals`: The mint decimals ( 0 for NFTs )
-- `metadata`: The metadata for the group mint
-- `groupAddress`: The address of the group account - in this case it's the group mint itself
-
+- `connection`: з'єднання з блокчейном  
+- `payer`: пара ключів, яка оплачує транзакцію  
+- `mintKeypair`: пара ключів мінт акаунта  
+- `decimals`: кількість десяткових знаків для мінта (0 для NFT)  
+- `metadata`: метадані для мінта групи  
+- `groupAddress`: адреса акаунта групи – у цьому випадку це сама адреса мінту токена/колекції
+  
 ```ts
 export async function createTokenMember(
   connection: Connection,
@@ -740,15 +740,15 @@ export async function createTokenMember(
 ): Promise<TransactionSignature>
 ```
 
-Just like the group NFT, we need the following instructions:
-- `SystemProgram.createAccount`: Allocates space on Solana for the mint account. We can get the `mintLength` and `mintLamports` using `getMintLen` and `getMinimumBalanceForRentExemption` respectively.
-- `createInitializeGroupMemberPointerInstruction`: Initializes the member pointer
-- `createInitializeMetadataPointerInstruction`: Initializes the metadata pointer
-- `createInitializeMintInstruction`: Initializes the mint
-- `createInitializeMemberInstruction`: Initializes the member
-- `createInitializeInstruction`: Initializes the metadata
-
-Finally, we need to add these instructions to a transaction, send it to the Solana network, and return the signature. We can do this by calling `sendAndConfirmTransaction`.
+Так само, як і для group NFT, потрібні такі інструкції:  
+- `SystemProgram.createAccount`: виділяє місце на Solana для мінт акаунта. `mintLength` і `mintLamports` можна отримати за допомогою `getMintLen` і `getMinimumBalanceForRentExemption`.  
+- `createInitializeGroupMemberPointerInstruction`: ініціалізує member pointer.  
+- `createInitializeMetadataPointerInstruction`: ініціалізує metadata pointer.  
+- `createInitializeMintInstruction`: ініціалізує мінт.  
+- `createInitializeMemberInstruction`: ініціалізує member.  
+- `createInitializeInstruction`: ініціалізує metadata.
+  
+Ці інструкції потрібно додати до транзакції, відправити в мережу Solana і повернути підпис. Для цього викликаємо `sendAndConfirmTransaction`.
 
 ```ts
 import {
@@ -857,7 +857,7 @@ export async function createTokenMember(
 }
 ```
 
-Let's add our new function to `index.ts` and call it for each member:
+Давайте додамо нашу нову функцію в `index.ts` і викличемо її для кожного учасника.
 ```ts
 // Create member mints
 for (const memberMetadata of memberTokenMetadata) {
@@ -875,7 +875,7 @@ for (const memberMetadata of memberTokenMetadata) {
 }
 ```
 
-Let's fetch our newly created member NFTs and display their contents.
+Давайте отримамо наші щойно створені членські NFT та виведемо їх вміст.
 
 ```ts
 for (const member of membersMetadata) {
@@ -899,12 +899,12 @@ for (const member of membersMetadata) {
 }
 ```
 
-Lastly, let's run the script and see our full collection of NFTs!
+Останнім кроком давайте запустимо скрипт і побачимо всю нашу колекцію NFT!
 ```bash
 npx esrun src/index.ts
 ```
 
-That's it! If you're having troubles feel free to check out the `solution` [branch in the repository](https://github.com/Unboxed-Software/solana-lab-group-member/tree/solution).
+Ось і все! Якщо у вас виникли проблеми, не соромтеся перевірити гілку `solution` в репозиторії [тут](https://github.com/Unboxed-Software/solana-lab-group-member/tree/solution).
 
-# Challenge
-Go create a NFT collection of your own using the the `group`, `group pointer`, `member` and `member pointer` extensions.
+# Challenge  
+Створи свою власну колекцію NFT, використовуючи розширення `group`, `group pointer`, `member` та `member pointer`.
