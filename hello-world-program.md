@@ -1,87 +1,87 @@
 ---
-title: Hello World
-objectives:
-- Use the Rust module system
-- Define a function in Rust
-- Explain the `Result` type
-- Explain the entry point to a Solana program
-- Build and deploy a basic Solana program
-- Submit a transaction to invoke our “Hello, world!” program
+назва: Hello World  
+завдання:  
+- Використати систему модулів Rust  
+- Визначити функцію в Rust  
+- Пояснити тип `Result`  
+- Пояснити точку входу до програми Solana  
+- Побудувати та розгорнути базову програму Solana  
+- Надіслати транзакцію для виклику нашої програми "Hello, world!"
 ---
 
-# Summary
+# Стислий виклад
 
-- **Programs** on Solana are a particular type of account that stores and executes instruction logic
-- Solana programs have a single **entry point** to process instructions
-- A program processes an instruction using the **program_id**, list of **accounts**, and **instruction_data** included with the instruction
+- **Програми** на Solana — це особливий тип акаунтів, які зберігають і виконують логіку інструкцій.
+- Програми Solana мають єдину **точку входу** для обробки інструкцій.
+- Програма обробляє інструкцію за допомогою **program_id**, списку **accounts** та **instruction_data**, що включені в інструкцію.
 
-# Lesson
+# Урок
 
-Solana's ability to run arbitrary executable code is part of what makes it so powerful. Solana programs, similar to "smart contracts" in other blockchain environments, are quite literally the backbone of the Solana ecosystem. And the collection of programs grows daily as developers and creators dream up and deploy new programs.
+Здатність Solana виконувати довільний виконуваний код є однією з причин її потужності. Програми Solana, подібно до "смарт-контрактів" в інших блокчейн середовищах, є буквально основою екосистеми Solana. І колекція програм зростає щодня, оскільки розробники та творці вигадують і розгортають нові програми.
 
-This lesson will give you a basic introduction to writing and deploying a Solana program using the Rust programming language. To avoid the distraction of setting up a local development environment, we'll be using a browser-based IDE called Solana Playground.
+Цей урок дасть вам базове введення в написання та розгортання програми Solana за допомогою мови програмування Rust. Щоб уникнути відволікань на налаштування локального середовища розробки, ми будемо використовувати браузерний IDE під назвою Solana Playground.
 
-## Rust Basics
+## Основи Rust
 
-Before we dive into the building our "Hello, world!" program, let’s first go over some Rust basics. If you want to dig deeper into Rust, have a look at the [Rust language book](https://doc.rust-lang.org/book/ch00-00-introduction.html).
+Перед тим як розпочати будувати нашу програму "Hello, world!", давайте спершу ознайомимося з деякими основами Rust. Якщо ви хочете глибше вивчити Rust, ознайомтесь з [книгою про мову Rust](https://doc.rust-lang.org/book/ch00-00-introduction.html).
 
-### Module System
+### Система модулів
 
-Rust organizes code using what is collectively referred to as the “module system”.
+Rust організовує код за допомогою системи модулів.
 
-This includes:
+Це включає:
 
-- **Modules** - A module separates code into logical units to provide isolated namespaces for organization, scope, and privacy of paths
-- **Crates** - A crate is either a library or an executable program. The source code for a crate is usually subdivided into multiple modules.
-- **Packages** - A package contains a collection of crates as well as a manifest file for specifying metadata and dependencies between packages
+- **Модулі** - Модуль розділяє код на логічні одиниці, щоб забезпечити ізольовані простори імен для організації, області видимості та конфіденційності шляхів.
+- **Крейти** - Крейтом є або бібліотека, або виконувана програма. Джерело коду для крейту зазвичай розділене на кілька модулів.
+- **Пакети** - Пакет містить колекцію крейтів, а також маніфест файл для вказівки метаданих і залежностей між пакетами.
+  
+Протягом цього уроку ми зосередимося на використанні крейтів та модулів.
 
-Throughout this lesson, we’ll focus on using crates and modules.
+### Шляхи та область видимості
 
-### Paths and scope
+Крейти в Rust містять модулі, що визначають функціональність, яку можна використовувати в кількох проектах. Якщо ми хочемо отримати доступ до елемента в модулі, нам потрібно знати його "шлях" (як при навігації по файловій системі).
 
-Crates in Rust contain modules that define functionality which can be shared with multiple projects. If we want to access an item within a module, then we need to know its "path" (like when we're navigating a filesystem).
+Уявіть структуру крейту як дерево, де крейт є основою, а модулі — це гілки, кожна з яких може мати підмодулі або елементи, які є додатковими гілками.
 
-Think of the crate structure as a tree where the crate is the base and modules are branches, each of which can have submodules or items that are additional branches.
+Шлях до певного модуля або елемента — це назва кожного кроку від крейту до цього модуля, де кожен крок відокремлений символом `::`. Наприклад, розглянемо наступну структуру:
 
-The path to a particular module or item is the name of each step from the crate to that module where each is separated by `::`. As an example, let's look at the following structure:
+1. Базовий крейт — це `solana_program`
+2. `solana_program` містить модуль з назвою `account_info`
+3. `account_info` містить структуру з назвою `AccountInfo`
 
-1. The base crate is `solana_program`
-2. `solana_program` contains a module named `account_info`
-3. `account_info` contains a struct named `AccountInfo`
+Шлях до `AccountInfo` буде `solana_program::account_info::AccountInfo`.
 
-The path to `AccountInfo` would be `solana_program::account_info::AccountInfo`.
+Без використання інших ключових слів, нам потрібно буде звертатися до цього повного шляху, щоб використовувати `AccountInfo` в нашому коді.
 
-Absent of any other keywords, we would need to reference this entire path to use `AccountInfo` in our code.
-
-However, with the [`use`](https://doc.rust-lang.org/stable/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html) keyword we can bring an item into scope so that it can be reused throughout a file without specifying the full path each time. It's common to see a series of `use` commands at the top of a Rust file.
+Однак за допомогою ключового слова [`use`](https://doc.rust-lang.org/stable/book/ch07-04-bringing-paths-into-scope-with-the-use-keyword.html) ми можемо привести елемент до області видимості, щоб його можна було повторно використовувати протягом файлу без вказування повного шляху кожного разу. Зазвичай можна побачити серію команд `use` на початку файлу Rust.
 
 ```rust
 use solana_program::account_info::AccountInfo
 ```
 
-### Declaring Functions in Rust
+### Оголошення функцій в Rust
 
-We define a function in Rust by using the `fn` keyword followed by a function name and a set of parentheses.
+Ми визначаємо функцію в Rust, використовуючи ключове слово `fn`, за яким слідує назва функції та набір круглих дужок.
 
 ```rust
 fn process_instruction()
 ```
 
-We can then add arguments to our function by including variable names and specifying its corresponding data type within the parentheses.
+Ми можемо додати аргументи до нашої функції, вказавши імена змінних і їх відповідні типи даних у дужках.
 
-Rust is known as a ”statically typed” language and every value in Rust is of a certain ”data type”. This meaning that Rust must know the types of all variables at compile time. In cases when multiple types are possible, we must add a type annotation to our variables.
+Rust відомий як "статично типізована" мова, і кожне значення в Rust має певний "тип даних". Це означає, що Rust повинен знати типи всіх змінних під час компіляції. У випадках, коли можливі кілька типів, ми повинні додавати анотацію типу до наших змінних.
 
-In the example below, we create a function named `process_instruction` that requires the following arguments:
+У наведеному нижче прикладі ми створюємо функцію з назвою `process_instruction`, яка потребує наступних аргументів:
 
-- `program_id` - required to be type `&Pubkey`
-- `accounts` - required to be type `&[AccountInfo]`
-- `instruction_data` - required to be type `&[u8]`
+- `program_id` — повинен мати тип `&Pubkey`
+- `accounts` — повинен мати тип `&[AccountInfo]`
+- `instruction_data` — повинен мати тип `&[u8]`
+  
+Зверніть увагу на `&` перед типом для кожного аргументу, що перелічений у функції `process_instruction`. У Rust `&` представляє "посилання" на іншу змінну. Це дозволяє звертатися до деякого значення без того, щоб забирати його власність. "Посилання" гарантує, що воно вказує на дійсне значення певного типу. Дія створення посилання в Rust називається "позичанням" (`borrowing`).
 
-Note the `&` in front of the type for each argument listed in the `process_instruction` function. In Rust, `&` represents a ”reference” to another variable. This allows you to refer to some value without taking ownership of it. The “reference” is guaranteed to point to a valid value of a particular type. The action of creating a reference in Rust is called “borrowing”.
+У цьому прикладі, коли функція `process_instruction` викликається, користувач повинен передати значення для необхідних аргументів. Функція `process_instruction` потім посилається на значення, передані користувачем, і гарантує, що кожне значення має правильний тип даних, зазначений у функції `process_instruction`.
 
-In this example, when the `process_instruction` function is called, a user must pass in values for the required arguments. The `process_instruction` function then references the values passed in by the user, and guarantees that each value is the correct data type specified in the `process_instruction` function.
-
-Additionally, note the brackets `[]` around `&[AccountInfo]` and `&[u8]`. This means that the `accounts` and `instruction_data` arguments expect “slices” of types `AccountInfo` and `u8`, respectively. A “slice” is similar to an array (collection of objects of the same type), except the length is not known at compile time. In other words, the `accounts` and `instruction_data` arguments expect inputs of unknown length.
+Крім того, зверніть увагу на квадратні дужки `[]` навколо `&[AccountInfo]` та `&[u8]`. Це означає, що аргументи `accounts` і `instruction_data` очікують "слайси" типів `AccountInfo` та `u8` відповідно. "Слайс" схожий на масив (колекцію об'єктів одного типу), за винятком того, що довжина не відома під час компіляції. Іншими словами, аргументи `accounts` та `instruction_data` очікують вхідні дані невідомої довжини.
 
 ```rust
 fn process_instruction(
@@ -91,9 +91,9 @@ fn process_instruction(
 )
 ```
 
-We can then have our functions return values by declaring the return type using an arrow `->` after the function.
+Ми можемо змусити наші функції повертати значення, оголосивши тип повернення за допомогою стрілки `->` після функції.
 
-In the example below, the `process_instruction` function will now return a value of type `ProgramResult`. We will go over this in the next section.
+У наведеному прикладі функція `process_instruction` тепер буде повертати значення типу `ProgramResult`. Ми розглянемо це в наступному розділі.
 
 ```rust
 fn process_instruction(
@@ -105,31 +105,31 @@ fn process_instruction(
 
 ### Result enum
 
-`Result` is a standard library type that represents two discrete outcomes: success (`Ok`) or failure (`Err`). We'll talk more about enums in a future lesson, but you'll see `Ok` used later in this lesson so it's important to cover the basics.
+`Result` — це тип стандартної бібліотеки, який представляє два можливі результати: успіх (`Ok`) або невдача (`Err`). Ми детальніше поговоримо про перелічення (enum) в майбутньому уроці, але ви побачите використання `Ok` пізніше в цьому уроці, тому важливо ознайомитись з основами.
 
-When you use `Ok` or `Err`, you must include a value, the type of which is determined by the context of the code. For example, a function that requires a return value of type `Result<String, i64>` is saying that the function can either return `Ok` with an embedded string value or `Err` with an embedded integer. In this example, the integer is an error code that can be used to appropriately handle the error.
+Коли ви використовуєте `Ok` або `Err`, потрібно вказати значення, тип якого визначається контекстом коду. Наприклад, функція, яка вимагає повернення значення типу `Result<String, i64>`, означає, що функція може або повернути `Ok` з вбудованим значенням рядка, або `Err` з вкладеним цілим числом. У цьому прикладі ціле число є кодом помилки, який можна використовувати для відповідного оброблення помилки.
 
-To return a success case with a string value, you would do the following:
+Щоб повернути успішний випадок з рядковим значенням, ви можете зробити наступне:
 
 ```rust
 Ok(String::from("Success!"));
 ```
 
-To return an error with an integer, you would do the following:
+Щоб повернути помилку з цілим числом, ви можете зробити наступне:
 
 ```rust
 Err(404);
 ```
 
-## Solana Programs
+## Програми Solana
 
-Recall that all data stored on the Solana network are contained in what are referred to as accounts. Each account has its own unique address which is used to identify and access the account data. Solana programs are just a particular type of Solana account that store and execute instructions.
+Згадаємо, що всі дані, збережені в мережі Solana, містяться в акаунтах. Кожен акаунт має свою унікальну адресу, яка використовується для ідентифікації та доступу до даних акаунта. Програми Solana — це просто особливий тип акаунтів Solana, які зберігають та виконують інструкції.
 
 ### Solana Program Crate
 
-To write Solana programs with Rust, we use the `solana_program` library crate. The `solana_program` crate acts as a standard library for Solana programs. This standard library contains the modules and macros that we'll use to develop our Solana programs. If you want to dig deeper into the `solana_program` crate, have a look [at the `solana_program` crate documentation](https://docs.rs/solana-program/latest/solana_program/index.html).
+Для написання програм Solana за допомогою Rust ми використовуємо крейт бібліотеки `solana_program`. Крейт `solana_program` виступає як стандартна бібліотека для програм Solana. Ця стандартна бібліотека містить модулі та макроси, які ми використовуватимемо для розробки наших програм Solana. Якщо ви хочете глибше вивчити крейт `solana_program`, ознайомтесь з [документацією крейту `solana_program`](https://docs.rs/solana-program/latest/solana_program/index.html).
 
-For a basic program we will need to bring into scope the following items from the `solana_program` crate:
+Для базової програми нам потрібно привести до області видимості наступні елементи з крейту `solana_program`:
 
 ```rust
 use solana_program::{
@@ -141,21 +141,21 @@ use solana_program::{
 };
 ```
 
-- `AccountInfo` - a struct within the `account_info` module that allows us to access account information
-- `entrypoint` - a macro that declares the entry point of the program
-- `ProgramResult` - a type within the `entrypoint` module that returns either a `Result` or `ProgramError`
-- `Pubkey` - a struct within the `pubkey` module that allows us to access addresses as a public key
-- `msg` - a macro that allows us to print messages to the program log
+- `AccountInfo` — структура в модулі `account_info`, яка дозволяє нам отримувати інформацію про акаунт
+- `entrypoint` — макрос, що оголошує точку входу програми
+- `ProgramResult` — тип в модулі `entrypoint`, що повертає або `Result`, або `ProgramError`
+- `Pubkey` — структура в модулі `pubkey`, яка дозволяє нам отримувати адреси як публічні ключі
+- `msg` — макрос, який дозволяє нам виводити повідомлення в журнал програми
 
-### Solana Program Entry Point
+### Точка входу програми Solana
 
-Solana programs require a single entry point to process program instructions. The entry point is declared using the `entrypoint!` macro.
+Програми Solana потребують єдиної точки входу для обробки інструкцій програми. Точка входу оголошується за допомогою макросу `entrypoint!`.
 
-The entry point to a Solana program requires a `process_instruction` function with the following arguments:
+Точка входу програми Solana вимагає функцію `process_instruction` з наступними аргументами:
 
-- `program_id` - the address of the account where the program is stored
-- `accounts` - the list of accounts required to process the instruction
-- `instruction_data` - the serialized, instruction-specific data
+- `program_id` — адреса акаунта, де зберігається програма
+- `accounts` — список акаунтів, необхідних для обробки інструкції
+- `instruction_data` — серіалізовані дані, специфічні для інструкції
 
 ```rust
 entrypoint!(process_instruction);
@@ -167,27 +167,27 @@ fn process_instruction(
 ) -> ProgramResult;
 ```
 
-Recall that Solana program accounts only store the logic to process instructions. This means program accounts are "read-only" and “stateless”. The “state” (the set of data) that a program requires to process an instruction is stored in data accounts (separate from the program account).
+Згадаємо, що акаунти програм Solana зберігають лише логіку для обробки інструкцій. Це означає, що акаунти програм є "тільки для читання" та "безстанними". "Стан" (набір даних), який програма потребує для обробки інструкції, зберігається в акаунтах даних (окремо від акаунтів програм).
 
-To process an instruction, the data accounts that an instruction requires must be explicitly passed into the program through the `accounts` argument. Any additional inputs must be passed in through the `instruction_data` argument.
+Для обробки інструкції акаунти даних, які потрібні для інструкції, повинні бути явно передані в програму через аргумент `accounts`. Будь-які додаткові входи повинні бути передані через аргумент `instruction_data`.
 
-Following program execution, the program must return a value of type `ProgramResult`. This type is a `Result` where the embedded value of a success case is `()` and the embedded value of a failure case is `ProgramError`. `()` is an empty value and `ProgramError` is an error type defined in the `solana_program` crate.
+Після виконання програми програма повинна повернути значення типу `ProgramResult`. Цей тип є `Result`, де вкладене значення успішного випадку — це `()`, а вкладене значення випадку помилки — це `ProgramError`. `()` — це порожнє значення, а `ProgramError` — це тип помилки, визначений у крейті `solana_program`.
 
-...and there you have it - you now know all the things you need for the foundations of creating a Solana program using Rust. Let’s practice what we’ve learned so far!
+...і ось вам основи — тепер ви знаєте все, що потрібно для створення програми Solana за допомогою Rust. Тепер давайте попрактикуємося з тим, що ми вивчили до цього часу!
 
-# Lab
+# Лабораторна робота
 
-We're going to build a "Hello, World!" program using Solana Playground. Solana Playground is a tool that allows you to write and deploy Solana programs from the browser.
+Ми створимо програму "Hello, World!" за допомогою Solana Playground. Solana Playground — це інструмент, який дозволяє писати та розгортати програми Solana безпосередньо з браузера.
 
-### 1. Setup
+### 1. Налаштування
 
-Open the [Solana Playground](https://beta.solpg.io/). Next, go ahead and delete everything in the default `lib.rs` file and create a Playground wallet.
+Відкрийте [Solana Playground](https://beta.solpg.io/). Далі видаліть все в стандартному файлі `lib.rs` та створіть гаманець в Playground.
 
 ![Gif Solana Playground Create Wallet](../assets/hello-world-create-wallet.gif)
 
 ### 2. Solana Program Crate
 
-First, let's bring into scope everything we’ll need from the `solana_program` crate.
+Спочатку давайте приведемо до області видимості все, що нам потрібно з крейту `solana_program`.
 
 ```rust
 use solana_program::{
@@ -199,9 +199,9 @@ use solana_program::{
 };
 ```
 
-Next, let's set up the entry point to our program using the `entrypoint!` macro and create the `process_instruction` function. The `msg!` macro then allows us to print “Hello, world!” to the program log when the program is invoked.
+Далі налаштуємо точку входу до нашої програми за допомогою макросу `entrypoint!` і створимо функцію `process_instruction`. Макрос `msg!` дозволяє нам вивести "Hello, world!" в журнал програми під час виклику програми.
 
-### 3. Entry Point
+### 3. Точка входу
 
 ```rust
 entrypoint!(process_instruction);
@@ -217,7 +217,7 @@ pub fn process_instruction(
 }
 ```
 
-All together, the “Hello, world!” program will look like this:
+Вся програма "Hello, world!" виглядатиме ось так:
 
 ```rust
 use solana_program::{
@@ -241,25 +241,25 @@ pub fn process_instruction(
 }
 ```
 
-### 4. Build and Deploy
+### 4. Створення та розгортання
 
-Now let's build and deploy our program using Solana Playground.
+Тепер давайте створимо та розгорнемо нашу програму за допомогою Solana Playground.
 
 ![Gif Solana Playground Build and Deploy](../assets/hello-world-build-deploy.gif)
 
-### 5. Invoke Program
+### 5. Виклик програми
 
-Finally, let's invoke our program from the client side. The focus of this lesson is to build our Solana program, so we’ve gone ahead and provided [the client code to invoke our “Hello, world!” program](https://github.com/Unboxed-Software/solana-hello-world-client) for you to download.
+Нарешті, давайте викликаємо нашу програму з боку клієнта. Основна мета цього уроку — створити нашу програму Solana, тому ми вже підготували [код клієнта для виклику нашої програми "Hello, world!"](https://github.com/Unboxed-Software/solana-hello-world-client), який ви можете завантажити.
 
-The code provided includes a `sayHello` helper function that builds and submits our transaction. We then call `sayHello` in the main function and print a Solana Explorer URL to view our transaction details in the browser.
+Наданий код містить допоміжну функцію `sayHello`, яка будує та надсилає нашу транзакцію. Потім ми викликаємо `sayHello` в головній функції та виводимо URL Solana Explorer, щоб переглянути деталі нашої транзакції в браузері.
 
-Open the `index.ts` file you should see a variable named `programId`. Go ahead and update this with the program ID of the “Hello, world!" program you just deployed using Solana Playground.
+Відкрийте файл `index.ts`, і ви побачите змінну з іменем `programId`. Оновіть її, вказавши ID програми “Hello, world!”, яку ви щойно розгорнули за допомогою Solana Playground.
 
 ```tsx
 let programId = new web3.PublicKey("<YOUR_PROGRAM_ID>");
 ```
 
-You can locate the program ID on Solana Playground referencing the image below.
+Ви можете знайти ID програми на Solana Playground, орієнтуючись на зображення нижче.
 
 ![Gif Solana Playground Program ID](../assets/hello-world-program-id.gif)
 
@@ -271,23 +271,22 @@ Now, go ahead and run `npm start`. This command will:
 3. Invoke the “Hello, world!” program
 4. Output the transaction URL to view on Solana Explorer
 
-Copy the transaction URL printed in the console into your browser. Scroll down to see “Hello, world!” under Program Instruction Logs.
+Скопіюйте URL транзакції, який виведено в консолі, і вставте його у ваш браузер. Прокрутіть сторінку вниз, щоб побачити “Hello, world!” під "Program Instruction Logs".
 
 ![Screenshot Solana Explorer Program Log](../assets/hello-world-program-log.png)
 
-Congratulations, you’ve just successfully built and deployed a Solana program!
+Вітаємо, ви щойно успішно створили та розгорнули програму Solana!
 
-# Challenge
+# Завдання
 
-Now it’s your turn to build something independently. Because we're starting with very simple programs, yours will look almost identical to what we just created. It's useful to try and get to the point where you can write it from scratch without referencing prior code, so try not to copy and paste here.
+Тепер ваша черга створити щось самостійно. Оскільки ми починаємо з дуже простих програм, ваша програма виглядатиме майже так само, як та, яку ми тільки що створили. Це корисно, щоб досягти того рівня, коли ви можете написати програму з нуля без посилання на попередній код, тому намагайтеся не копіювати та вставляти тут.
 
-1. Write a new program that uses the `msg!` macro to print your own message to the program log.
-2. Build and deploy your program like we did in the lab.
-3. Invoke your newly deployed program and use Solana Explorer to check that your message was printed in the program log.
+1. Напишіть нову програму, яка використовує макрос `msg!` для виведення власного повідомлення в журнал програми.
+2. Створіть і розгорніть вашу програму так, як ми робили це в лабораторії.
+3. Викликайте щойно розгорнуту програму та використовуйте Solana Explorer, щоб перевірити, чи було виведене ваше повідомлення в журналі програми.
 
-As always, get creative with these challenges and take them beyond the basic instructions if you want - and have fun!
+Як завжди, будьте креативними в цих завданнях і розширюйте їх за межі базових інструкцій, якщо хочете — і насолоджуйтеся процесом!
 
+## Завершили лабораторну роботу?
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=5b56c69c-1490-46e4-850f-a7e37bbd79c2)!
+Завантажте ваш код на GitHub та [поділіться вашими враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=5b56c69c-1490-46e4-850f-a7e37bbd79c2)!
