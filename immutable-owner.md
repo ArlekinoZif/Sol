@@ -1,44 +1,44 @@
 ---
-title: Immutable Owner
-objectives:
- - Create token accounts with an immutable owner
- - Explain the use cases of the immutable owner extension
- - Experiment with the rules of the extension
+назва: Незмінний Власник (Immutable Owner)
+завдання:
+ - Створення токен-акаунтів з незмінним власником
+ - Пояснення випадків використання розширення незмінного власника
+ - Експерименти з правилами розширення
 ---
-# Summary
+# Стислий виклад 
 
-- The `immutable owner` extension ensures that once a token account is created, its owner is unchangeable, securing the ownership against any modifications.
-- Token accounts with this extension can have only one permanent state regarding ownership: **Immutable**.
-- Associated Token Accounts (ATAs) have the `immutable owner` extension enabled by default.
-- The `immutable owner` extension is a token account extension; enabled on each token account, not the mint.
+- Розширення `immutable owner` гарантує, що після створення токен-акаунта його власник не може бути змінений, що забезпечує захист власності від будь-яких змін.
+- Токен-акаунти з цим розширенням можуть мати лише один постійний стан щодо власності: **Immutable**.
+- Асоційовані токен-акаунти (ATA) мають розширення `immutable owner`, увімкнене за замовчуванням.
+- Розширення `immutable owner` є розширенням токен-акаунта; воно увімкнене для кожного токен-акаунта, а не для мінт-акаунта.
 
-# Overview
+# Огляд
 
-Associated Token Accounts (ATAs) are uniquely determined by the owner and the mint, streamlining the process of identifying the correct Token Account for a specific owner. Initially, any token account could change its owner, even ATAs. This led to security concerns, as users could mistakenly send funds to an account no longer owned by the expected recipient. This can unknowingly lead to the loss of funds should the owner change.
+Асоційовані токен-акаунти (ATA) унікально визначені власником та мінт акаунтом, спрощуючи процес ідентифікації правильного токен-акаунта для конкретного власника. Спочатку будь-який токен-акаунт міг змінювати свого власника, навіть ATA. Це призвело до проблем з безпекою, оскільки користувачі могли випадково надіслати кошти на акаунт, який більше не належав очікуваному отримувачу. Це може непомітно призвести до втрати коштів, якщо власник акаунта зміниться.
 
-The `immutable owner` extension, which is automatically applied to ATAs, prevents any changes in ownership. This extension can also be enabled for new Token Accounts created through the Token Extensions Program, guaranteeing that once ownership is set it is permanent. This secures accounts against unauthorized access and transfer attempts.
+Розширення `immutable owner`, яке автоматично застосовується до ATA, запобігає будь-яким змінам у власності. Це розширення також можна увімкнути для нових токен-акаунтів, створених через програму токен-розширень, гарантуючи, що як тільки власність встановлено, вона є постійною. Це забезпечує захист акаунтів від несанкціонованого доступу та спроб переведення.
 
-It is important to note that this extension is a Token Account extension, meaning it's on the token account, not the mint.
+Важливо зазначити, що це розширення є розширенням токен-акаунта, тобто воно застосовується до токен-акаунта, а не до мінт акаунта.
 
-## Creating token account with immutable owner
+## Створення токен-акаунта з незмінним власником
 
-All Token Extensions Program ATAs have immutable owners enabled by default. If you want to create an ATA you may use `createAssociatedTokenAccount`.
+У всіх токен-акаунтів в програмі токен-розширень розширення immutable owner увімкнене за замовчуванням. Якщо ви хочете створити ATA, ви можете використовувати `createAssociatedTokenAccount`.
 
-Outside of ATAs, which enable the immutable owner extension by default, you can enable it manually on any Token Extensions Program token account.
+Окрім ATA, які мають розширення immutable owner увімкнене за замовчуванням, ви можете вручну увімкнути це розширення на будь-якому токен-акаунті в програмі токен-розширень.
 
-Initializing a token account with immutable owner involves three instructions:
+Ініціалізація токен-акаунта з незмінним власником передбачає три інструкції:
 
 - `SystemProgram.createAccount`
 - `createInitializeImmutableOwnerInstruction`
 - `createInitializeAccountInstruction`
 
-Note: We are assuming a mint has already been created.
+Примітка: Ми припускаємо, що мінт-акаунт вже був створений.
 
-The first instruction `SystemProgram.createAccount` allocates space on the blockchain for the token account. This instruction accomplishes three things:
+Перша інструкція `SystemProgram.createAccount` виділяє місце на блокчейні для токен-акаунта. Ця інструкція виконує три завдання:
 
-- Allocates `space`
-- Transfers `lamports` for rent
-- Assigns to its owning program
+- Виділяє `space`
+- Переводить `lamports` для оренди
+- Призначає до програми-власника
 
 ```typescript
 const tokenAccountKeypair = Keypair.generate();
@@ -57,7 +57,7 @@ const createTokenAccountInstruction = SystemProgram.createAccount({
 });
 ```
 
-The second instruction `createInitializeImmutableOwnerInstruction` initializes the immutable owner extension.
+Друга інструкція `createInitializeImmutableOwnerInstruction` ініціалізує розширення immutable owner.
 
 ```typescript
 const initializeImmutableOwnerInstruction =
@@ -67,7 +67,7 @@ const initializeImmutableOwnerInstruction =
   );
 ```
 
-The third instruction `createInitializeAccountInstruction` initializes the token account.
+Третя інструкція `createInitializeAccountInstruction` ініціалізує токен-акаунт.
 
 ```typescript
 const initializeAccountInstruction = createInitializeAccountInstruction(
@@ -78,7 +78,7 @@ const initializeAccountInstruction = createInitializeAccountInstruction(
 );
 ```
 
-Lastly, add all of these instructions to a transaction and send it to the blockchain.
+Нарешті, додайте всі ці інструкції до транзакції та надішліть її в блокчейн.
 ```ts
 const transaction = new Transaction().add(
   createTokenAccountInstruction,
@@ -94,22 +94,22 @@ return await sendAndConfirmTransaction(
   [payer, owner, tokenAccountKeypair],
 );
 ```
-When the transaction with these three instructions is sent, a new token account is created with the immutable owner extension.
+Коли транзакція з цими трьома інструкціями надіслана, створюється новий токен-акаунт з розширенням immutable owner.
 
-# Lab
+# Лабораторна робота  
 
-In this lab, we'll be creating a token account with an immutable owner. We'll then write tests to check if the extension is working as intended by attempting to transfer ownership of the token account.
+У цій лабораторній роботі ми створимо токен-акаунт з незмінним власником. Потім напишемо тести, щоб перевірити, чи працює розширення належним чином, спробувавши змінити власника токен-акаунта.
 
-### 1. Setup Environment
+### 1. Налаштування середовища  
 
-To get started, create an empty directory named `immutable-owner` and navigate to it. We'll be initializing a brand new project. Run `npm init -y` to make a project with defaults.
+Щоб розпочати, створіть порожню директорію з назвою `immutable-owner` і перейдіть до неї. Ми ініціалізуємо абсолютно новий проект. Виконайте `npm init -y`, щоб створити проект із параметрами за замовчуванням.
 
-Next, we'll need to add our dependencies. Run the following to install the required packages:
+Далі нам потрібно додати залежності. Виконайте наступну команду, щоб встановити необхідні пакети:
 ```bash
 npm i @solana-developers/helpers @solana/spl-token @solana/web3.js esrun dotenv typescript
 ```
 
-Create a directory named `src`. In this directory, create a file named `index.ts`. This is where we will run checks against the rules of this extension. Paste the following code in `index.ts`:
+Створіть каталог `src`. У цьому каталозі створіть файл `index.ts`. Тут ми будемо виконувати перевірки правил цього розширення. Вставте наступний код у `index.ts`:
 
 ```ts
 import { AuthorityType, TOKEN_2022_PROGRAM_ID, createMint, setAuthority } from "@solana/spl-token";
@@ -123,40 +123,40 @@ const [otherOwner, mintKeypair, ourTokenAccountKeypair] = makeKeypairs(3)
 const ourTokenAccount = ourTokenAccountKeypair.publicKey;
 ```
 
-### 2. Run validator node
+### 2. Запуск ноди валідатора  
 
-For the sake of this guide, we'll be running our own validator node.
+У рамках цієї інструкції ми запускатимемо власну ноду валідатора.
 
-In a separate terminal, run the following command: `solana-test-validator`. This will run the node and also log out some keys and values. The value we need to retrieve and use in our connection is the JSON RPC URL, which in this case is `http://127.0.0.1:8899`. We then use that in the connection to specify to use of the local RPC URL.
+У окремому терміналі запустіть наступну команду: `solana-test-validator`. Це запустить ноду та збереже в логах деякі ключі й значення. Значення, яке нам потрібно отримати та використати для з'єднання — це JSON RPC URL, в даному випадку це `http://127.0.0.1:8899`. Потім ми використовуємо це значення для вказівки на використання локального RPC URL.
 
 ```typescript
 const connection = new Connection("http://127.0.0.1:8899", "confirmed");
 ```
 
-Alternatively, if you’d like to use testnet or devnet, import the `clusterApiUrl` from `@solana/web3.js` and pass it to the connection as such:
+Альтернативно, якщо ви хочете використовувати тестову або devnet-мережу, імпортуйте `clusterApiUrl` з `@solana/web3.js` і передайте його у підключення наступним чином:
 
 ```typescript
 const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 ```
 
-### 3. Helpers
+### 3. Хелпери
 
-When we pasted the `index.ts` code from earlier, we added the following helpers:
+Коли ми вставили код з `index.ts` раніше, ми додали наступні хелпери:
 
-- `initializeKeypair`: This function creates the keypair for the `payer` and also airdrops 2 testnet SOL to it
-- `makeKeypairs`: This function creates keypairs without airdropping any SOL
+- `initializeKeypair`: Ця функція створює пару ключів для `payer` і також надсилає 2 тестові SOL на її рахунок.
+- `makeKeypairs`: Ця функція створює пару ключів без надсилання SOL.
 
-Additionally, we have some initial accounts:
-  - `payer`: Used to pay for and be the authority for everything
-  - `mintKeypair`: Our mint
-  - `ourTokenAccountKeypair`: The token account owned by the payer that we'll use for testing
-  - `otherOwner`: The token account we'll try to transfer ownership of the two immutable accounts to
+Додатково, у нас є кілька початкових акаунтів:
+  - `payer`: Використовується для оплати та є авторитетом для всього.
+  - `mintKeypair`: Наш мінт-акаунт.
+  - `ourTokenAccountKeypair`: Токен-акаунт, що належить `payer` і який ми будемо використовувати для тестування.
+  - `otherOwner`: Токен-акаунт, якому ми спробуємо передати власність двох незмінних акаунтів.
 
-### 4. Create mint
+### 4. Створення мінт-акаунту  
 
-Let's create the mint we'll be using for our token accounts.
+Давайте створимо мінт-акаунт, який ми використовуватимемо для наших токен-акаунтів.  
 
-Inside of `src/index.ts`, the required dependencies will already be imported, along with the aforementioned accounts. Add the following `createMint` function beneath the existing code:
+У файлі `src/index.ts` вже буде імпортовано необхідні залежності, а також згадані раніше акаунти. Додайте наступну функцію `createMint` до наявного коду:
 
 ```typescript
 // CREATE MINT
@@ -172,17 +172,17 @@ const mint = await createMint(
 );
 ```
 
-### 5. Create Token Account with immutable owner
+### 5. Створення токен-акаунту з розширенням immutable owner  
 
-Remember, all ATAs come with the `immutable owner` extension. However, we're going to create a token account using a keypair. This requires us to create the account, initialize the immutable owner extension, and initialize the account.
+Пам'ятайте, що всі ATAs мають розширення `immutable owner` за замовчуванням. Однак ми створимо токен-акаунт, використовуючи пару ключів. Це вимагає від нас створення акаунту, ініціалізації розширення immutable owner і ініціалізації акаунту.
 
-Inside the `src` directory, create a new file named `token-helper.ts` and create a new function within it called `createTokenAccountWithImmutableOwner`. This function is where we'll be creating the associated token account with the immutable owner. The function will take the following arguments:
+У директорії `src` створіть новий файл із назвою `token-helper.ts` і додайте в нього функцію `createTokenAccountWithImmutableOwner`. У цій функції ми створимо асоційований токен-акаунт із незмінним власником. Функція прийматиме такі аргументи:
 
-- `connection`: The connection object
-- `mint`: Public key for the new mint
-- `payer`: Payer for the transaction
-- `owner`: Owner of the associated token account
-- `tokenAccountKeypair`: The token account keypair associated with the token account
+- `connection`: об'єкт підключення  
+- `mint`: публічний ключ мінт-акаунту  
+- `payer`: акаунт, який оплачує транзакцію  
+- `owner`: власник асоційованого токен-акаунту  
+- `tokenAccountKeypair`: пара ключів токен-акаунту, пов’язана з токен-акаунтом
 
 ```ts
 import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeAccountInstruction, createInitializeImmutableOwnerInstruction, getAccountLen } from "@solana/spl-token";
@@ -209,7 +209,7 @@ export async function createTokenAccountWithImmutableOwner(
 }
 ```
 
-The first step in creating the token account is reserving space on Solana with the **`SystemProgram.createAccount`** method. This requires specifying the payer's keypair, (the account that will fund the creation and provide SOL for rent exemption), the new token account's public key (`tokenAccountKeypair.publicKey`), the space required to store the token information on the blockchain, the amount of SOL (lamports) necessary to exempt the account from rent and the ID of the token program that will manage this token account (**`TOKEN_2022_PROGRAM_ID`**).
+Перший крок у створенні токен-акаунту — це резервування місця в Solana за допомогою методу **`SystemProgram.createAccount`**. Для цього потрібно вказати пару ключів платника (акаунт, який фінансуватиме створення і надаватиме SOL для звільнення від оренди), публічний ключ нового токен-акаунту (**`tokenAccountKeypair.publicKey`**), обсяг пам’яті, необхідний для збереження інформації про токен у блокчейні, кількість SOL (лампортів), необхідних для звільнення акаунту від орендної плати, та ID токен-програми, яка керуватиме цим токен-акаунтом (**`TOKEN_2022_PROGRAM_ID`**).
 
 ```typescript
 // CREATE ACCOUNT INSTRUCTION
@@ -229,7 +229,7 @@ const createTokenAccountInstruction = SystemProgram.createAccount({
 });
 ```
 
-After the token account creation, the next instruction initializes the `immutable owner` extension. The `createInitializeImmutableOwnerInstruction` function is used to generate this instruction. 
+Після створення токен-акаунту наступна інструкція ініціалізує розширення `immutable owner`. Для створення цієї інструкції використовується функція `createInitializeImmutableOwnerInstruction`.
 
 ```typescript
 // ENABLE IMMUTABLE OWNER INSTRUCTION
@@ -240,7 +240,7 @@ const initializeImmutableOwnerInstruction =
   );
 ```
 
-We then add the initialize account instruction by calling `createInitializeAccountInstruction` and passing in the required arguments. This function is provided by the SPL Token package and it constructs a transaction instruction that initializes a new token account.
+Далі ми додаємо інструкцію ініціалізації акаунту, викликаючи **`createInitializeAccountInstruction`** і передаючи необхідні аргументи. Ця функція надається пакетом SPL Token і створює інструкцію транзакції для ініціалізації нового токен-акаунту.
 
 ```typescript
   // INITIALIZE ACCOUNT INSTRUCTION
@@ -252,7 +252,7 @@ const initializeAccountInstruction = createInitializeAccountInstruction(
 );
 ```
 
-Now that the instructions have been created, the token account can be created with an immutable owner.
+Тепер, коли інструкції створено, акаунт токена можна створити з розширенням immutable owner.
 
 ```typescript
 // SEND TO BLOCKCHAIN
@@ -273,9 +273,9 @@ const signature = await sendAndConfirmTransaction(
 return signature
 ```
 
-Now that we’ve added the functionality for `token-helper`, we can create our test token accounts. One of the two test token accounts will be created by calling `createTokenAccountWithImmutableOwner`. The other will be created with the baked-in SPL helper function `createAssociatedTokenAccount`. This helper will create an associated token account which by default includes an immutable owner. For the sake of this guide, we'll be testing against both of these approaches.
+Тепер, коли ми додали функціональність для `token-helper`, ми можемо створити наші тестові токен-акаунти. Один з двох тестових токен-акаунтів буде створений за допомогою виклику `createTokenAccountWithImmutableOwner`. Інший буде створений за допомогою вбудованої допоміжної функції SPL `createAssociatedTokenAccount`. Ця допоміжна функція створить асоційований токен-акаунт, який за замовчуванням включає незмінного власника. В рамках цього уроку ми будемо тестувати обидва ці підходи.
 
-Back in `index.ts` underneath the mint variable, create the following two token accounts:
+Поверніться до `index.ts` під змінною mint, створіть наступні два токен-акаунти:
 
 ```
 // CREATE TEST TOKEN ACCOUNTS: Create explicitly with immutable owner instructions
@@ -298,20 +298,20 @@ const associatedTokenAccount = await createAssociatedTokenAccount(
 );
 ```
 
-That's it for the token accounts! Now we can move on and start testing that the extension rules are applied correctly by running a few tests against it.
+Це все щодо токен-акаунтів! Тепер можемо перейти до тестування, щоб перевірити, чи правильно застосовуються правила розширення, запустивши кілька тестів.
 
-If you'd like to test that everything is working, feel free to run the script.
+Якщо ви хочете перевірити, чи все працює, запустіть скрипт.
 ```bash
 npx esrun src/index.ts
 ```
 
-### 6. Tests
+### 6. Тести
 
-**Test trying to transfer owner**
+**Тест на спробу передачі власності**
 
-The first token account that is being created is the account is tied to `ourTokenAccountKeypair`. We'll be attempting to transfer ownership of the account to  `otherOwner` which was generated earlier. This test is expected to fail as the new authority is not the owner of the account upon creation.
+Перший токен-акаунт, який створюється, прив'язаний до `ourTokenAccountKeypair`. Ми спробуємо передати власність акаунту до `otherOwner`, який був згенерований раніше. Очікується, що цей тест не вдасться, оскільки новий уповноважений акаунт не є власником акаунту під час його створення.
 
-Add the following code to your `src/index.ts` file:
+Додайте наступний код до вашого файлу `src/index.ts`:
 
 ```typescript
 // TEST TRANSFER ATTEMPT ON IMMUTABLE ACCOUNT
@@ -337,13 +337,13 @@ try {
 }
 ```
 
-We can now invoke the `setAuthority` function by running `npx esrun src/index.ts`. We should see the following error logged out in the terminal, meaning the extension is working as we need it to: `✅ - We expected this to fail because the account is immutable, and cannot change owner.`
+Тепер ми можемо викликати функцію `setAuthority`, запустивши команду `npx esrun src/index.ts`. Ми повинні побачити наступну помилку в терміналі, що означає, що розширення працює так, як нам потрібно: `✅ - We expected this to fail because the account is immutable, and cannot change owner.` (`✅ - Ми очікували, що це не вдасться, оскільки акаунт є незмінним і не може змінити власника.`)
 
-**Test trying to transfer owner with associated token account**
+**Тест на спробу передати право власності до асоційованого токен-акаунта**
 
-This test will attempt to transfer ownership to the Associated Token Account. This test is also expected to fail as the new authority is not the owner of the account upon creation.
+Цей тест спробує передати право власності до Асоційованого Токен-акаунта. Очікується, що цей тест також не вдасться, оскільки новий уповноважений акаунт не є власником акаунту під час його створення.
 
-Below the previous test, add the following try/catch:
+Під попереднім тестом додайте наступний блок try/catch:
 
 ```typescript
 // TEST TRANSFER ATTEMPT ON ASSOCIATED IMMUTABLE ACCOUNT
@@ -369,12 +369,12 @@ try {
 }
 ```
 
-Now we can run `npx esrun src/index.ts`. This test should log a failure message similar to the one from the previous test. This means that both of our token accounts are in fact immutable and working as intended.
+Тепер ми можемо запустити `npx esrun src/index.ts`. Цей тест повинен вивести повідомлення про помилку, подібну до того, що було в попередньому тесті. Це означає, що обидва наші токен-акаунти дійсно є незмінними і працюють так, як очікується.
 
 
 
-Congratulations! We’ve just created token accounts and tested the immutable owner extension! If you are stuck at any point, you can find the working code on the `solution` branch of [this repository](https://github.com/Unboxed-Software/solana-lab-immutable-owner/tree/solution).
+Вітаю! Ми щойно створили токен-акаунти та протестували розширення immutable owner! Якщо ви застрягли на будь-якому етапі, ви можете знайти робочий код на гілці `solution` в [цьому репозиторії](https://github.com/Unboxed-Software/solana-lab-immutable-owner/tree/solution).
 
-# Challenge
+# Завдання
 
-Go create your own token account with an immutable owner.
+Створіть свій власний токен-акаунт з незмінним власником.
