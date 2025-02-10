@@ -1,59 +1,59 @@
 ---
-title: Interact With Wallets
-objectives:
-- Explain wallets
-- Install Phantom extension
-- Set Phantom wallet to [Devnet](https://api.devnet.solana.com/)
-- Use Wallet Adapter to have users sign transactions
+назва: Взаємодія з гаманцями**
+завдання:
+- Пояснити, що таке гаманці
+- Встановити розширення Phantom
+- Налаштувати гаманець Phantom на [Devnet](https://api.devnet.solana.com/)
+- Використовувати Wallet Adapter для підписання транзакцій користувачами
 ---
 
-# Summary
+# Стислий виклад
 
-- **Wallets** store your secret key and handle secure transaction signing
-- **Hardware wallets** store your secret key on a separate device
-- **Software wallets** use your computer for secure storage
-- Software wallets are often **browser extensions** that facilitate connecting to websites
-- Solana’s **Wallet-Adapter library** simplifies the support of wallet browser extensions, allowing you to build websites that can request a user’s wallet address and propose transactions for them to sign
+- **Гаманці** зберігають ваш секретний ключ і здійснюють безпечне підписання транзакцій.
+- **Апаратні гаманці** зберігають ваш секретний ключ на окремому пристрої.
+- **Програмні гаманці** використовують ваш комп'ютер для безпечного зберігання.
+- Програмні гаманці часто є **розширеннями для браузера**, які полегшують підключення до вебсайтів.
+- **Бібліотека Wallet-Adapter Solana** спрощує підтримку розширень гаманців для браузерів, дозволяючи створювати вебсайти, які можуть запитувати адресу гаманця користувача та пропонувати транзакції для їх підписання.
 
-# Lesson
+# Урок
 
-## Wallets
+## Гаманці
 
-In the previous two lessons, we discussed keypairs. Keypairs are used to locate accounts and sign transactions. While the public key of a keypair is perfectly safe to share, the secret key should always be kept in a secure location. If a user’s secret key is exposed, then a malicious actor could drain their account of all assets and execute transactions with the authority of that user.
+У попередніх двох уроках ми обговорювали пари ключів. Пари ключів використовуються для пошуку акаунтів і підписання транзакцій. Публічним ключем абсолютно безпечно ділитися, але секретний ключ завжди слід зберігати в безпечному місці. Якщо секретний ключ користувача буде розкритий, зловмисник зможе вивести всі активи з акаунту і виконувати транзакції від імені цього користувача.
 
-A “wallet” refers to anything that stores a secret key to keep it secure. These secure storage options can generally be described as either “hardware” or “software” wallets. Hardware wallets are storage devices that are separate from your computer. Software wallets are applications you can install on your existing device(s).
+Термін "гаманець" відноситься до будь-якого засобу зберігання секретного ключа для його безпеки. Ці варіанти безпечного зберігання можна загалом описати як "апаратні" або "програмні" гаманці. Апаратні гаманці — це пристрої зберігання, які відокремлені від вашого комп'ютера. Програмні гаманці — це додатки, які ви можете встановити на своїх існуючих пристроях.
 
-Software wallets often come in the form of a browser extension. This makes it possible for websites to interact easily with the wallet. Such interactions are usually limited to:
+Програмні гаманці часто мають форму розширення для браузера. Це дозволяє вебсайтам легко взаємодіяти з гаманцем. Такі взаємодії зазвичай обмежуються:
 
-1. Seeing the wallet’s public key (address)
-2. Submitting transactions for a user's approval
-3. Sending an approved transaction to the network
+1. Перегляд публічного ключа гаманця (адреси)
+2. Надсилання транзакцій для затвердження користувачем
+3. Відправка затвердженої транзакції в мережу
 
-Once a transaction is submitted, the end user can “confirm” the transaction and send it to the network with their “signature.”
+Як тільки транзакція надіслана, кінцевий користувач може "підтвердити" транзакцію та відправити її в мережу зі своїм "підписом".
 
-Signing transactions requires using your secret key. By letting a site submit a transaction to your wallet and having the wallet handle the signing, you ensure that you never expose your secret key to the website. Instead, you only share the secret key with the wallet application.
+Підписання транзакцій вимагає використання вашого секретного ключа. Дозволяючи сайту надіслати транзакцію до вашого гаманця і дозволяючи гаманцю обробляти підписання, ви гарантуєте, що ваш секретний ключ ніколи не буде розкритий сайту. Замість цього ви ділитесь секретним ключем лише з програмою гаманця.
 
-Unless you’re creating a wallet application yourself, your code should never need to ask a user for their secret key. Instead, you can ask users to connect to your site using a reputable wallet.
+Якщо ви не створюєте додаток для гаманця, ваш код не повинен запитувати у користувача їхній секретний ключ. Замість цього ви можете попросити користувачів підключитися до вашого сайту, використовуючи надійний гаманець.
 
 ## Phantom Wallet
 
-One of the most widely used software wallets in the Solana ecosystem is [Phantom](https://phantom.app). Phantom supports a few of the most popular browsers and has a mobile app for connecting on the go. You’ll likely want your decentralized applications to support multiple wallets, but this course will focus on Phantom.
+Один з найпоширеніших програмних гаманців в екосистемі Solana — це [Phantom](https://phantom.app). Phantom підтримує кілька популярних браузерів і має мобільний додаток для підключення в будь-якому місці. Ви, ймовірно, захочете, щоб ваші децентралізовані додатки підтримували кілька гаманців, але цей курс буде зосереджено на Phantom.
 
-## Solana’s WalletAdapter
+## WalletAdapter для Solana
 
-Solana’s Wallet Adapter is a suite of modular packages you can use to simplify the process of supporting wallet browser extensions.
+WalletAdapter для Solana — це набір модульних пакетів, які ви можете використовувати для спрощення процесу підтримки розширень гаманців для браузера.
 
-The core functionality is found in `@solana/wallet-adapter-base` and `@solana/wallet-adapter-react`.
+Основна функціональність знаходиться в `@solana/wallet-adapter-base` і `@solana/wallet-adapter-react`.
 
-Additional packages provide components for common UI frameworks. In this lesson and throughout this course, we’ll be using components from `@solana/wallet-adapter-react-ui`.
+Додаткові пакети надають компоненти для популярних UI фреймворків. В цьому уроці та протягом всього курсу ми будемо використовувати компоненти з `@solana/wallet-adapter-react-ui`.
 
-Finally, some packages are adapters for specific wallet apps. These are now no longer necessary in most cases - see below.
+Нарешті, деякі пакети є адаптерами для конкретних додатків гаманців. Тепер вони більше не є необхідними в більшості випадків — дивіться нижче.
 
-### Install Wallet-Adapter Libraries
+### Встановлення бібліотек Wallet-Adapter
 
-When adding wallet support to an existing React app, you start by installing the appropriate packages. You’ll need `@solana/wallet-adapter-base`, `@solana/wallet-adapter-react`. If you plan to use the provided react components, you'll also need to add `@solana/wallet-adapter-react-ui`.
+Коли ви додаєте підтримку гаманців до існуючого додатку React, почніть з встановлення відповідних пакетів. Вам знадобляться `@solana/wallet-adapter-base`, `@solana/wallet-adapter-react`. Якщо ви плануєте використовувати надані React компоненти, також потрібно додати `@solana/wallet-adapter-react-ui`.
 
-All wallets that support the [Wallet Standard](https://github.com/wallet-standard/wallet-standard) are supported out of the box, and all the popular Solana wallets support the Wallet Standard. However, if you wish to add support for any wallets that don't support the standard, add a package for them.
+Усі гаманці, які підтримують [Wallet Standard](https://github.com/wallet-standard/wallet-standard), підтримуються з коробки, і всі популярні гаманці Solana підтримують Wallet Standard. Однак, якщо ви хочете додати підтримку гаманців, які не підтримують цей стандарт, додайте відповідний пакет для них.
 
 ```
 npm install @solana/wallet-adapter-base \
@@ -61,16 +61,16 @@ npm install @solana/wallet-adapter-base \
     @solana/wallet-adapter-react-ui
 ```
 
-### Connect To Wallets
+### Підключення до гаманців
 
-`@solana/wallet-adapter-react` allows us to persist and access wallet connection states through hooks and context providers, namely:
+`@solana/wallet-adapter-react` дозволяє зберігати та отримувати стан підключення до гаманця через хуки та контекст-постачальники, а саме:
 
 - `useWallet`
 - `WalletProvider`
 - `useConnection`
 - `ConnectionProvider`
 
-For these to work properly, any use of `useWallet` and `useConnection` should be wrapped in `WalletProvider` and `ConnectionProvider`. One of the best ways to ensure this is to wrap your entire app in `ConnectionProvider` and `WalletProvider`:
+Щоб це працювало належним чином, будь-яке використання `useWallet` і `useConnection` слід обгорнути в `WalletProvider` і `ConnectionProvider`. Один із найкращих способів забезпечити це — обгорнути весь ваш додаток у `ConnectionProvider` і `WalletProvider`:
 
 ```tsx
 import { NextPage } from "next";
@@ -95,16 +95,16 @@ export const Home: NextPage = (props) => {
 };
 ```
 
-Note that `ConnectionProvider` requires an `endpoint` property and that `WalletProvider` requires a `wallets` property. We’re continuing to use the endpoint for the Devnet cluster, and since all major Solana wallet applications support the Wallet Standard, we don't need any wallet-specific adapters.
-At this point, you can connect with `wallet.connect()`, which will instruct the wallet to prompt the user for permission to view their public key and request approval for transactions.
+Зверніть увагу, що `ConnectionProvider` вимагає властивість `endpoint`, а `WalletProvider` — властивість `wallets`. Ми продовжуємо використовувати кінцеву точку для кластера Devnet, і оскільки всі основні гаманці Solana підтримують Wallet Standard, нам не потрібні адаптери для конкретних гаманців.
+На цьому етапі ви можете підключитися за допомогою `wallet.connect()`, що змусить гаманець запросити у користувача дозвіл на перегляд його публічного ключа та підтвердження транзакцій.
 
 ![wallet connection prompt](../assets/wallet-connect-prompt.png)
 
-While you could do this in a `useEffect` hook, you’ll usually want to provide more sophisticated functionality. For example, you may want users to be able to choose from a list of supported wallet applications or disconnect after they’ve already connected.
+Хоча ви могли б реалізувати це в хуку `useEffect`, зазвичай краще надати більш розширену функціональність. Наприклад, ви можете дозволити користувачам вибирати гаманець зі списку підтримуваних додатків або відключатися після підключення.
 
 ### `@solana/wallet-adapter-react-ui`
 
-You can create custom components for this, or you can leverage components provided by `@solana/wallet-adapter-react-ui`. The simplest way to provide extensive options is to use `WalletModalProvider` and `WalletMultiButton`:
+Ви можете створити власні компоненти для цього або скористатися готовими компонентами з `@solana/wallet-adapter-react-ui`. Найпростіший спосіб надати широкий вибір опцій — використати `WalletModalProvider` і `WalletMultiButton`:
 
 ```tsx
 import { NextPage } from "next";
@@ -139,7 +139,7 @@ export default Home;
 
 ```
 
-The `WalletModalProvider` adds functionality for presenting a modal screen for users to select which wallet they’d like to use. The `WalletMultiButton` changes behavior to match the connection status:
+`WalletModalProvider` додає функціональність для відображення модального вікна, у якому користувач може вибрати гаманець для підключення. `WalletMultiButton` змінює свою поведінку залежно від статусу підключення:
 
 ![multi button select wallet option](../assets/multi-button-select-wallet.png)
 
@@ -149,7 +149,7 @@ The `WalletModalProvider` adds functionality for presenting a modal screen for u
 
 ![multi button connected state](../assets/multi-button-connected.png)
 
-You can also use more granular components if you need more specific functionality:
+Ви також можете використовувати більш дрібні компоненти, якщо вам потрібна більш специфічна функціональність:
 
 - `WalletConnectButton`
 - `WalletModal`
@@ -157,9 +157,9 @@ You can also use more granular components if you need more specific functionalit
 - `WalletDisconnectButton`
 - `WalletIcon`
 
-### Access Account Info
+### Отримання інформації про акаунт  
 
-Once your site is connected to a wallet, `useConnection` will retrieve a `Connection` object and `useWallet` will get the `WalletContextState`. `WalletContextState` has a property `publicKey` that is `null` when not connected to a wallet and has the public key of the user’s account when a wallet is connected. With a public key and a connection, you can fetch account info and more.
+Після підключення сайту до гаманця хук `useConnection` поверне об’єкт `Connection`, а `useWallet` — об’єкт `WalletContextState`. Властивість `publicKey` у `WalletContextState` має значення `null`, якщо гаманець не підключений, і отримує публічний ключ акаунта користувача після підключення. Маючи публічний ключ і з’єднання, ви можете отримувати інформацію про акаунт та інші дані.
 
 ```tsx
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -197,11 +197,11 @@ export const BalanceDisplay: FC = () => {
 };
 ```
 
-Note the call to connection.onAccountChange(), which updates the account balance shown once the network confirms the transaction.
+Зверніть увагу на виклик `connection.onAccountChange()`, який оновлює баланс акаунта після підтвердження транзакції мережею.
 
-### Send Transactions
+### Надсилання транзакцій  
 
-`WalletContextState` also provides a `sendTransaction` function that you can use to submit transactions for approval.
+`WalletContextState` також надає функцію `sendTransaction`, яку можна використовувати для надсилання транзакцій на підтвердження.
 
 ```tsx
 const { publicKey, sendTransaction } = useWallet();
@@ -227,33 +227,33 @@ const sendSol = (event) => {
 
 ```
 
-When this function is called, the connected wallet will display the transaction for the user’s approval. If approved, then the transaction will be sent.
+Коли ця функція викликана, підключений гаманець відобразить транзакцію для підтвердження користувачем. Якщо користувач схвалить її, транзакція буде надіслана.
 
 ![wallet transaction approval prompt](../assets/wallet-transaction-approval-prompt.png)
 
-# Lab
+# Лабораторна робота 
 
-Let’s take the Ping program from the last lesson and build a frontend that lets users approve a transaction that pings the program. As a reminder, the program’s public key is `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa` and the public key for the data account is `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
+Давайте візьмемо Ping-програму з попереднього уроку та створимо фронтенд, який дозволить користувачам підтверджувати транзакцію для її виклику. Нагадаємо, що публічний ключ програми — `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa`, а публічний ключ акаунта з даними — `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
 
 ![Solana Ping App](../assets/solana-ping-app.png)
 
-### 1. Download the Phantom browser extension and set it to Devnet
+### 1. Завантажте розширення Phantom для браузера та переключіть його в режим Devnet  
 
-If you don’t already have it, download the [Phantom browser extension](https://phantom.app/download). At the time of writing, it supports Chrome, Brave, Firefox, and Edge browsers, so you’ll also need to have one of those browsers installed. Follow Phantom’s instructions for creating a new account and a new wallet.
+Якщо у вас його ще немає, завантажте [розширення Phantom](https://phantom.app/download) для браузера. На момент написання цього уроку його підтримує Chrome, Brave, Firefox і Edge, тож вам знадобиться один із цих браузерів. Дотримуйтесь інструкцій Phantom для створення нового акаунта та гаманця.
 
-Once you have a wallet, click the settings gear on the bottom right in the Phantom UI. Scroll down and click on the line item “Change Network” and select “Devnet.” This ensures that Phantom will be connected to the same network we’ll be using in this lab.
+Коли гаманець створено, натисніть значок налаштувань у нижньому правому куті інтерфейсу Phantom. Прокрутіть вниз, знайдіть пункт “Change Network” і виберіть “Devnet”. Це забезпечить підключення Phantom до тієї ж мережі, яку ми використовуватимемо в цій лабораторній роботі .
 
-### 2. Download the starter code
+### 2. Завантажте початковий код  
 
-Download the [starter code for this project](https://github.com/Unboxed-Software/solana-ping-frontend/tree/starter). This project is a simple Next.js application. It’s mostly empty except for the `AppBar` component. We’ll build the rest throughout this lab.
+Завантажте [початковий код для цього проєкту](https://github.com/Unboxed-Software/solana-ping-frontend/tree/starter). Це простий Next.js-застосунок, який наразі майже порожній, окрім компонента `AppBar`. Ми будемо поступово доповнювати його впродовж цієї лабораторної роботи.
 
-You can see its current state with the command `npm run dev` in the console.
+Ви можете переглянути поточний стан проекту, виконавши в консолі команду `npm run dev`.
 
-### 3. Wrap the app in context providers
+### 3. Обгорніть застосунок у контекстні провайдери  
 
-To start, we’re going to create a new component to contain the various Wallet-Adapter providers that we’ll be using. Create a new file inside the `components` folder called `WalletContextProvider.tsx`.
+Спочатку ми створимо новий компонент, який міститиме різні провайдери Wallet-Adapter, що нам знадобляться. Створіть новий файл у папці `components` з назвою `WalletContextProvider.tsx`.  
 
-Let’s start with some of the boilerplate for a functional component:
+Почнемо з базової структури функціонального компонента:
 
 ```tsx
 import { FC, ReactNode } from "react";
@@ -267,7 +267,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 export default WalletContextProvider;
 ```
 
-To properly connect to the user’s wallet, we’ll need a `ConnectionProvider`, `WalletProvider`, and `WalletModalProvider`. Start by importing these components from `@solana/wallet-adapter-react` and `@solana/wallet-adapter-react-ui`. Then add them to the `WalletContextProvider` component. Note that `ConnectionProvider` requires an `endpoint` parameter and `WalletProvider` requires an array of `wallets`. For now, just use an empty string and an empty array, respectively.
+Щоб правильно підключитися до гаманця користувача, нам потрібні `ConnectionProvider`, `WalletProvider` і `WalletModalProvider`. Почніть з імпорту цих компонентів із `@solana/wallet-adapter-react` і `@solana/wallet-adapter-react-ui`. Потім додайте їх до компонента `WalletContextProvider`. Зверніть увагу, що `ConnectionProvider` потребує параметра `endpoint`, а `WalletProvider` — масиву `wallets`. Поки що просто використовуйте порожній рядок і порожній масив відповідно.
 
 ```tsx
 import { FC, ReactNode } from "react";
@@ -291,13 +291,13 @@ export default WalletContextProvider;
 
 ```
 
-The last things we need are an actual endpoint for `ConnectionProvider` and the supported wallets for `WalletProvider`.
+Останнє, що нам потрібно, це фактична кінцева точка для `ConnectionProvider` та підтримувані гаманці для `WalletProvider`.
 
-For the endpoint, we’ll use the same `clusterApiUrl` function from the `@solana/web3.js` library that we’ve used before so you’ll need to import it. For the array of wallets you’ll also need to import the `@solana/wallet-adapter-wallets` library.
+Для кінцевої точки ми використаємо ту ж функцію `clusterApiUrl` з бібліотеки `@solana/web3.js`, яку ми використовували раніше, тому її потрібно імпортувати. Для масиву гаманців також потрібно імпортувати бібліотеку `@solana/wallet-adapter-wallets`.
 
-After importing these libraries, create a constant `endpoint` that uses the `clusterApiUrl` function to get the URL for Devnet. Then create a constant named `wallets` and set it to an empty array - since all wallets support Wallet Standard, we no longer need any custom wallet adapter. Finally, replace the empty string and empty array in `ConnectionProvider` and `WalletProvider`, respectively.
+Після імпорту цих бібліотек створіть константу `endpoint`, яка використовує функцію `clusterApiUrl` для отримання URL для Devnet. Потім створіть константу з назвою `wallets` і встановіть її як порожній масив — оскільки всі гаманці підтримують Wallet Standard, більше не потрібно використовувати власні адаптери для гаманців. Нарешті, замініть порожній рядок та порожній масив у `ConnectionProvider` та `WalletProvider` відповідно.
 
-To complete this component, add `require('@solana/wallet-adapter-react-ui/styles.css');` below your imports to ensure proper styling and behavior of the Wallet Adapter library components.
+Щоб завершити цей компонент, додайте `require('@solana/wallet-adapter-react-ui/styles.css');` нижче імпортів, щоб забезпечити правильне стилізування та функціональність компонентів бібліотеки Wallet Adapter.
 
 ```tsx
 import { FC, ReactNode } from "react";
@@ -327,11 +327,11 @@ export default WalletContextProvider;
 
 ```
 
-### 4. Add wallet multi-button
+### 4. Додати багатофункціональну кнопку для гаманця
 
-Next, let’s set up the Connect button. The current button is just a placeholder because rather than using a standard button or creating a custom component, we’ll be using Wallet-Adapter’s “multi-button.” This button interfaces with the providers we set up in `WalletContextProvider` and let’s users choose a wallet, connect to a wallet, and disconnect from a wallet. If you ever need more custom functionality, you can create a custom component to handle this.
+Наступним кроком налаштуємо кнопку підключення. Поточна кнопка не виконує жодних функцій, оскільки замість використання стандартної кнопки або створення власного компонента, ми будемо використовувати багатофункціональну кнопку Wallet-Adapter. Ця кнопка взаємодіє з провайдерами, які ми налаштували в `WalletContextProvider`, і дозволяє користувачам вибирати гаманець, підключатися до нього та відключатися від нього. Якщо вам потрібна додаткова функціональність, ви можете створити власний компонент для цього.
 
-Before we add the “multi-button,” we need to wrap the app in the `WalletContextProvider`. Do this by importing it in `index.tsx` and adding it after the closing `</Head>` tag:
+Перед тим, як додати “багатофункціональну кнопку,” нам потрібно обгорнути застосунок у `WalletContextProvider`. Зробіть це, імпортувавши його в `index.tsx` і додавши після закриваючого тега `</Head>`:
 
 ```tsx
 import { NextPage } from "next";
@@ -361,7 +361,7 @@ const Home: NextPage = (props) => {
 export default Home;
 ```
 
-If you run the app, everything should still look the same since the current button on the top right is still just a placeholder. To remedy this, open `AppBar.tsx` and replace `<button>Connect</button>` with `<WalletMultiButton/>`. You’ll need to import `WalletMultiButton` from `@solana/wallet-adapter-react-ui`.
+Якщо ви запустите застосунок, все має виглядати так само, оскільки поточна кнопка у верхньому правому куті все ще не виконує жодних функцій. Щоб це виправити, відкрийте `AppBar.tsx` і замініть `<button>Connect</button>` на `<WalletMultiButton/>`. Не забудьте імпортувати `WalletMultiButton` з `@solana/wallet-adapter-react-ui`.
 
 ```tsx
 import { FC } from "react";
@@ -380,15 +380,15 @@ export const AppBar: FC = () => {
 };
 ```
 
-At this point, you should be able to run the app and interact with the multi-button at the top-right of the screen. It should now read, "Select Wallet." If you have the Phantom extension and are signed in, you should be able to connect your Phantom wallet to the site using this new button.
+На цьому етапі ви повинні мати можливість запустити застосунок і взаємодіяти з багатофункціональною кнопкою у верхньому правому куті екрану. Тепер вона повинна показувати текст "Select Wallet." Якщо у вас є розширення Phantom і ви увійшли в акаунт, ви повинні мати можливість підключити ваш Phantom гаманець до сайту, використовуючи цю нову кнопку.
 
-### 5. Create button to ping program
+### 5. Створити кнопку для пінгу програми
 
-Now that our app can connect to the Phantom wallet, let’s make the “Ping!” button actually do something.
+Тепер, коли наш застосунок може підключатися до гаманця Phantom, давайте зробимо так, щоб кнопка "Ping!" насправді виконувала дію.
 
-Start by opening the `PingButton.tsx` file. We’re going to replace the `console.log` inside of `onClick` with code that will create a transaction and submit it to the Phantom extension for the end user’s approval.
+Для початку відкрийте файл `PingButton.tsx`. Ми замінимо `console.log` всередині функції `onClick` на код, який створюватиме транзакцію та надсилатиме її на затвердження через розширення Phantom для користувача.
 
-First, we need a connection, the wallet’s public key, and Wallet-Adapter’s `sendTransaction` function. To get this, we need to import `useConnection` and `useWallet` from `@solana/wallet-adapter-react`. While we’re here, let’s also import `@solana/web3.js` since we’ll need it to create our transaction.
+Спочатку нам потрібне з’єднання, публічний ключ гаманця та функція `sendTransaction` з Wallet-Adapter. Для цього нам потрібно імпортувати `useConnection` та `useWallet` з `@solana/wallet-adapter-react`. Також давайте імпортуємо `@solana/web3.js`, оскільки він знадобиться для створення нашої транзакції.
 
 ```tsx
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -410,7 +410,7 @@ export const PingButton: FC = () => {
 }
 ```
 
-Now use the `useConnection` hook to create a `connection` constant and the `useWallet` hook to create `publicKey` and `sendTransaction` constants.
+Тепер використайте хук `useConnection`, щоб створити константу `connection`, і хук `useWallet`, щоб створити константи `publicKey` та `sendTransaction`.
 
 ```tsx
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -434,17 +434,17 @@ export const PingButton: FC = () => {
 };
 ```
 
-With that, we can fill in the body of `onClick`.
+Після цього можна заповнити тіло `onClick`.  
 
-First, check that both `connection` and `publicKey` exist (if either does not then the user’s wallet isn’t connected yet).
+Спочатку перевірте, чи існують `connection` і `publicKey` (якщо будь-який із них відсутній, це означає, що гаманець користувача ще не підключений).  
 
-Next, construct two instances of `PublicKey`, one for the program ID `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa` and one for the data account `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
+Далі створіть два екземпляри `PublicKey`: один для ідентифікатора програми `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa` і один для акаунта даних `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
 
-Next, construct a `Transaction`, then a new `TransactionInstruction` that includes the data account as a writable key.
+Далі створіть об'єкт `Transaction`, а потім новий `TransactionInstruction`, що містить акаунт даних як записуваний ключ.  
 
-Next, add this instruction to the transaction.
+Після цього додайте цю інструкцію до транзакції.  
 
-Finally, call `sendTransaction`.
+Нарешті, викличте `sendTransaction`.
 
 ```tsx
 const onClick = () => {
@@ -474,28 +474,27 @@ const onClick = () => {
 };
 ```
 
-And that’s it! If you refresh the page, connect your wallet, and click the ping button, Phantom should present you with a popup to confirm the transaction.
+І це все! Якщо ви оновите сторінку, підключите гаманець і натиснете кнопку "Ping!", Phantom повинен відобразити спливаюче вікно для підтвердження транзакції.
 
-### 6. Add some polish around the edges
+### 6. Додайте фінальні штрихи  
 
-There’s a lot you could do to make the user experience here even better. For example, you could change the UI to only show you the Ping button when a wallet is connected and display some other prompt otherwise. You could link to the transaction on Solana Explorer after a user confirms a transaction so they can easily go look at the transaction details. The more you experiment with it, the more comfortable you’ll get, so get creative!
+Є багато способів покращити користувацький досвід. Наприклад, можна змінити UI так, щоб кнопка "Ping!" відображалася лише після підключення гаманця, а в іншому випадку показувалася відповідна підказка. Ви також можете додати посилання на транзакцію в Solana Explorer після її підтвердження, щоб користувач міг легко переглянути деталі. Чим більше ви експериментуватимете, тим краще освоїте цей процес, тож не бійтеся проявляти креативність!
 
-You can also download the [full source code from this lab](https://github.com/Unboxed-Software/solana-ping-frontend) to understand all of this in context.
+Ви також можете завантажити [повний вихідний код цього лабораторного завдання](https://github.com/Unboxed-Software/solana-ping-frontend), щоб розглянути все в контексті.
 
-# Challenge
+# Виклик  
 
-Now it’s your turn to build something independently. Create an application that lets a user connect their Phantom wallet and send SOL to another account.
+Тепер ваша черга самостійно створити застосунок. Розробіть застосунок, який дозволяє користувачеві підключити свій Phantom-гаманець і надіслати SOL на інший акаунт.
 
 ![Send SOL App](../assets/solana-send-sol-app.png)
 
-1. You can build this from scratch or you can [download the starter code](https://github.com/Unboxed-Software/solana-send-sol-frontend/tree/starter).
-2. Wrap the starter application in the appropriate context providers.
-3. In the form component, set up the transaction and send it to the user’s wallet for approval.
-4. Get creative with the user experience. Add a link to let the user view the transaction on Solana Explorer or something else that seems cool to you!
+1. Ви можете створити застосунок з нуля або [завантажити стартовий код](https://github.com/Unboxed-Software/solana-send-sol-frontend/tree/starter).  
+2. Обгорніть стартовий застосунок у відповідні контекстні провайдери.  
+3. У компоненті форми налаштуйте транзакцію та надішліть її в гаманець користувача для підтвердження.  
+4. Проявіть креативність у покращенні користувацького досвіду. Додайте посилання для перегляду транзакції у Solana Explorer або інші цікаві функції!
 
-If you get really stumped, feel free to [check out the solution code](https://github.com/Unboxed-Software/solana-send-sol-frontend/tree/main).
+Якщо ви зовсім зайшли в глухий кут, можете [переглянути код розв’язку](https://github.com/Unboxed-Software/solana-send-sol-frontend/tree/main).  
 
+## Завершили лабораторну роботу?  
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=69c5aac6-8a9f-4e23-a7f5-28ae2845dfe1)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=69c5aac6-8a9f-4e23-a7f5-28ae2845dfe1)!
