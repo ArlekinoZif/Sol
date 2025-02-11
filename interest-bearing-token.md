@@ -1,41 +1,41 @@
 ---
-title: Interest Bearing Token
-objectives:
- - Create a mint account with the interest bearing extension
- - Explain the use cases of interest bearing tokens
- - Experiment with the rules of the extension
+назва: Токен із нарахуванням відсотків 
+завдання:
+- Створити мінт акаунт із розширенням для нарахування відсотків  
+- Пояснити варіанти використання токенів із нарахуванням відсотків  
+- Експериментувати з правилами цього розширення
 ---
-# Summary
+# Стислий виклад
 
-- Creators can set an interest rate and store it directly on the mint account.
-- The underlying token quantity for interest bearing tokens remains unchanged.
-- The accrued interest can be displayed for UI purposes without the need to frequently rebase or update to adjust for accrued interest.
-- The lab demonstrates configuring a mint account that is set to mint with an interest rate. The test case also shows how to update the interest rate, along with retrieving the rate from the token.
+- Творці можуть встановлювати процентну ставку та зберігати її безпосередньо в мінт акаунті.
+- Кількість основного токену для токенів із нарахуванням відсотків залишається незмінною.
+- Нараховані відсотки можна відображати для UI без необхідності часто змінювати або оновлювати їх для коригування нарахованих відсотків.
+- Лабораторна робота демонструє налаштування мінт акаунта з процентною ставкою. Тестовий випадок також показує, як оновлювати процентну ставку та отримувати ставку з токена.
 
-# Overview
+**Огляд**
 
-Tokens with values that either increase or decrease over time have practical applications in the real world, with bonds being a prime example. Previously, the ability to reflect this dynamic in tokens was limited to the use of proxy contracts, necessitating frequent rebasing or updates.
+Токени, чия вартість змінюється з часом, мають практичне застосування в реальному світі, і облігації є яскравим прикладом. Раніше можливість відображати ці динамічні зміни в токенах обмежувалася використанням проксі-контрактів, що вимагало частих ребейсів або оновлень.
 
-The `interest bearing token` extension helps with this. By leveraging the `interest bearing token` extension and the `amount_to_ui_amount` function, users can apply an interest rate to their tokens and retrieve the updated total, including interest, at any given moment.
+Розширення `interest bearing token` допомагає в цьому. Використовуючи розширення `interest bearing token` та функцію `amount_to_ui_amount`, користувачі можуть застосовувати процентну ставку до своїх токенів і отримувати оновлену загальну суму, включаючи відсотки, у будь-який момент.
 
-The calculation of interest is done continuously, factoring in the network's timestamp. However, discrepancies in the network's time could result in accrued interest being slightly less than anticipated, though this situation is uncommon.
+Розрахунок відсотків здійснюється безперервно з урахуванням часової позначки мережі. Однак, розбіжності в часі мережі можуть призвести до того, що накопичені відсотки будуть трохи меншими, ніж очікувалося, хоча така ситуація є рідкісною.
 
-It's important to note that this mechanism does not generate new tokens and the displayed amount simply includes the accumulated interest, making the change purely aesthetic. That being said, this is a value stored on within the mint account and programs can take advantage of this to create functionality beyond pure aesthetics. 
+Важливо зазначити, що цей механізм не генерує нові токени, і відображена сума просто включає накопичені відсотки, що робить зміну суто естетичною. Однак, ця величина зберігається в межах мінт акаунта, і програми можуть використовувати це для створення функціональності, що виходить за межі чистої естетики.
 
-## Adding interest rate to token
+## Додавання процентної ставки до токена
 
-Initializing an interest bearing token involves three instructions:
+Ініціалізація токена з відсотками включає три інструкції:
 
 - `SystemProgram.createAccount`
 - `createInitializeTransferFeeConfigInstruction`
 - `createInitializeMintInstruction`
 
-The first instruction `SystemProgram.createAccount` allocates space on the blockchain for the mint account. This instruction accomplishes three things:
+Перша інструкція `SystemProgram.createAccount` виділяє місце на блокчейні для `mint` акаунта. Ця інструкція виконує три завдання:
 
-- Allocates `space`
-- Transfers `lamports` for rent
-- Assigns to it's owning program
-
+- Виділяє `space`
+- Переносить `lamports` для оренди
+- Призначає собі програму-власника
+  
 ```typescript
 SystemProgram.createAccount({
     fromPubkey: payer.publicKey,
@@ -46,7 +46,7 @@ SystemProgram.createAccount({
   }),
 ```
 
-The second instruction `createInitializeInterestBearingMintInstruction` initializes the interest bearing token extension. The defining argument that dictates the interest rate will be a variable we create named `rate`. The `rate` is defined in [basis points](https://www.investopedia.com/terms/b/basispoint.asp).
+Друга інструкція `createInitializeInterestBearingMintInstruction` ініціалізує розширення токена з відсотками. Визначальним аргументом, який задає процентну ставку, буде змінна, яку ми створимо, назвавши її `rate`. `Rate` визначається в [базисних пунктах](https://www.investopedia.com/terms/b/basispoint.asp).
 
 ```typescript
   createInitializeInterestBearingMintInstruction(
@@ -57,7 +57,7 @@ The second instruction `createInitializeInterestBearingMintInstruction` initia
   ),
 ```
 
-The third instruction `createInitializeMintInstruction` initializes the mint.
+Третя інструкція `createInitializeMintInstruction` ініціалізує мінт.
 
 ```typescript
  createInitializeMintInstruction(
@@ -69,12 +69,12 @@ The third instruction `createInitializeMintInstruction` initializes the mint.
   )
 ```
 
-When the transaction with these three instructions is sent, a new interest bearing token is created with the specified rate configuration.
+Коли транзакція з цими трьома інструкціями відправляється, створюється новий токен з відсотками з заданою конфігурацією ставки.
 
-## Fetching accumulated interest
-To retrieve the accumulated interest on a token at any given point, first use the `getAccount` function to fetch token information, including the amount and any associated data, passing in the connection, payer's token account, and the relevant program ID, `TOKEN_2022_PROGRAM_ID`.
+## Отримання накопичених відсотків
+Для того, щоб отримати накопичені відсотки по токену на будь-який момент часу, спочатку використовуйте функцію `getAccount` для отримання інформації про токен, включаючи суму та будь-які пов'язані дані, передаючи з'єднання, токен-акаунт платника та відповідний програмний ID, `TOKEN_2022_PROGRAM_ID`.
 
-Next, utilize the `amountToUiAmount` function with the obtained token information, along with additional parameters such as connection, payer, and mint, to convert the token amount to its corresponding UI amount, which inherently includes any accumulated interest.
+Далі використовуйте функцію `amountToUiAmount` з отриманою інформацією про токен, а також додатковими параметрами, такими як з'єднання, платник та мінт, щоб конвертувати кількість токенів у відповідну кількість для інтерфейсу користувача, що по суті включає будь-які накопичені відсотки.
 
 ```typescript
 const tokenInfo = await getAccount(connection, payerTokenAccount, undefined, TOKEN_2022_PROGRAM_ID);
@@ -101,14 +101,14 @@ const uiAmount = await amountToUiAmount(
 console.log("UI Amount: ", uiAmount);
 ```
 
-The return value of `uiAmount` is a string representation of the UI amount and will look similar to this: `0.0000005000001557528245`.
+Повернуте значення `uiAmount` є рядковим представленням кількості для інтерфейсу користувача і виглядатиме подібно до цього: `0.0000005000001557528245`.
 
-## Update rate authority
-Solana provides a helper function, `setAuthority`, to set a new authority on an interest bearing token.
+## Оновлення акауну, що може змінювати ставку
+В Solana є допоміжна функція `setAuthority` що дає право новому акаунту змінювати ставку.
 
-Use the `setAuthority` function to assign a new authority to the account. You'll need to provide the `connection`, the account paying for transaction fees (payer), the token account to update (mint), the current authority's public key, the type of authority to update (in this case, 7 represents the `InterestRate` authority type), and the new authority's public key.
+Використовуйте функцію `setAuthority` для призначення нового уповноваженого акаунта. Вам потрібно буде вказати `connection`, акаунт, що сплачує комісії за транзакції (payer), токен-акаунт, який потрібно оновити (mint), публічний ключ поточного уповноваженого акаунта, тип уповноваженого акаунта для оновлення (у цьому випадку 7 представляє тип уповноваженого акаунта `InterestRate`), а також публічний ключ нового уповноваженого акаунта.
 
-After setting the new authority, use the `updateRateInterestBearingMint` function to update the interest rate for the account. Pass in the necessary parameters: `connection`, `payer`, `mint`, the new authority's public key, the updated interest rate, and the program ID.
+Після встановлення нового уповноваженого акаунта, використовуйте функцію `updateRateInterestBearingMint` для оновлення процентної ставки для акаунта. Передайте необхідні параметри: `connection`, `payer`, `mint`, публічний ключ нового уповноваженого акаунта, оновлену процентну ставку та програмний ID.
 
 ```typescript
 /**
@@ -150,20 +150,20 @@ await updateRateInterestBearingMint(
   TOKEN_2022_PROGRAM_ID,
 );
 ```
-# Lab
+# Лабораторна робота
 
-In this lab, we're establishing Interest Bearing Tokens via the Token-2022 program on Solana. We'll initialize these tokens with a specific interest rate, update the rate with proper authorization, and observe how interest accumulates on tokens over time.
+У цій лабораторній роботі ми створюємо токени з відсотками за допомогою програми Token-2022 на Solana. Ми ініціалізуємо ці токени з конкретною процентною ставкою, оновлюємо ставку з відповідним уповноваженим акаунтом і спостерігаємо, як відсотки накопичуються на токенах з часом.
 
-### 1. Setup Environment
+### 1. Налаштування середовища
 
-To get started, create an empty directory named `interest-bearing-token` and navigate to it. Run `npm init -y` to initialize a brand new project.
+Для початку створіть порожню директорію з назвою `interest-bearing-token` та перейдіть до неї. Виконайте команду `npm init -y`, щоб ініціалізувати новий проект.
 
-Next, we'll need to add our dependencies. Run the following to install the required packages:
+Далі нам потрібно додати залежності. Виконайте наступне для встановлення необхідних пакетів:
 ```bash
 npm i @solana-developers/helpers @solana/spl-token @solana/web3.js esrun dotenv typescript
 ```
 
-Create a directory named `src`. In this directory, create a file named `index.ts`. This is where we will run checks against the rules of this extension. Paste the following code in `index.ts`:
+Створіть директорію з назвою `src`. У цій директорії створіть файл з ім'ям `index.ts`. Тут ми будемо перевіряти правила цього розширення. Вставте наступний код у файл `index.ts`:
 ```ts
 import {
   Connection,
@@ -211,32 +211,32 @@ const rate = 32_767;
 
 // Update the rate authority and attempt to update the interest rate with the new authority
 ```
-`index.ts` creates a connection to the specified validator node and calls `initializeKeypair`. It also has a few variables we will be using in the rest of this lab. The `index.ts` is where we'll end up calling the rest of our script once we've written it.
+`index.ts` створює з'єднання з вказаною нодою валідатора та викликає `initializeKeypair`. Він також містить кілька змінних, які ми будемо використовувати в решті цієї лабораторної роботи. `index.ts` буде місцем, де ми викликаємо решту нашого скрипта, після того як ми його напишемо.
 
-### 2. Run validator node
+### 2. Запуск ноди валідатора
 
-For the sake of this guide, we'll be running our own validator node.
+Для цієї інструкції ми будемо запускати власну ноду валідатора.
 
-In a separate terminal, run the following command: `solana-test-validator`. This will run the node and also log out some keys and values. The value we need to retrieve and use in our connection is the JSON RPC URL, which in this case is `http://127.0.0.1:8899`. We then use that in the connection to specify to use the local RPC URL.
+У окремому терміналі виконайте наступну команду: `solana-test-validator`. Це запустить ноду та виведе деякі ключі та значення в логах. Значення, яке нам потрібно отримати та використати в з'єднанні — це JSON RPC URL, яке в цьому випадку виглядає як `http://127.0.0.1:8899`. Потім ми використовуємо це значення у з'єднанні, щоб вказати на використання локального RPC URL.
 
 `const connection = new Connection("http://127.0.0.1:8899", "confirmed");`
 
-### 3. Helpers
+### 3. Допоміжні функції
 
-When we pasted the `index.ts` code from earlier, we added the following helpers:
+Коли ми вставили код `index.ts` раніше, ми додали наступні допоміжні функції:
 
-- `initializeKeypair`: This function creates the keypair for the `payer` and also airdrops 1 testnet SOL to it
-- `makeKeypairs`: This function creates keypairs without airdropping any SOL
+- `initializeKeypair`: Ця функція створює пару ключів для `payer` та також виконує аірдроп 1 тестової SOL на неї.
+- `makeKeypairs`: Ця функція створює пару ключів без аірдропу будь-якої SOL.
+  
+Крім того, у нас є деякі початкові акаунти:
+- `payer`: Використовується для оплати та як уповноважений акаунт для всього
+- `mintKeypair`: Наш мінт-акаунт, який буде мати розширення `interest bearing token`
+- `otherAccount`: Акаунт, який ми будемо використовувати для спроби оновлення відсотків
+- `otherTokenAccountKeypair`: Інший токен, який використовується для тестування
 
-Additionally, we have some initial accounts:
-  - `payer`: Used to pay for and be the authority for everything
-  - `mintKeypair`: Our mint that will have the `interest bearing token` extension
-  - `otherAccount`: The account we will use to attempt to update interest 
-  - `otherTokenAccountKeypair`: Another token used for testing
+### 4. Створіть токен, на який нараховуються відсотки
 
-### 4. Create Mint with interest bearing token
-
-This function is where we'll be creating the token such that all new tokens will be created with an interest rate. Create a new file inside of `src` named `token-helper.ts`.
+Ця функція створюватиме токен таким чином, що всі нові токени будуть створюватися з процентною ставкою. Створіть новий файл у директорії `src` під назвою `token-helper.ts`.
 
 ```typescript
 import {
@@ -267,16 +267,16 @@ export async function createTokenWithInterestRateExtension(
 }
 ```
 
-This function will take the following arguments:
+Ця функція прийматиме наступні аргументи:
 
-- `connection`: The connection object
-- `payer`: Payer for the transaction
-- `mint`: Public key for the new mint
-- `rateAuthority`: Keypair of the account that can modify the token, in this case, it is `payer`
-- `rate`: Chosen interest rate for the token. In our case, this will be `32_767`, or 32767, the max rate for the interest bearing token extension
-- `mintKeypair`: Keypair for the new mint
-
-When creating an interest bearing token, we must create the account instruction, add the interest instruction and initialize the mint itself. Inside of `createTokenWithInterestRateExtension` in `src/token-helper.ts` there are a few variables already created that will be used to create the interest bearing token. Add the following code beneath the declared variables:
+- `connection`: Об'єкт з'єднання
+- `payer`: Платник для транзакції
+- `mint`: Публічний ключ для нового мінт-акаунту
+- `rateAuthority`: Пара ключів акаунту, який може змінювати токен, у цьому випадку це буде `payer`
+- `rate`: Вибрана процентна ставка для токена. У нашому випадку це буде `32_767`, або 32767, максимальна ставка для розширення токена з відсотками
+- `mintKeypair`: Ключова пара для нового мінт-акаунту
+  
+Коли створюємо токен з нарахуваннями відсотків, ми повинні створити інструкцію для мінт-акаунту, додати інструкцію для нарахування відсотків та ініціалізувати сам мінт. Усередині `createTokenWithInterestRateExtension` в `src/token-helper.ts` вже є кілька змінних, які будуть використані для створення токена з нарахуваннями відсотків. Додайте наступний код після оголошених змінних:
 
 ```ts
 const extensions = [ExtensionType.InterestBearingConfig];
@@ -309,12 +309,12 @@ const mintTransaction = new Transaction().add(
 await sendAndConfirmTransaction(connection, mintTransaction, [payer, mintKeypair], undefined);
 ```
 
-That's it for the token creation! Now we can move on and start adding tests.
-### 5. Establish required accounts
+Це все для створення токена! Тепер можемо переходити до додавання тестів.
+### 5. Створення необхідних акаунтів
 
-Inside of `src/index.ts`, the starting code already has some values related to the creation of the interest bearing token. 
+Усередині `src/index.ts` початковий код вже містить деякі значення, пов'язані зі створенням токена з нарахуваннями відсотків.
 
-Underneath the existing `rate` variable, add the following function call to `createTokenWithInterestRateExtension` to create the interest bearing token. We'll also need to create an associated token account which we'll be using to mint the interest bearing tokens to and also run some tests to check if the accrued interest increases as expected. 
+Під існуючою змінною `rate` додайте наступний виклик функції `createTokenWithInterestRateExtension` для створення токена з нарахуваннями відсотків. Нам також потрібно створити асоційований токен-акаунт, в який ми будемо мінтити токени з нарахуваннями відсотків, а також провести деякі тести, щоб перевірити, чи збільшується нарахований відсоток як очікується.
 
 ```typescript
 const rate = 32_767;
@@ -340,21 +340,21 @@ const payerTokenAccount = await createAssociatedTokenAccount(
 );
 ```
 
-## 6. Tests
+## 6. Тести
 
-Before we start writing any tests, it would be helpful for us to have a function that takes in the `mint` and returns the current interest rate of that particular token. 
+Перш ніж почати писати тести, нам буде корисно мати функцію, яка приймає `mint` і повертає поточну процентну ставку для цього конкретного токена.
 
-Let's utilize the `getInterestBearingMintConfigState` helper provided by the SPL library to do just that. We'll then create a function that is used in our tests to log out the current interest rate of the mint.
+Давайте використаємо допоміжну функцію `getInterestBearingMintConfigState`, надану бібліотекою SPL, щоб зробити це. Потім ми створимо функцію, яку будемо використовувати в наших тестах для виведення поточної процентної ставки.
 
-The return value of this function is an object with the following values:
+Значення, що повертається цією функцією, є об'єктом з наступними значеннями:
 
-- `rateAuthority`: Keypair of the account that can modify the token
-- `initializationTimestamp`: Timestamp of interest bearing token initialization
-- `preUpdateAverageRate`: Last rate before update
-- `lastUpdateTimestamp`: Timestamp of last update
-- `currentRate`: Current interest rate
+- `rateAuthority`: Пара ключів акаунта, який може змінювати токен
+- `initializationTimestamp`: Часова мітка ініціалізації токена з нарахуваннями відсотків
+- `preUpdateAverageRate`: Остання ставка перед оновленням
+- `lastUpdateTimestamp`: Часова мітка останнього оновлення
+- `currentRate`: Поточна процентна ставка
 
-Add the following types and function:
+Додайте наступні типи та функцію:
 
 ```typescript
 // Create getInterestBearingMint function
@@ -383,11 +383,11 @@ async function getInterestBearingMint(inputs: GetInterestBearingMint) {
 }
 ```
 
-**Updating interest rate**
+**Оновлення процентної ставки**
 
-The Solana SPL library provides a helper function for updating the interest rate of a token named `updateRateInterestBearingMint`. For this function to work correctly, the `rateAuthority` of that token must be the same one of which the token was created. If the `rateAuthority` is incorrect, updating the token will result in a failure. 
+Бібліотека Solana SPL надає допоміжну функцію для оновлення процентної ставки токена під назвою `updateRateInterestBearingMint`. Для коректної роботи цієї функції `rateAuthority` цього токена має бути таким самим, як і той акаунт, який створив токен. Якщо `rateAuthority` неправильний, оновлення токена призведе до помилки.
 
-Let's create a test to update the rate with the correct authority. Add the following function calls:
+Давайте створимо тест для оновлення ставки з правильним уповноваженим акаунтом. Додайте наступні виклики функцій:
 
 ```typescript
 // Attempt to update interest rate
@@ -411,13 +411,13 @@ try {
 }
 ```
 
-Run `npx esrun src/index.ts`. We should see the following error logged out in the terminal, meaning the extension is working as intended and the interest rate has been updated: `✅ - We expected this to pass because the rate has been updated. Old rate: 32767. New rate: 0`
+Запустіть команду `npx esrun src/index.ts`. Ми повинні побачити наступну помилку, виведену в терміналі, що означатиме, що розширення працює, як очікується, і процентна ставка була оновлена: `✅ - We expected this to pass because the rate has been updated. Old rate: 32767. New rate: 0` (Ми очікували, що це пройде, оскільки ставка була оновлена. Стара ставка: 32767. Нова ставка: 0)
 
-**Updating interest rate with incorrect rate authority**
+**Оновлення процентної ставки з неправильним `rateAuthority`**
 
-In this next test, let's try and update the interest rate with the incorrect `rateAuthority`. Earlier we created a keypair named `otherAccount`. This will be what we use as the `otherAccount` to attempt the change the interest rate.
+У наступному тесті давайте спробуємо оновити процентну ставку з неправильним `rateAuthority`. Раніше ми створили пару ключів під назвою `otherAccount`. Це буде те, що ми використовуватимемо як `otherAccount`, щоб спробувати змінити процентну ставку.
 
-Below the previous test we created add the following code:
+Під попереднім тестом, який ми створили, додайте наступний код:
 
 ```typescript
 // Attempt to update the interest rate as the account other than the rate authority.
@@ -438,13 +438,13 @@ try {
 }
 ```
 
-Now run `npx esrun src/index.ts`. This is expected to fail and log out `✅ - We expected this to fail because the owner is incorrect.`
+Тепер запустіть команду `npx esrun src/index.ts`. Це має призвести до помилки, і в терміналі буде виведено: `✅ - We expected this to fail because the owner is incorrect.` (Ми очікували, що це не вдасться, оскільки власник неправильний)
 
-**Mint tokens and read interest rate**
+**Мінт токенів і перевірка процентної ставки**
 
-So we’ve tested updating the interest rate. How do we check that the accrued interest increases when an account mints more tokens? We can use the `amountToUiAmount` and `getAccount` helpers from the SPL library to help us achieve this.
+Отже, ми протестували оновлення процентної ставки. Як перевірити, що нараховані відсотки збільшуються, коли акаунт мінтить більше токенів? Ми можемо використати допоміжні функції `amountToUiAmount` і `getAccount` з бібліотеки SPL для цього.
 
-Let's create a for loop that 5 times and mints 100 tokens per loop and logs out the new accrued interest:
+Давайте створимо цикл, який виконуватиметься 5 разів, змінтить 100 токенів у кожному циклі і виводитиме нову нараховану процентну ставку:
 
 ```typescript
 // Log accrued interest
@@ -480,7 +480,7 @@ Let's create a for loop that 5 times and mints 100 tokens per loop and logs out 
 }
 ```
 
-You should see something similar to the logs below:
+Ви повинні побачити щось подібне до наступних логів:
 
 ```typescript
 Amount with accrued interest at 32767: 100 tokens = 0.0000001000000207670422
@@ -490,11 +490,11 @@ Amount with accrued interest at 32767: 400 tokens = 0.00000040000020767045426
 Amount with accrued interest at 32767: 500 tokens = 0.0000005000003634233328
 ```
 
-As you can see, the interest rate increases as more tokens are minted!
+Ви повинні побачити щось подібне до наступних логів:
 
-**Log mint config**
+**Лог конфігурації мінту**
 
-If for some reason you need to retrieve the mint config state, we can utilize the `getInterestBearingMintConfigState` function we created earlier to display information about the interest bearing mint state.
+Якщо з якоїсь причини вам потрібно отримати стан конфігурації мінту, ми можемо використати функцію `getInterestBearingMintConfigState`, яку ми створили раніше, щоб вивести інформацію про стан мінту з нарахуваннями відсотків.
 
 ```ts
 // Log interest bearing mint config state
@@ -516,7 +516,7 @@ console.log(
 );
 ```
 
-This should log out something that looks similar to this:
+Це повинно вивести щось подібне до цього:
 
 ```typescript
 Mint Config: {
@@ -528,10 +528,10 @@ Mint Config: {
 }
 ```
 
-## Update rate authority and interest rate
-Before we conclude this lab, let's set a new rate authority on the interest bearing token and attempt to update the interest rate. We do this by using the `setAuthority` function and passing in the original authority, specifying the rate type (in this case it is 7 for `InterestRate`) and passing the new authority's public key.
+## Оновлення уповноваженого акаунта і процентної ставки
+Перед тим, як завершити цей лабораторний практикум, давайте встановимо новий уповноважений акаунт для токена з нарахуваннями відсотків і спробуємо оновити процентну ставку. Ми зробимо це, використовуючи функцію `setAuthority` і передавши оригінальний уповноважений акаунт, вказавши тип ставки (в цьому випадку це 7 для `InterestRate`), а також публічний ключ нового уповноваженого акаунта.
 
-Once we set the new authority, we can attempt to update the interest rate.
+Після того, як ми встановимо новий уповноважений акаунт, ми можемо спробувати оновити процентну ставку.
 
 ```typescript
 // Update rate authority and attempt to update interest rate with new authority
@@ -567,10 +567,10 @@ try {
 }
 ```
 
-This is expected to work and the new interest rate should be 10.
+Це має працювати, і нова процентна ставка повинна бути 10.
 
-Thats it! We’ve just created an interest bearing token, updated the interest rate and logged the updated state of the token!
+Ось і все! Ми щойно створили токен з нарахуваннями відсотків, оновили процентну ставку та вивели оновлений стан токена!
 
-# Challenge
+# Завдання
 
-Create your own interest bearing token.
+Створіть свій власний токен з нарахуваннями відсотків.
