@@ -1,25 +1,25 @@
 ---
-title: Intro to client-side Anchor development
-objectives:
-- Use an IDL to interact with a Solana program from the client
-- Explain an Anchor `Provider` object
-- Explain an Anchor `Program` object
-- Use the Anchor `MethodsBuilder` to build instructions and transactions
-- Use Anchor to fetch accounts
-- Set up a frontend to invoke instructions using Anchor and an IDL
+title: Вступ до розробки клієнтської частини з Anchor
+завдання:
+- Використовувати IDL для взаємодії з програмою Solana з клієнта  
+- Пояснити об'єкт Anchor `Provider`  
+- Пояснити об'єкт Anchor `Program`  
+- Використовувати `MethodsBuilder` в Anchor для створення інструкцій і транзакцій  
+- Використовувати Anchor для отримання акаунтів  
+- Налаштувати фронтенд для виклику інструкцій за допомогою Anchor і IDL
 ---
 
-# Summary
+# Стислий виклад
 
-- An **IDL** is a file representing the structure of a Solana program. Programs written and built using Anchor automatically generate a corresponding IDL. IDL stands for Interface Description Language.
-- `@coral-xyz/anchor` is a Typescript client that includes everything you’ll need to interact with Anchor programs
-- An **Anchor `Provider`** object combines a `connection` to a cluster and a specified `wallet` to enable transaction signing
-- An **Anchor `Program`** object provides a custom API to interact with a specific program. You create a `Program` instance using a program's IDL and `Provider`.
-- The **Anchor `MethodsBuilder`** provides a simple interface through `Program` for building instructions and transactions
+- **IDL** — це файл, що представляє структуру Solana-програми. Програми, написані та зібрані з використанням Anchor, автоматично генерують відповідний IDL. IDL розшифровується як Interface Description Language (Мова Опису Інтерфейсу)
+- `@coral-xyz/anchor` — це Typescript-клієнт, який містить усе необхідне для взаємодії з Anchor-програмами.  
+- Об'єкт **Anchor `Provider`** поєднує `connection` до кластера та вказаний `wallet`, щоб забезпечити підписання транзакцій.  
+- Об'єкт **Anchor `Program`** надає спеціальний API для взаємодії з конкретною програмою. Ви створюєте екземпляр `Program`, використовуючи IDL програми та `Provider`.  
+- **Anchor `MethodsBuilder`** надає простий інтерфейс через `Program` для створення інструкцій та транзакцій.
+  
+# Урок
 
-# Lesson
-
-Anchor simplifies the process of interacting with Solana programs from the client by providing an Interface Description Language (IDL) file that reflects the structure of a program. Using the IDL in conjunction with Anchor's Typescript library (`@coral-xyz/anchor`) provides a simplified format for building instructions and transactions.
+Anchor спрощує процес взаємодії з Solana-програмами з боку клієнта, надаючи файл Interface Description Language (IDL), що відображає структуру програми. Використання IDL разом із Typescript-бібліотекою Anchor (`@coral-xyz/anchor`) забезпечує спрощений формат для створення інструкцій та транзакцій.
 
 ```tsx
 // sends transaction
@@ -30,8 +30,7 @@ await program.methods
   .rpc()
 ```
 
-This works from any Typescript client, whether it's a frontend or integration tests. In this lesson we'll go over how to use `@coral-xyz/anchor` to simplify your client-side program interaction.
-
+Це працює з будь-якого Typescript-клієнта, незалежно від того, чи це фронтенд, чи інтеграційні тести. У цьому уроці ми розглянемо, як використовувати `@coral-xyz/anchor` для спрощення взаємодії вашої програми з клієнтської сторони.
 ## Anchor client-side structure
 
 Let's start by going over the basic structure of Anchor's Typescript library. The primary object you'll be using is the `Program` object. A `Program` instance represents a specific Solana program and provides a custom API for reading and writing to the program.
