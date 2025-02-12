@@ -31,29 +31,30 @@ await program.methods
 ```
 
 Це працює з будь-якого Typescript-клієнта, незалежно від того, чи це фронтенд, чи інтеграційні тести. У цьому уроці ми розглянемо, як використовувати `@coral-xyz/anchor` для спрощення взаємодії вашої програми з клієнтської сторони.
-## Anchor client-side structure
 
-Let's start by going over the basic structure of Anchor's Typescript library. The primary object you'll be using is the `Program` object. A `Program` instance represents a specific Solana program and provides a custom API for reading and writing to the program.
+## Структура клієнтської частини Anchor
 
-To create an instance of `Program`, you'll need the following:
+Почнемо з основної структури Typescript-бібліотеки Anchor. Основним об'єктом, який ви будете використовувати, є об'єкт `Program`. Екземпляр `Program` представляє конкретну Solana-програму і надає спеціальний API для читання та запису до програми.
 
-- IDL - file representing the structure of a program
-- `Connection` - the cluster connection
-- `Wallet` - default keypair used to pay for and sign transactions
-- `Provider` - encapsulates the `Connection` to a Solana cluster and a `Wallet`
-- `ProgramId` - the program’s onchain address
+Щоб створити екземпляр `Program`, вам знадобляться наступні елементи:
+
+- IDL — файл, що представляє структуру програми
+- `Connection` — з'єднання з кластером
+- `Wallet` — пара ключів за замовчуванням, що використовується для оплати та підписання транзакцій
+- `Provider` — об'єднує `Connection` до Solana-кластера та `Wallet`
+- `ProgramId` — ончейн-адреса програми
 
 ![Anchor structure](../assets/anchor-client-structure.png)
 
-The above image shows how each of these pieces are combined to create a `Program` instance. We'll go over each of them individually to get a better idea of how everything ties together.
+Вищезгадане зображення показує, як кожен з цих елементів об'єднується для створення екземпляра `Program`. Ми розглянемо кожен з них окремо, щоб краще зрозуміти, як все взаємодіє між собою.
 
 ### Interface Description Language (IDL)
 
-When you build an Anchor program, Anchor generates both a JSON and Typescript file representing your program's IDL. The IDL represents the structure of the program and can be used by a client to infer how to interact with a specific program.
+Коли ви будуєте програму на Anchor, Anchor генерує як JSON, так і Typescript файл, що представляє IDL вашої програми. IDL відображає структуру програми і може бути використаний клієнтом для визначення, як взаємодіяти з конкретною програмою.
 
-While it isn't automatic, you can also generate an IDL from a native Solana program using tools like [shank](https://github.com/metaplex-foundation/shank) by Metaplex. 
+Хоча це не є автоматичним процесом, ви також можете згенерувати IDL для нативної Solana-програми за допомогою інструментів, таких як [shank](https://github.com/metaplex-foundation/shank) від Metaplex.
 
-To get an idea of the information an IDL provides, here is the IDL for the counter program you built previously:
+Щоб зрозуміти, яку інформацію надає IDL, ось IDL для програми для підрахунку, яку ви створювали раніше:
 
 ```json
 {
@@ -90,26 +91,26 @@ To get an idea of the information an IDL provides, here is the IDL for the count
 }
 ```
 
-Inspecting the IDL, you can see that this program contains two instructions (`initialize` and `increment`).
+Переглядаючи IDL, можна побачити, що ця програма містить дві інструкції (`initialize` та `increment`).
 
-Notice that in addition to specifying the instructions, it species the accounts and inputs for each instruction. The `initialize` instruction requires three accounts:
+Зверніть увагу, що окрім вказання інструкцій, також вказуються акаунти та вхідні дані для кожної інструкції. Інструкція `initialize` вимагає три акаунти:
 
-1. `counter` - the new account being initialized in the instruction
-2. `user` - the payer for the transaction and initialization
-3. `systemProgram` - the system program is invoked to initialize a new account
+1. `counter` — новий акаунт, що ініціалізується в інструкції  
+2. `user` — платник за транзакцію та ініціалізацію  
+3. `systemProgram` — системна програма, яка викликається для ініціалізації нового акаунту
 
-And the `increment` instruction requires two accounts:
+Інструкція `increment` вимагає два акаунти:  
 
-1. `counter` - an existing account to increment the count field
-2. `user` - the payer from the transaction
+1. `counter` – існуючий акаунт, у якому збільшується поле `count`.  
+2. `user` – платник у транзакції.  
 
-Looking at the IDL, you can see that in both instructions the `user` is required as a signer because the `isSigner` flag is marked as `true`. Additionally, neither instructions require any additional instruction data since the `args` section is blank for both.
+Переглядаючи IDL, можна побачити, що в обох інструкціях `user` є обов'язковим підписантом, оскільки прапорець `isSigner` встановлений на `true`. Крім того, жодна з інструкцій не вимагає додаткових даних інструкції, оскільки розділ `args` порожній для обох.
 
-Looking further down at the `accounts` section, you can see that the program contains one account type named `Counter` with a single `count` field of type `u64`.
+Далі в розділі `accounts` можна побачити, що програма містить один тип акаунту з іменем `Counter`, що має єдине поле `count` типу `u64`.
 
-Although the IDL does not provide the implementation details for each instruction, we can get a basic idea of how the onchain program expects instructions to be constructed and see the structure of the program accounts.
+Хоча IDL не надає деталей виконання для кожної інструкції, ми можемо отримати загальне уявлення про те, як очікується, що інструкції будуть побудовані для ончейн-програми, і побачити структуру акаунтів програми.
 
-Regardless of how you get it, you *need* an IDL file to interact with a program using the `@coral-xyz/anchor` package. To use the IDL, you'll need to include the IDL file in your project and then import the file.
+Незалежно від того, як ви його отримуєте, вам *потрібен* файл IDL для взаємодії з програмою за допомогою пакету `@coral-xyz/anchor`. Щоб використовувати IDL, вам потрібно включити файл IDL у ваш проєкт, а потім імпортувати його. 
 
 ```tsx
 import idl from "./idl.json"
@@ -117,16 +118,16 @@ import idl from "./idl.json"
 
 ### Provider
 
-Before you can create a `Program` object using the IDL, you first need to create an Anchor `Provider` object.
+Перед тим як створити об'єкт `Program` за допомогою IDL, вам спочатку потрібно створити об'єкт Anchor `Provider`.
 
-The `Provider` object combines two things:
+Об'єкт `Provider` поєднує дві речі:
 
-- `Connection` - the connection to a Solana cluster (i.e. localhost, devnet, mainnet)
-- `Wallet` - a specified address used to pay for and sign transactions
+- `Connection` — з'єднання з Solana-кластером (наприклад, localhost, devnet, mainnet)
+- `Wallet` — вказана адреса, що використовується для оплати та підписання транзакцій
 
-The `Provider` is then able to send transactions to the Solana blockchain on behalf of a `Wallet` by including the wallet’s signature to outgoing transactions. When using a frontend with a Solana wallet provider, all outgoing transactions must still be approved by the user via their wallet browser extension.
+Об'єкт `Provider` може надсилати транзакції до блокчейну Solana від імені `Wallet`, додаючи підпис гаманця до вихідних транзакцій. Коли використовуєте фронтенд із провайдером Solana-гаманця, усі вихідні транзакції повинні бути схвалені користувачем через його розширення гаманця в браузері.
 
-Setting up the `Wallet` and `Connection` would look something like this:
+Налаштування `Wallet` та `Connection` виглядатиме приблизно так:
 
 ```tsx
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react"
@@ -135,11 +136,11 @@ const { connection } = useConnection()
 const wallet = useAnchorWallet()
 ```
 
-To set up the connection, you can use the `useConnection` hook from `@solana/wallet-adapter-react` to get the `Connection` to a Solana cluster.
+Щоб налаштувати з'єднання, ви можете використовувати хук `useConnection` з `@solana/wallet-adapter-react`, щоб отримати `Connection` до Solana-кластера.
 
-Note that the `Wallet` object provided by the `useWallet` hook from `@solana/wallet-adapter-react` is not compatible with the `Wallet` object that the Anchor `Provider` expects. However, `@solana/wallet-adapter-react` also provides a `useAnchorWallet` hook.
+Зверніть увагу, що об'єкт `Wallet`, наданий хуком `useWallet` з `@solana/wallet-adapter-react`, не сумісний з об'єктом `Wallet`, який очікує Anchor `Provider`. Однак, `@solana/wallet-adapter-react` також надає хук `useAnchorWallet`.
 
-For comparison, here is the `AnchorWallet` from `useAnchorWallet`:
+Для порівняння, ось `AnchorWallet` з хука `useAnchorWallet`:
 
 ```tsx
 export interface AnchorWallet {
@@ -149,7 +150,7 @@ export interface AnchorWallet {
 }
 ```
 
-And the `WalletContextState` from `useWallet`:
+А ось `WalletContextState` з хука `useWallet`:
 
 ```tsx
 export interface WalletContextState {
@@ -176,17 +177,17 @@ export interface WalletContextState {
 }
 ```
 
-The `WalletContextState` provides much more functionality compared to the `AnchorWallet`, but the `AnchorWallet` is required to set up the `Provider` object.
+`WalletContextState` надає значно більше функціональності порівняно з `AnchorWallet`, але для налаштування об'єкта `Provider` необхідно використовувати саме `AnchorWallet`.
 
-To create the `Provider` object you use `AnchorProvider` from `@coral-xyz/anchor`.
+Для створення об'єкта `Provider` використовується `AnchorProvider` з `@coral-xyz/anchor`.
 
-The `AnchorProvider` constructor takes three parameters:
+Конструктор `AnchorProvider` приймає три параметри:
 
-- `connection` - the `Connection` to the Solana cluster
-- `wallet` - the `Wallet` object
-- `opts` - optional parameter that specifies the confirmation options, using a default setting if one is not provided
+- `connection` — з'єднання з Solana-кластером
+- `wallet` — об'єкт `Wallet`
+- `opts` — необов'язковий параметр, що вказує параметри підтвердження, з використанням налаштувань за замовчуванням, якщо вони не надані
 
-Once you’ve created the `Provider` object, you then set it as the default provider using `setProvider`.
+Після створення об'єкта `Provider`, ви можете встановити його як стандартний провайдер за допомогою `setProvider`.
 
 ```tsx
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react"
@@ -200,19 +201,19 @@ setProvider(provider)
 
 ### Program
 
-Once you have the IDL and a provider, you can create an instance of `Program`. The constructor requires three parameters:
+Якщо у вас є IDL та провайдер, ви можете створити екземпляр `Program`. Конструктор вимагає три параметри:
 
-- `idl` - the IDL as type `Idl`
-- `programId` - the onchain address of the program as a `string` or `PublicKey`
-- `Provider` - the provider discussed in the previous section
+- `idl` — IDL як тип `Idl`
+- `programId` — ончейн-адреса програми у вигляді `string` або `PublicKey`
+- `Provider` — провайдер, розглянутий у попередньому розділі
+  
+Об'єкт `Program` створює спеціалізований API, за допомогою якого ви можете взаємодіяти з Solana-програмою. Цей API є універсальним інструментом для всього, що стосується комунікації з ончейн-програмами. Серед іншого, ви можете надсилати транзакції, отримувати десеріалізовані акаунти, декодувати дані інструкцій, підписуватися на зміни акаунтів і слухати події. Ви також можете [дізнатися більше про клас `Program`](https://coral-xyz.github.io/anchor/ts/classes/Program.html#constructor).
 
-The `Program` object creates a custom API you can use to interact with a Solana program. This API is the one stop shop for all things related to communicating with onchain programs. Among other things, you can send transactions, fetch deserialized accounts, decode instruction data, subscribe to account changes, and listen to events. You can also [learn more about the `Program` class](https://coral-xyz.github.io/anchor/ts/classes/Program.html#constructor).
+Щоб створити об'єкт `Program`, спочатку імпортуйте `Program` та `Idl` з `@coral-xyz/anchor`. `Idl` — це тип, який можна використовувати при роботі з Typescript.
 
-To create the `Program` object, first import `Program` and `Idl` from `@coral-xyz/anchor`. `Idl` is a type you can use when working with Typescript.
+Далі вкажіть `programId` програми. Ми повинні явно вказати `programId`, оскільки може бути кілька програм з однаковою структурою IDL (наприклад, якщо одна і та сама програма розгорнута кілька разів за різними адресами). При створенні об'єкта `Program` буде використано стандартний `Provider`, якщо інший не вказано.
 
-Next, specify the `programId` of the program. We have to explicitly state the `programId` since there can be multiple programs with the same IDL structure (i.e. if the same program is deployed multiple times using different addresses). When creating the `Program` object, the default `Provider` is used if one is not explicitly specified.
-
-All together, the final setup looks something like this:
+Весь процес налаштування виглядатиме приблизно так:
 
 ```tsx
 import idl from "./idl.json"
@@ -236,11 +237,11 @@ const program = new Program(idl as Idl, programId)
 
 ## Anchor `MethodsBuilder`
 
-Once the `Program` object is set up, you can use the Anchor Methods Builder to build instructions and transactions related to the program. The `MethodsBuilder` uses the IDL to provide a simplified format for building transactions that invoke program instructions.
+Після налаштування об'єкта `Program` ви можете використовувати Anchor Methods Builder для створення інструкцій та транзакцій, що стосуються програми. `MethodsBuilder` використовує IDL, щоб забезпечити спрощений формат для побудови транзакцій, які викликають інструкції програми.
 
-Note that the camel case naming convention is used when interacting with a program from the client, compared to the snake case naming convention used when the writing the program in rust.
+Зверніть увагу, що для взаємодії з програмою з клієнтської сторони використовується стилістика іменування в camel case, порівняно з стилістикою snake case, яка використовується при написанні програми на Rust.
 
-The basic `MethodsBuilder` format looks like this:
+Основний формат `MethodsBuilder` виглядатиме так:
 
 ```tsx
 // sends transaction
@@ -251,17 +252,17 @@ await program.methods
   .rpc()
 ```
 
-Going step by step, you:
+Крок за кроком, ви:
 
-1. Call `methods` on `program` - this is the builder API for creating instruction calls related to the program's IDL
-2. Call the instruction name as `.instructionName(instructionDataInputs)` - simply call the instruction using dot syntax and the instruction's name, passing in any instruction arguments as comma-separated values
-3. Call `accounts` - using dot syntax, call `.accounts`, passing in an object with each account the instruction expects based on the IDL
-4. Optionally call `signers` - using dot syntax, call `.signers`, passing in an array of additional signers required by the instruction
-5. Call `rpc` - this method creates and sends a signed transaction with the specified instruction and returns a `TransactionSignature`. When using `.rpc`, the `Wallet` from the `Provider` is automatically included as a signer and does not have to be listed explicitly.
+1. Викликаєте `methods` за допомогою `program` — це API побудови для створення викликів інструкцій, що стосуються IDL програми.
+2. Викликаєте ім'я інструкції як `.instructionName(instructionDataInputs)` — просто викликаєте інструкцію за допомогою синтаксису крапки та імені інструкції, передаючи будь-які аргументи інструкції як значення, розділені комами.
+3. Викликаєте `accounts` — за допомогою синтаксису крапки викликаєте `.accounts`, передаючи об'єкт з кожним акаунтом, який інструкція очікує на основі IDL.
+4. За потреби викликаєте `signers` — за допомогою синтаксису крапки викликаєте `.signers`, передаючи масив додаткових підписантів, необхідних для інструкції.
+5. Викликаєте `rpc` — цей метод створює та надсилає підписану транзакцію з вказаною інструкцією та повертає `TransactionSignature`. Коли використовується `.rpc`, `Wallet` з `Provider` автоматично додається як підписант і не потрібно вказувати його явно.
+   
+Зверніть увагу, що якщо інструкція не потребує додаткових підписантів, окрім `Wallet`, вказаного в `Provider`, рядок `.signer([])` можна упустити.
 
-Note that if no additional signers are required by the instruction other than the `Wallet` specified with the `Provider`, the `.signer([])` line can be excluded.
-
-You can also build the transaction directly by changing `.rpc()` to `.transaction()`. This builds a `Transaction` object using the instruction specified.
+Також можна безпосередньо побудувати транзакцію, замінивши `.rpc()` на `.transaction()`. Це створить об'єкт `Transaction`, використовуючи вказану інструкцію.
 
 ```tsx
 // creates transaction
@@ -273,7 +274,7 @@ const transaction = await program.methods
 await sendTransaction(transaction, connection)
 ```
 
-Similarly, you can use the same format to build an instruction using `.instruction()` and then manually add the instructions to a new transaction. This builds a `TransactionInstruction` object using the instruction specified.
+Подібним чином, ви можете використовувати той самий формат для побудови інструкції за допомогою `.instruction()` і потім вручну додавати інструкції до нової транзакції. Це створить об'єкт `TransactionInstruction`, використовуючи вказану інструкцію.
 
 ```tsx
 // creates first instruction
@@ -295,21 +296,21 @@ const transaction = new Transaction().add(instructionOne, instructionTwo)
 await sendTransaction(transaction, connection)
 ```
 
-In summary, the Anchor `MethodsBuilder` provides a simplified and more flexible way to interact with onchain programs. You can build an instruction, a transaction, or build and send a transaction using basically the same format without having to manually serialize or deserialize the accounts or instruction data.
+Підсумовуючи, Anchor `MethodsBuilder` надає спрощений і більш гнучкий спосіб взаємодії з ончейн-програмами. Ви можете побудувати інструкцію, транзакцію або побудувати й надіслати транзакцію, використовуючи в основному один і той самий формат, без необхідності вручну серіалізувати або десеріалізувати акаунти чи дані інструкцій.
 
-## Fetch program accounts
+## Отримання програмних акаунтів 
 
-The `Program` object also allows you to easily fetch and filter program accounts. Simply call `account` on `program` and then specify the name of the account type as reflected on the IDL. Anchor then deserializes and returns all accounts as specified.
+Об'єкт `Program` також дозволяє легко отримувати та фільтрувати акаунти програми. Просто викликайте `account` на `program`, а потім вказуйте ім'я типу акаунту, як це зазначено в IDL. Anchor потім десеріалізує та повертає всі акаунти відповідно до специфікацій.
 
-The example below shows how you can fetch all existing `counter` accounts for the Counter program.
+Нижче наведено приклад того, як можна отримати всі існуючі акаунти `counter` для програми Counter.
 
 ```tsx
 const accounts = await program.account.counter.all()
 ```
 
-You can also apply a filter by using `memcmp` and then specifying an `offset` and the `bytes` to filter for. 
+Ви також можете застосувати фільтр за допомогою `memcmp`, вказавши `offset` та `bytes` для фільтрації. 
 
-The example below fetches all `counter` accounts with a `count` of 0. Note that the `offset` of 8 is for the 8 byte discriminator Anchor uses to identify account types. The 9th byte is where the `count` field begins. You can refer to the IDL to see that the next byte stores the `count` field of type `u64`. Anchor then filters for and returns all accounts with matching bytes in the same position.
+У наведеному прикладі отримуються всі акаунти `counter` зі значенням `count` рівним 0. Зверніть увагу, що `offset` 8 — це 8 байт, які використовує Anchor для ідентифікації типів акаунтів. 9-й байт — це місце, де починається поле `count`. Ви можете звернутися до IDL, щоб побачити, що наступний байт зберігає поле `count` типу `u64`. Anchor потім фільтрує та повертає всі акаунти з відповідними байтами в тій самій позиції.
 
 ```tsx
 const accounts = await program.account.counter.all([
@@ -322,36 +323,36 @@ const accounts = await program.account.counter.all([
 ])
 ```
 
-Alternatively, you can also get the deserialized account data for a specific account using `fetch` if you know the address of the account you're looking for. 
+Альтернативно, ви також можете отримати десеріалізовані дані акаунту для конкретного акаунту за допомогою `fetch`, якщо ви знаєте адресу акаунту, який шукаєте.
 
 ```tsx
 const account = await program.account.counter.fetch(ACCOUNT_ADDRESS)
 ```
 
-Similarly, you can fetch multiple accounts using `fetchMultiple`.
+Аналогічно, ви можете отримати кілька акаунтів за допомогою `fetchMultiple`.
 
 ```tsx
 const accounts = await program.account.counter.fetchMultiple([ACCOUNT_ADDRESS_ONE, ACCOUNT_ADDRESS_TWO])
 ```
 
-# Lab
+# Лабораторна робота  
 
-Let’s practice this together by building a frontend for the Counter program from last lesson. As a reminder, the Counter program has two instructions:
+Давайте попрактикуємося разом, створюючи фронтенд для програми Counter з минулого уроку. Як нагадування, програма Counter має дві інструкції:
 
-- `initialize` - initializes a new `Counter` account and sets the `count` to `0`
-- `increment` - increments the `count` on an existing `Counter` account
+- `initialize` — ініціалізує новий акаунт `Counter` та встановлює значення `count` на `0`
+- `increment` — збільшує значення `count` на існуючому акаунті `Counter`
 
-### 1. Download the starter code
+### 1. Завантажте початковий код
 
-Download [the starter code for this project](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/starter). Once you have the starter code, take a look around. Install the dependencies with `npm install` and then run the app with `npm run dev`.
+Завантажте [початковий код для цього проєкту](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/starter). Після того, як ви завантажите початковий код, ознайомтесь з його структурою. Встановіть залежності за допомогою команди `npm install`, а потім запустіть додаток командою `npm run dev`.
 
-This project is a simple Next.js application. It includes the `WalletContextProvider` we created in the [Wallets lesson](https://github.com/Unboxed-Software/solana-course/blob/main/content/interact-with-wallets), the `idl.json` file for the Counter program, and the `Initialize` and `Increment` components we’ll be building throughout this lab. The `programId` of the program we’ll be invoking is also included in the starter code.
+Цей проєкт — це проста програма на Next.js. Вона містить `WalletContextProvider`, який ми створили на уроці про [гаманці](https://github.com/Unboxed-Software/solana-course/blob/main/content/interact-with-wallets), файл `idl.json` для програми Counter, а також компоненти `Initialize` та `Increment`, які ми будемо створювати протягом цього заняття. У початковому коді також вказано `programId` програми, яку ми будемо викликати.
 
 ### 2. `Initialize`
 
-To begin, let’s complete the setup to create the `Program` object in `Initialize.tsx` component.
+Для початку давайте завершимо налаштування для створення об'єкта `Program` у компоненті `Initialize.tsx`.
 
-Remember, we’ll need an instance of `Program` to use the Anchor `MethodsBuilder` to invoke the instructions on our program. For that, we'll need an Anchor wallet and a connection, which we can get from the `useAnchorWallet` and `useConnection` hooks. Let's also create a `useState` to capture the program instance.
+Пам'ятайте, нам потрібен екземпляр `Program`, щоб використовувати `MethodsBuilder` з Anchor для виклику інструкцій нашої програми. Для цього нам знадобляться гаманець Anchor і з'єднання, які ми можемо отримати за допомогою хуків `useAnchorWallet` і `useConnection`. Давайте також створимо `useState`, щоб зберігати екземпляр програми.
 
 ```tsx
 export const Initialize: FC<Props> = ({ setCounter }) => {
@@ -364,11 +365,11 @@ export const Initialize: FC<Props> = ({ setCounter }) => {
 }
 ```
 
-With that, we can work on creating the actual `Program` instance. Let's do this in a `useEffect`.
+З цим ми можемо перейти до створення фактичного екземпляру `Program`. Давайте зробимо це в `useEffect`.
 
-First we need to either get the default provider if it already exists, or create it if it doesn't. We can do that by calling `getProvider` inside a try/catch block. If an error is thrown, that means there is no default provider and we need to create one.
+Спочатку нам потрібно або отримати стандартний провайдер, якщо він вже існує, або створити його, якщо його немає. Ми можемо зробити це, викликавши `getProvider` всередині блоку `try/catch`.  Якщо виникає помилка, це означає, що стандартного провайдера немає, і нам потрібно створити новий.
 
-Once we have a provider, we can construct a `Program` instance.
+Коли ми отримаємо провайдера, ми можемо створити екземпляр `Program`.
 
 ```tsx
 useEffect(() => {
@@ -386,13 +387,13 @@ useEffect(() => {
 }, [])
 ```
 
-Now that we've finished the Anchor setup, we can actually invoke the program's `initialize` instruction. We'll do this inside the `onClick` function.
+Тепер, коли ми завершили налаштування Anchor, ми можемо фактично викликати інструкцію `initialize` програми. Ми зробимо це всередині функції `onClick`.
 
-First, we’ll need to generate a new `Keypair` for the new `Counter` account since we are initializing an account for the first time.
+По-перше, нам потрібно згенерувати нову `Keypair` для нового акаунту `Counter`, оскільки ми ініціалізуємо акаунт вперше.
 
-Then we can use the Anchor `MethodsBuilder` to create and send a new transaction. Remember, Anchor can infer some of the accounts required, like the `user` and `systemAccount` accounts. However, it can't infer the `counter` account because we generate that dynamically, so you'll need to add it with `.accounts`. You'll also need to add that keypair as a sign with `.signers`. Lastly, you can use `.rpc()` to submit the transaction to the user's wallet.
+Тоді ми можемо використовувати `MethodsBuilder` з Anchor для створення та відправлення нової транзакції. Пам'ятайте, що Anchor може визначити деякі акаунти, які необхідні, такі як акаунти `user` і `systemAccount`. Однак він не може визначити акаунт `counter`, оскільки ми генеруємо його динамічно, тому вам потрібно додати його за допомогою `.accounts`. Також потрібно додати цю пару ключів як підписанта через `.signers`. Наприкінці, ви можете використати `.rpc()`, щоб надіслати транзакцію до гаманця користувача.
 
-Once the transaction goes through, call `setUrl` with the explorer URL and then call `setCounter`, passing in the counter account.
+Коли транзакція буде оброблена, викличте `setUrl` з URL для експлорера, а потім викликайте `setCounter`, передаючи counter-акаунт.
 
 ```tsx
 const onClick = async () => {
@@ -413,9 +414,9 @@ const onClick = async () => {
 
 ### 3. `Increment`
 
-Next, let’s move on the the `Increment.tsx` component. Just as before, complete the setup to create the `Program` object. In addition to calling `setProgram`, the `useEffect` should call `refreshCount`.
+Далі, давайте перейдемо до компонента `Increment.tsx`. Так само, як і раніше, завершіть налаштування для створення об'єкта `Program`. Окрім виклику `setProgram`, хук `useEffect` повинен також викликати `refreshCount`.
 
-Add the following code for the initial set up:
+Додайте наступний код для початкового налаштування:
 
 ```tsx
 export const Increment: FC<Props> = ({ counter, setTransactionUrl }) => {
@@ -442,7 +443,7 @@ export const Increment: FC<Props> = ({ counter, setTransactionUrl }) => {
 }
 ```
 
-Next, let’s use the Anchor `MethodsBuilder` to build a new instruction to invoke the `increment` instruction. Again, Anchor can infer the `user` account from the wallet so we only need to include the `counter` account.
+Далі давайте використаємо `MethodsBuilder` з Anchor, щоб побудувати нову інструкцію для виклику інструкції `increment`. Знову ж таки, Anchor може визначити акаунт `user` з гаманця, тому нам потрібно лише додати акаунт `counter`.
 
 ```tsx
 const incrementCount = async () => {
@@ -458,13 +459,13 @@ const incrementCount = async () => {
 }
 ```
 
-### 4. Display the correct count
+### 4. Відображення правильного значення лічильника
 
-Now that we can initialize the counter program and increment the count, we need to get our UI to show the count stored in the counter account.
+Тепер, коли ми можемо ініціалізувати програму лічильника та збільшувати значення, нам потрібно зробити так, щоб наш інтерфейс відображав значення, яке зберігається в count-акаунті.
 
-We'll show how to observe account changes in a future lesson, but for now we just have a button that calls `refreshCount` so you can click it to show the new count after each `increment` invocation.
+Ми покажемо, як спостерігати за змінами акаунтів у наступному уроці, але поки що в нас є кнопка, яка викликає `refreshCount`, щоб ви могли натискати її та показувати нове значення після кожного виклику `increment`.
 
-Inside `refreshCount`, let's use `program` to fetch the counter account, then use `setCount` to set the count to the number stored on the program:
+Всередині `refreshCount` давайте використаємо `program`, щоб отримати count-акаунт, а потім використаємо `setCount`, щоб встановити значення лічильника, яке зберігається в програмі.
 
 ```tsx
 const refreshCount = async (program) => {
@@ -473,45 +474,44 @@ const refreshCount = async (program) => {
 }
 ```
 
-Super simple with Anchor!
+Дуже просто з Anchor!
 
-### 5. Test the frontend
+### 5. Тестування фронтенду
 
-At this point, everything should work! You can test the frontend by running `npm run dev`.
+На цьому етапі все має працювати! Ви можете протестувати фронтенд, запустивши команду `npm run dev`.
 
-1. Connect your wallet and you should see the `Initialize Counter` button
-2. Click the `Initialize Counter` button, and then approve the transaction
-3. You should then see a link at the bottom of the screen to Solana Explorer for the `initialize` transaction. The `Increment Counter` button, `Refresh Count` button, and the count should also all appear.
-4. Click the `Increment Counter` button, and then approve the transaction
-5. Wait a few seconds and click `Refresh Count`. The count should increment on the screen.
+1. Підключіть свій гаманець, і ви повинні побачити кнопку `Initialize Counter`.
+2. Натисніть на кнопку `Initialize Counter`, а потім підтвердіть транзакцію.
+3. Потім ви повинні побачити посилання внизу екрану на Solana Explorer для транзакції `initialize`. Також повинні з'явитися кнопки `Increment Counter`, `Refresh Count` та значення рахунку.
+4. Натисніть на кнопку `Increment Counter`, а потім підтвердіть транзакцію.
+5. Почекати кілька секунд і натиснути `Refresh Count`. Значення лічильника має збільшитися на екрані.
 
 ![Gif of Anchor Frontend Demo](../assets/anchor-frontend-demo.gif)
 
-Feel free to click the links to inspect the program logs from each transaction!
+Щоб переглянути журнали програми для кожної транзакції - натисніть на посилання!
 
 ![Initialize Program Log](../assets/anchor-frontend-initialize.png)
 
 ![Increment Program Log](../assets/anchor-frontend-increment.png)
 
-Congratulations, you now know how to set up a frontend to invoke a Solana program using an Anchor IDL.
+Вітаємо! Тепер ви знаєте, як налаштувати фронтенд для виклику програми в Solana за допомогою Anchor IDL.
 
-If you need more time with this project to feel comfortable with these concepts, feel free to have a look at the [solution code on the `solution-increment` branch](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-increment) before continuing.
+Якщо вам потрібно більше часу, щоб розібратися з цим проектом і краще засвоїти концепції, можете переглянути [код рішення у гілці `solution-increment`](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-increment) перед тим, як продовжити.
 
-# Challenge
+# Завдання
 
-Now it’s your turn to build something independently. Building on top of what we’ve done in the lab, try to create a new component in the frontend that implements a button to decrements the counter.
+Тепер ваша черга створити щось самостійно. Спираючись на те, що ми зробили в лабораторній роботі, спробуйте створити новий компонент у фронтенді, який реалізує кнопку для зменшення значення лічильника.
 
-Before building the component in the frontend, you’ll first need to:
+Перш ніж створювати компонент у фронтенді, вам спершу потрібно:  
 
-1. Build and deploy a new program that implements a `decrement` instruction
-2. Update the IDL file in the frontend with the one from your new program
-3. Update the `programId` with the one from your new program
+1. Створити та розгорнути нову програму, яка реалізує інструкцію `decrement`.  
+2. Оновити файл IDL у фронтенді, додавши до нього IDL із вашої нової програми.  
+3. Оновити `programId`, вказавши ідентифікатор вашої нової програми.
 
-If you need some help, feel free to [reference this program](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
+Якщо вам потрібна допомога, можете звернутися до [цього прикладу програми](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
 
-Try to do this independently if you can! But if you get stuck, feel free to reference the [solution code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
+Спробуйте зробити це самостійно! Але якщо у вас виникнуть труднощі, можете звернутися до [коду рішення](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
 
+## Завершили Лабораторну роботу?
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=774a4023-646d-4394-af6d-19724a6db3db)!
+Поділіться своїм кодом на GitHub та [поділіться своїми враженнями про цей урок](https://form.typeform.com/to/IPH0UGz7#answers-lesson=774a4023-646d-4394-af6d-19724a6db3db)!
