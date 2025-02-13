@@ -1,49 +1,49 @@
 ---
-title: Intro to Anchor development
-objectives:
-- Use the Anchor framework to build a basic program
-- Describe the basic structure of an Anchor program
-- Explain how to implement basic account validation and security checks with Anchor
+назва: Вступ до розробки з Anchor
+завдання:
+- Використати фреймворк Anchor для створення базової програми
+- Описати базову структуру програми Anchor
+- Пояснити, як реалізувати базову валідацію акаунтів та перевірки безпеки за допомогою Anchor
 ---
 
-# Summary
+# Стислий виклад
 
-- **Anchor** is a framework for building Solana programs
-- **Anchor macros** speed up the process of building Solana programs by abstracting away a significant amount of boilerplate code
-- Anchor allows you to build **secure programs** more easily by performing certain security checks, requiring account validation, and providing a simple way to implement additional checks.
+- **Anchor** — це фреймворк для створення програм на Solana
+- **Макроси Anchor** прискорюють процес розробки програм на Solana, абстрагуючи значну кількість шаблонного коду
+- Anchor дозволяє створювати **безпечні програми** простіше, виконуючи певні перевірки безпеки, вимагаючи валідації акаунтів та надаючи простий спосіб реалізувати додаткові перевірки
 
-# Lesson
+# Урок
 
-## What is Anchor?
+## Що таке Anchor?
 
-Anchor makes writing Solana programs easier, faster, and more secure, making it the "go-to" framework for Solana development. It makes it easier to organize and reason about your code, implements common security checks automatically, and removes a significant amount of boilerplate code that is otherwise associated with writing a Solana program.
+Anchor робить написання програм на Solana легшим, швидшим та безпечнішим, що робить його "фреймворком за замовчуванням" для розробки на Solana. Він спрощує організацію та розуміння вашого коду, автоматично реалізує загальні перевірки безпеки та усуває значну частину шаблонного коду, який зазвичай супроводжує написання програми на Solana.
 
-## Anchor program structure
+## Структура програми Anchor
 
-Anchor uses macros and traits to generate boilerplate Rust code for you. These provide a clear structure to your program so you can more easily reason about your code. The main high-level macros and attributes are:
+Anchor використовує макроси та трейти для автоматичного створення шаблонного коду на Rust. Це надає чітку структуру вашій програмі, що дозволяє легше розуміти та працювати з кодом. Основні макроси та атрибути високого рівня:
 
-- `declare_id` - a macro for declaring the program’s onchain address
-- `#[program]` - an attribute macro used to denote the module containing the program’s instruction logic
-- `Accounts` - a trait applied to structs representing the list of accounts required for an instruction
-- `#[account]` - an attribute macro used to define custom account types for the program
+- `declare_id` — макрос для оголошення ончейн-адреси програми
+- `#[program]` — макрос-атрибут, який використовується для позначення модуля, що містить логіку інструкцій програми
+- `Accounts` — трейт, що представляє список акаунтів, необхідних для інструкції
+- `#[account]` — макрос-атрибут, який використовується для визначення користувацьких типів акаунтів для програми
 
-Let's talk about each of them before putting all the pieces together.
+Давайте розглянемо кожен з них перед тим, як зібрати всі частини разом.
 
-## Declare your program ID
+## Оголошення ID вашої програми
 
-The `declare_id` macro is used to specify the onchain address of the program (i.e. the `programId`). When you build an Anchor program for the first time, the framework will generate a new keypair. This becomes the default keypair used to deploy the program unless specified otherwise. The corresponding public key should be used as the `programId` specified in the `declare_id!` macro.
+Макрос `declare_id` вказує ончейн-адресу програми (тобто `programId`). Коли ви будуєте програму на Anchor вперше, фреймворк генерує нову пару ключів. Це стає парою ключів за замовчуванням, що використовується для деплою програми, якщо не вказана інша. Відповідний публічний ключ має бути використаний як `programId`, зазначений у макросі `declare_id!`.
 
 ```rust
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 ```
 
-## Define instruction logic
+## Визначення логіки інструкцій
 
-The `#[program]` attribute macro defines the module containing all of your program's instructions. This is where you implement the business logic for each instruction in your program.
+Макрос-атрибут `#[program]` визначає модуль, що містить усі інструкції вашої програми. Тут ви реалізуєте бізнес-логіку для кожної інструкції у вашій програмі.
 
-Each public function in the module with the `#[program]` attribute will be treated as a separate instruction.
+Кожна публічна функція в модулі з атрибутом `#[program]` буде оброблятися як окрема інструкція.
 
-Each instruction function requires a parameter of type `Context` and can optionally include additional function parameters representing instruction data. Anchor will automatically handle instruction data deserialization so that you can work with instruction data as Rust types.
+Кожна функція інструкції вимагає параметр типу `Context` і може опціонально включати додаткові параметри функції, що представляють дані інструкції. Anchor автоматично оброблятиме десеріалізацію даних інструкції, щоб ви могли працювати з ними (даними) як з типами Rust.
 
 ```rust
 #[program]
@@ -57,24 +57,24 @@ mod program_module_name {
 }
 ```
 
-### The `context` argument
+### Аргумент `context`  
 
-The `context` argument allows you to access instruction metadata and accounts to your instruction handler:
+Аргумент `context` дозволяє отримати доступ до метаданих інструкції та акаунтів у вашому обробнику інструкцій:  
 
-- The program ID (`ctx.program_id`) of the executing program
-- The accounts passed into the instruction (`ctx.accounts`)
-- The remaining accounts (`ctx.remaining_accounts`). The `remaining_accounts` is a vector that contains all accounts that were passed into the instruction but are not declared in the `Accounts` struct.
-- The bumps for any PDA accounts in the `Accounts` struct (`ctx.bumps`)
+- ID програми (`ctx.program_id`), яка виконується  
+- Акаунти, передані в інструкцію (`ctx.accounts`)  
+- Залишкові акаунти (`ctx.remaining_accounts`). `remaining_accounts` — це вектор, що містить усі акаунти, передані в інструкцію, але не оголошені в структурі `Accounts`.  
+- Значення bumps для будь-яких PDA-акаунтів у структурі `Accounts` (`ctx.bumps`)
 
-## Define instruction accounts
+## Визначення акаунтів інструкції  
 
-The `Accounts` trait defines a data structure of validated accounts. Structs adopting this trait define the list of accounts required for a given instruction. These accounts are then exposed through an instruction's `Context` so that manual account iteration and deserialization is no longer necessary.
+Трейт `Accounts` визначає структуру даних для валідації акаунтів. Структури, що імплементують цей трейт, задають список акаунтів, необхідних для виконання певної інструкції. Ці акаунти стають доступними через `Context` інструкції, що усуває потребу вв ручному переборі та десеріалізації акаунтів.
 
-You typically apply the `Accounts` trait through the `derive` macro (e.g. `#[derive(Accounts)]`). This implements an `Accounts` deserializer on the given struct and removes the need to deserialize each account manually.
+Зазвичай трейт `Accounts` застосовується через макрос `derive` (наприклад, `#[derive(Accounts)]`). Це реалізує десеріалізатор `Accounts` для вказаної структури та усуває потребу в ручній десеріалізації кожного акаунту.
 
-Implementations of the `Accounts` trait are responsible for performing all requisite constraint checks to ensure the accounts meet the conditions required for the program to run securely. Constraints are provided for each field using the `#account(..)` attribute (more on that shortly).
+Реалізації трейту `Accounts` відповідають за виконання всіх необхідних перевірок обмежень, щоб гарантувати, що акаунти відповідають умовам, необхідним для безпечного виконання програми. Обмеження задаються для кожного поля за допомогою макрос-атрибута `#[account(..)]` (докладніше про це далі).
 
-For example, `instruction_one` requires a `Context` argument of type `InstructionAccounts`. The `#[derive(Accounts)]` macro is used to implement the `InstructionAccounts` struct which includes three accounts: `account_name`, `user`, and `system_program`.
+Наприклад, `instruction_one` вимагає аргумент `Context` типу `InstructionAccounts`. Макрос `#[derive(Accounts)]` використовується для реалізації структури `InstructionAccounts`, яка містить три акаунти: `account_name`, `user` і `system_program`.
 
 ```rust
 #[program]
@@ -97,22 +97,22 @@ pub struct InstructionAccounts {
 }
 ```
 
-When `instruction_one` is invoked, the program:
+Коли викликається `instruction_one`, програма:  
 
-- Checks that the accounts passed into the instruction match the account types specified in the `InstructionAccounts` struct
-- Checks the accounts against any additional constraints specified
+- Перевіряє, чи відповідають передані в інструкцію акаунти типам акаунтів, зазначеним у структурі `InstructionAccounts`  
+- Перевіряє акаунти на відповідність додатковим зазначеним обмеженням
 
-If any accounts passed into `instruction_one` fail the account validation or security checks specified in the `InstructionAccounts` struct, then the instruction fails before even reaching the program logic.
+Якщо будь-який із акаунтів, переданих у `instruction_one`, не проходить валідацію акаунтів або перевірки безпеки, визначені в структурі `InstructionAccounts`, то інструкція завершиться з помилкою ще до виконання логіки програми.
 
-## Account validation
+## Валідація акаунтів  
 
-You may have noticed in the previous example that one of the accounts in `InstructionAccounts` was of type `Account`, one was of type `Signer`, and one was of type `Program`.
+У попередньому прикладі ви могли помітити, що один із акаунтів у `InstructionAccounts` був типу `Account`, інший — типу `Signer`, а ще один — типу `Program`.
 
-Anchor provides a number of account types that can be used to represent accounts. Each type implements different account validation. We’ll go over a few of the common types you may encounter, but be sure to look through the [full list of account types](https://docs.rs/anchor-lang/latest/anchor_lang/accounts/index.html).
+Anchor надає кілька типів акаунтів, які можна використовувати для представлення акаунтів. Кожен тип реалізує різну валідацію акаунтів. Ми розглянемо кілька з найбільш поширених типів, з якими ви можете зіткнутися, але обов'язково перегляньте [повний список типів акаунтів](https://docs.rs/anchor-lang/latest/anchor_lang/accounts/index.html).
 
 ### `Account`
 
-`Account` is a wrapper around `AccountInfo` that verifies program ownership and deserializes the underlying data into a Rust type.
+`Account` — це обгортка навколо `AccountInfo`, яка перевіряє право власності програми та десеріалізує основні дані в тип Rust.
 
 ```rust
 // Deserializes this info
@@ -128,20 +128,20 @@ pub struct AccountInfo<'a> {
 }
 ```
 
-Recall the previous example where `InstructionAccounts` had a field `account_name`:
+Згадаємо попередній приклад, де у `InstructionAccounts` було поле `account_name`:
 
 ```rust
 pub account_name: Account<'info, AccountStruct>
 ```
 
-The `Account` wrapper here does the following:
+Обгортка `Account` тут виконує наступне:
 
-- Deserializes the account `data` in the format of type `AccountStruct`
-- Checks that the program owner of the account matches the program owner specified for the `AccountStruct` type.
+- Десеріалізує дані акаунту у формат типу `AccountStruct`
+- Перевіряє, чи власник програми акаунту збігається з власником програми, зазначеним для типу `AccountStruct`
 
-When the account type specified in the `Account` wrapper is defined within the same crate using the `#[account]` attribute macro, the program ownership check is against the `programId` defined in the `declare_id!` macro.
+Коли тип акаунту, зазначений в обгортці `Account`, визначено в тій же бібліотеці за допомогою макроса-атрибута `#[account]`, перевірка власності програми здійснюється щодо `programId`, визначеного в макросі `declare_id!`.
 
-The following are the checks performed:
+Ось перевірки, які виконуються:
 
 ```rust
 // Checks
@@ -151,11 +151,11 @@ Account.info.owner == T::owner()
 
 ### `Signer`
 
-The `Signer` type validates that the given account signed the transaction. No other ownership or type checks are done. You should only use the `Signer` when the underlying account data is not required in the instruction.
+Тип `Signer` перевіряє, що вказаний акаунт підписав транзакцію. Інші перевірки на власність або тип не виконуються. Використовувати `Signer` слід лише тоді, коли дані акаунту не потрібні в інструкції.
 
-For the `user` account in the previous example, the `Signer` type specifies that the `user` account must be a signer of the instruction.
+Для акаунту `user` в попередньому прикладі тип `Signer` вказує, що акаунт `user` повинен бути підписантом інструкції.
 
-The following check is performed for you:
+Ось перевірка, яка виконується автоматично:
 
 ```rust
 // Checks
@@ -164,11 +164,11 @@ Signer.info.is_signer == true
 
 ### `Program`
 
-The `Program` type validates that the account is a certain program.
+Тип `Program` перевіряє, що акаунт є певною програмою.
 
-For the `system_program` account in the previous example, the `Program` type is used to specify the program should be the system program. Anchor provides a `System` type which includes the `programId` of the system program to check against.
+Для акаунту `system_program` в попередньому прикладі використовується тип `Program`, щоб вказати, що акаунт має бути системною програмою. Anchor надає тип `System`, який включає `programId` системної програми для перевірки.
 
-The following checks are performed for you:
+Ось перевірки, які виконуються автоматично:
 
 ```rust
 //Checks
@@ -176,11 +176,11 @@ account_info.key == expected_program
 account_info.executable == true
 ```
 
-## Add constraints with `#[account(..)]`
+## Додавання обмежень за допомогою `#[account(..)]`  
 
-The `#[account(..)]` attribute macro is used to apply constraints to accounts. We'll go over a few constraint examples in this and future lessons, but at some point be sure to look at the full [list of possible constraints](https://docs.rs/anchor-lang/latest/anchor_lang/derive.Accounts.html).
+Макрос-атрибут `#[account(..)]` використовується для застосування обмежень до акаунтів. Ми розглянемо кілька прикладів обмежень у цьому та наступних уроках, але обов’язково перегляньте повний [список можливих обмежень](https://docs.rs/anchor-lang/latest/anchor_lang/derive.Accounts.html).
 
-Recall again the `account_name` field from the `InstructionAccounts` example. 
+Згадаємо ще раз поле `account_name` із прикладу `InstructionAccounts`.
 
 ```rust
 #[account(init, payer = user, space = 8 + 8)]
@@ -189,24 +189,24 @@ pub account_name: Account<'info, AccountStruct>,
 pub user: Signer<'info>,
 ```
 
-Notice that the `#[account(..)]` attribute contains three comma-separated values:
+Зверніть увагу, що атрибут `#[account(..)]` містить три значення, розділені комами:  
 
-- `init` - creates the account via a CPI to the system program and initializes it (sets its account discriminator)
-- `payer` - specifies the payer for the account initialization to be the `user` account defined in the struct
-- `space`- specifies that the space allocated for the account should be `8 + 8` bytes. The first 8 bytes are for a discriminator that Anchor automatically adds to identify the account type. The next 8 bytes allocate space for the data stored on the account as defined in the `AccountStruct` type.
+- `init` — створює акаунт через CPI до системної програми та ініціалізує його (встановлює дискримінатор акаунту).  
+- `payer` — вказує, що платником за ініціалізацію акаунту є акаунт `user`, визначений у структурі.  
+- `space` — задає розмір пам’яті, виділеної для акаунту, який у цьому випадку становить `8 + 8` байт. Перші 8 байт відводяться для дискримінатора, який Anchor автоматично додає для ідентифікації типу акаунту. Наступні 8 байтів виділяють місце для даних, що зберігатимуться в акаунті згідно з типом `AccountStruct`.
 
-For `user` we use the `#[account(..)]` attribute to specify that the given account is mutable. The `user` account must be marked as mutable because lamports will be deducted from the account to pay for the initialization of `account_name`.
+Для `user` ми використовуємо атрибут `#[account(..)]`, щоб вказати, що цей акаунт є змінним. Акаунт `user` має бути позначений як змінний, оскільки з нього буде списано лампорти для оплати ініціалізації `account_name`.
 
 ```rust
 #[account(mut)]
 pub user: Signer<'info>,
 ```
 
-Note that the `init` constraint placed on `account_name` automatically includes a `mut` constraint so that both `account_name` and `user` are mutable accounts.
+Зверніть увагу, що обмеження `init`, застосоване до `account_name`, автоматично включає обмеження `mut`, тому `account_name` і `user` є змінними акаунтами.
 
 ## `#[account]`
 
-The `#[account]` attribute is applied to structs representing the data structure of a Solana account. It implements the following traits:
+Атрибут `#[account]` застосовується до структур, що представляють структуру даних акаунту Solana. Він реалізує такі трейти:
 
 - `AccountSerialize`
 - `AccountDeserialize`
@@ -216,15 +216,15 @@ The `#[account]` attribute is applied to structs representing the data structure
 - `Discriminator`
 - `Owner`
 
-You can read more about the [details of each trait](https://docs.rs/anchor-lang/latest/anchor_lang/attr.account.html). However, mostly what you need to know is that the `#[account]` attribute enables serialization and deserialization, and implements the discriminator and owner traits for an account.
+Ви можете дізнатися більше про [деталі кожного трейту](https://docs.rs/anchor-lang/latest/anchor_lang/attr.account.html). Однак головне, що потрібно знати: атрибут `#[account]` забезпечує серіалізацію та десеріалізацію, а також реалізує трейти дискримінатора та власника акаунту.
 
-The discriminator is an 8-byte unique identifier for an account type derived from the first 8 bytes of the SHA256 hash of the account type's name. The first 8 bytes are reserved for the account discriminator when implementing account serialization traits (which is almost always in an Anchor program). 
+Дискримінатор — це унікальний 8-байтовий ідентифікатор типу акаунту, отриманий з перших 8 байт хешу SHA256 від імені цього типу. Перші 8 байтів зарезервовані для дискримінатора акаунту при реалізації трейту серіалізації акаунту (що майже завжди використовується в Anchor-програмах).
 
-As a result, any calls to `AccountDeserialize`’s `try_deserialize` will check this discriminator. If it doesn’t match, an invalid account was given, and the account deserialization will exit with an error.
+У результаті будь-який виклик `try_deserialize` з `AccountDeserialize` перевірятиме цей дискримінатор. Якщо він не збігається, це означає, що передано некоректний акаунт, і десеріалізація завершиться помилкою.
 
-The `#[account]` attribute also implements the `Owner` trait for a struct using the `programId` declared by `declareId` of the crate `#[account]` is used in. In other words, all accounts initialized using an account type defined using the `#[account]` attribute within the program are also owned by the program.
+Атрибут `#[account]` також реалізує трейт `Owner` для структури, використовуючи `programId`, оголошений за допомогою `declareId` у бібліотеці, в якій використовується `#[account]`. Іншими словами, всі акаунти, ініціалізовані за допомогою типу акаунту, визначеного за допомогою атрибута `#[account]` в програмі, також належать цій програмі.
 
-As an example, let's look at `AccountStruct` used by the `account_name` of `InstructionAccounts`
+Як приклад, давайте подивимося на `AccountStruct`, що використовується в `account_name` з `InstructionAccounts`.
 
 ```rust
 #[derive(Accounts)]
@@ -240,20 +240,20 @@ pub struct AccountStruct {
 }
 ```
 
-The `#[account]` attribute ensures that it can be used as an account in `InstructionAccounts`.
+Атрибут `#[account]` гарантує, що він може бути використаний як акаунт в `InstructionAccounts`.
 
-When the `account_name` account is initialized:
+Коли акаунт `account_name` ініціалізується:
 
-- The first 8 bytes is set as the `AccountStruct` discriminator
-- The data field of the account will match `AccountStruct`
-- The account owner is set as the `programId` from `declare_id`
+- Перші 8 байт встановлюються як дискримінатор `AccountStruct`
+- Поле даних акаунту буде відповідати типу `AccountStruct`
+- Власником акаунту буде встановлено `programId`, визначений у `declare_id`
 
-## Bring it all together
+## Обʼєднаємо все разом
 
-When you combine all of these Anchor types you end up with a complete program. Below is an example of a basic Anchor program with a single instruction that:
+Коли ви поєднуєте всі ці типи Anchor, ви отримуєте повну програму. Нижче наведено приклад базової Anchor-програми з однією інструкцією, яка:
 
-- Initializes a new account
-- Updates the data field on the account with the instruction data passed into the instruction
+- Ініціалізує новий акаунт
+- Оновлює поле даних акаунту за допомогою даних інструкції, що передаються в інструкцію
 
 ```rust
 // Use this import to gain access to common anchor features
@@ -290,52 +290,52 @@ pub struct AccountStruct {
 }
 ```
 
-You are now ready to build your own Solana program using the Anchor framework!
+Тепер ви готові створити свою власну програму Solana, використовуючи фреймворк Anchor!
 
-# Lab
+# Лабораторна робота
 
-Before we begin, install Anchor by [following the steps from the Anchor docs](https://www.anchor-lang.com/docs/installation).
+Перед тим, як почати, встановіть Anchor, дотримуючись [кроків з документації Anchor](https://www.anchor-lang.com/docs/installation).
 
-For this lab we'll create a simple counter program with two instructions:
+Для цього лабораторного заняття ми створимо просту програму-лічильник з двома інструкціями:
 
-- The first instruction will initialize an account to store our counter
-- The second instruction will increment the count stored in the counter
+- Перша інструкція ініціалізує акаунт для зберігання нашого лічильника
+- Друга інструкція збільшить значення лічильника, що зберігається в акаунті
 
-### 1. Setup
+### 1. Налаштування
 
-Create a new project called `anchor-counter` by running `anchor init`:
+Створіть новий проект під назвою `anchor-counter`, запустивши команду `anchor init`:
 
 ```console
 anchor init anchor-counter
 ```
 
-Change into the new directory, then run `anchor build`
+Перейдіть у нову директорію, а потім виконайте команду `anchor build`:
 
 ```console
 cd anchor-counter
 anchor build
 ```
 
-Anchor build will also generate a keypair for your new program - the keys are saved in the `target/deploy` directory.
+Команда `anchor build` також згенерує пару ключів для вашої нової програми — ключі будуть збережені в директорії `target/deploy`.
 
-Open the file `lib.rs` and look at `declare_id!`: 
+Відкрийте файл `lib.rs` і подивіться на `declare_id!`:
 
 ```rust
 declare_id!("BouTUP7a3MZLtXqMAm1NrkJSKwAjmid8abqiNjUyBJSr");
 ```
 
-Run `anchor keys sync`
+Запустіть команду `anchor keys sync`:
 
 ```console
 anchor keys sync
 ```
 
-You'll see the Anchor updates both:
+Ви побачите, що Anchor оновить обидва:
 
- - The key used in `declare_id!()` in `lib.rs` 
- - The key in `Anchor.toml` 
+- Ключ, використаний у `declare_id!()` в `lib.rs`
+- Ключ в `Anchor.toml`
 
-To match the key generated during `anchor build`:
+Щоб він відповідав ключу, згенерованому під час виконання `anchor build`:
 
 ```console
 Found incorrect program id declaration in "anchor-counter/programs/anchor-counter/src/lib.rs"
@@ -347,7 +347,7 @@ Updated to BouTUP7a3MZLtXqMAm1NrkJSKwAjmid8abqiNjUyBJSr
 All program id declarations are synced.
 ```
 
-Finally, delete the default code in `lib.rs` until all that is left is the following:
+Нарешті, видаліть стандартний код у файлі `lib.rs`, залишивши тільки наступне:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -361,9 +361,9 @@ pub mod anchor_counter {
 }
 ```
 
-### 2. Add the `initialize` instruction
+### 2. Додайте інструкцію `initialize`
 
-First, let’s implement the `initialize` instruction within `#[program]`. This instruction requires a `Context` of type `Initialize` and takes no additional instruction data. In the instruction logic, we are simply setting the `counter` account’s `count` field to `0`.
+Спочатку давайте реалізуємо інструкцію `initialize` в межах `#[program]`. Ця інструкція вимагає `Context` типу `Initialize` і не приймає додаткових даних інструкції. В логіці інструкції, в `counter` акаунті встановіть значення поля `count` = `0`.
 
 ```rust
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -375,14 +375,14 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
 }
 ```
 
-### 3. Implement `Context` type `Initialize`
+### 3. Реалізація `Context` для типу `Initialize`  
 
-Next, using the `#[derive(Accounts)]` macro, let’s implement the `Initialize` type that lists and validates the accounts used by the `initialize` instruction. It'll need the following accounts:
+Далі, використовуючи макрос `#[derive(Accounts)]`, реалізуємо тип `Initialize`, який визначає та валідує акаунти, що використовуються в інструкції `initialize`. Він повинен містити такі акаунти:  
 
-- `counter` - the counter account initialized in the instruction
-- `user` - payer for the initialization
-- `system_program` - the system program is required for the initialization of any new accounts
-
+- `counter` – акаунт лічильника, що ініціалізується в інструкції  
+- `user` – платник за ініціалізацію  
+- `system_program` – системна програма, необхідна для створення нових акаунтів
+  
 ```rust
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -394,9 +394,9 @@ pub struct Initialize<'info> {
 }
 ```
 
-### 4. Implement `Counter`
+### 4. Реалізація `Counter`  
 
-Next, use the `#[account]` attribute to define a new `Counter` account type. The `Counter` struct defines one `count` field of type `u64`. This means that we can expect any new accounts initialized as a `Counter` type to have a matching data structure. The `#[account]` attribute also automatically sets the discriminator for a new account and sets the owner of the account as the `programId` from the `declare_id!` macro.
+Далі, використовуючи атрибут `#[account]`, визначимо новий тип акаунту `Counter`. Структура `Counter` містить одне поле `count` типу `u64`. Це означає, що всі нові акаунти, ініціалізовані як `Counter`, матимуть відповідну структуру даних. Атрибут `#[account]` також автоматично встановлює дискримінатор для нового акаунту та задає його власником `programId`, визначений у макросі `declare_id!`.
 
 ```rust
 #[account]
@@ -405,9 +405,9 @@ pub struct Counter {
 }
 ```
 
-### 5. Add `increment` instruction
+### 5. Додавання інструкції `increment`  
 
-Within `#[program]`, let’s implement an `increment` instruction to increment the `count` once a `counter` account is initialized by the first instruction. This instruction requires a `Context` of type `Update` (implemented in the next step) and takes no additional instruction data. In the instruction logic, we are simply incrementing an existing `counter` account’s `count` field by `1`.
+У межах `#[program]` реалізуємо інструкцію `increment`, яка збільшує `count` після ініціалізації акаунту `counter` першою інструкцією. Ця інструкція потребує `Context` типу `Update` (реалізується в наступному кроці) і не приймає додаткових вхідних даних. У логіці інструкції ми просто збільшуємо поле `count` акаунту `counter` на `1`.
 
 ```rust
 pub fn increment(ctx: Context<Update>) -> Result<()> {
@@ -419,14 +419,14 @@ pub fn increment(ctx: Context<Update>) -> Result<()> {
 }
 ```
 
-### 6. Implement `Context` type `Update`
+### 6. Реалізація `Context` для типу `Update`  
 
-Lastly, using the `#[derive(Accounts)]` macro again, let’s create the `Update` type that lists the accounts that the `increment` instruction requires. It'll need the following accounts:
+Нарешті, використовуючи макрос `#[derive(Accounts)]`, створимо тип `Update`, який визначає акаунти, необхідні для інструкції `increment`. Він міститиме такі акаунти:  
 
-- `counter` - an existing counter account to increment
-- `user` - payer for the transaction fee
+- `counter` — існуючий акаунт лічильника, значення якого буде збільшено  
+- `user` — акаунт, що оплачує комісію за транзакцію  
 
-Again, we’ll need to specify any constraints using the `#[account(..)]` attribute:
+Також потрібно задати відповідні обмеження за допомогою атрибута `#[account(..)]`.
 
 ```rust
 #[derive(Accounts)]
@@ -437,9 +437,9 @@ pub struct Update<'info> {
 }
 ```
 
-### 7. Build
+### 7. Збірка  
 
-All together, the complete program will look like this:
+У підсумку, повна програма виглядатиме так:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -488,11 +488,11 @@ pub struct Counter {
 }
 ```
 
-Run `anchor build` to build the program.
+Запустіть `anchor build`, щоб зібрати програму.  
 
-### 8. Testing
+### 8. Тестування  
 
-Anchor tests are typically Typescript integration tests that use the mocha test framework. We'll learn more about testing later, but for now navigate to `anchor-counter.ts` and replace the default test code with the following:
+Тести в Anchor зазвичай є інтеграційними тестами на TypeScript, які використовують фреймворк тестування Mocha. Ми детальніше розглянемо тестування пізніше, а поки що перейдіть до файлу `anchor-counter.ts` і замініть код тесту за замовчуванням наступним:
 
 ```typescript
 import * as anchor from "@coral-xyz/anchor"
@@ -515,9 +515,9 @@ describe("anchor-counter", () => {
 })
 ```
 
-The above code generates a new keypair for the `counter` account we'll be initializing and creates placeholders for a test of each instruction.
+Наведений вище код генерує нову пару ключів для акаунту `counter`, який ми ініціалізуватимемо, і створює шаблони для тестування кожної інструкції.  
 
-Next, create the first test for the `initialize` instruction:
+Далі створимо перший тест для інструкції `initialize`:
 
 ```typescript
 it("Is initialized!", async () => {
@@ -533,7 +533,7 @@ it("Is initialized!", async () => {
 })
 ```
 
-Next, create the second test for the `increment` instruction:
+Далі створимо другий тест для інструкції `increment`:
 
 ```typescript
 it("Incremented the count", async () => {
@@ -547,7 +547,7 @@ it("Incremented the count", async () => {
 })
 ```
 
-Lastly, run `anchor test` and you should see the following output:
+Нарешті, запустіть `anchor test`, і ви повинні побачити наступне:
 
 ```console
 anchor-counter
@@ -558,24 +558,22 @@ anchor-counter
 2 passing (696ms)
 ```
 
-Running `anchor test` automatically spins up a local test validator, deploys your program, and runs your mocha tests against it. Don't worry if you're confused by the tests for now - we'll dig in more later.
+Запуск `anchor test` автоматично запускає локальний тестовий валідатор, розгортає вашу програму та виконує тести mocha. Не переживайте, якщо зараз вам здається, що тести складні — ми детально розглянемо це пізніше.
 
-Congratulations, you just built a Solana program using the Anchor framework! Feel free to reference the [solution code](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-increment) if you need some more time with it.
+Вітаємо, ви щойно створили програму Solana, використовуючи фреймворк Anchor! Якщо вам потрібно більше часу для розуміння, ви можете звернутися до [кодового рішення](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-increment).
 
-# Challenge
+# Завдання
 
-Now it’s your turn to build something independently. Because we're starting with simple programs, yours will look almost identical to what we just created. It's useful to try and get to the point where you can write it from scratch without referencing prior code, so try not to copy and paste here.
+Тепер ваша черга створити щось самостійно. Оскільки ми починаємо з простих програм, ваша програма буде майже ідентична тій, що ми щойно створили. Це корисно, щоб досягти того рівня, коли ви зможете написати її з нуля без посилань на попередній код, тому намагайтеся не копіювати та не вставляти тут.
 
-1. Write a new program that initializes a `counter` account
-2. Implement both an `increment` and `decrement` instruction
-3. Build and deploy your program like we did in the lab
-4. Test your newly deployed program and use Solana Explorer to check the program logs
-
+1. Напишіть нову програму, яка ініціалізує акаунт `counter`.
+2. Реалізуйте інструкції для `increment` (збільшення) та `decrement` (зменшення).
+3. Побудуйте та розгорніть вашу програму так, як ми це робили в лабораторній роботі.
+4. Протестуйте новостворену програму та використовуйте Solana Explorer для перевірки логів програми.
 As always, get creative with these challenges and take them beyond the basic instructions if you want - and have fun!
 
-Try to do this independently if you can! But if you get stuck, feel free to reference the [solution code](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
+Спробуйте зробити це самостійно, якщо зможете! Але якщо виникнуть труднощі, ви можете звернутися до [коду рішення](https://github.com/Unboxed-Software/anchor-counter-program/tree/solution-decrement).
 
+## Завершили Лабораторну роботу?
 
-## Completed the lab?
-
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=334874b7-b152-4473-b5a5-5474c3f8f3f1)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=334874b7-b152-4473-b5a5-5474c3f8f3f1)!
