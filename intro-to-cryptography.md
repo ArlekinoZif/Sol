@@ -1,73 +1,73 @@
 ---
-title: Cryptography and the Solana Network
-objectives:
-- Understand symmetric and asymmetric cryptography
-- Explain keypairs
-- Generate a new keypair
-- Load a keypair from an env file
+назва: Криптографія та мережа Solana
+завдання:
+- Зрозуміти симетричну та асиметричну криптографію
+- Пояснити пари ключів
+- Створити нову пару ключів
+- Завантажити пару ключів з env файлу
 ---
 
-# Summary
+# Стислий виклад
 
-- A **keypair** is a matching pair of **public key** and **secret key**. 
-- The **public key** is used as an “address” that points to an account on the Solana network. A public key can be shared with anyone.
-- The **secret key** is used to verify authority over the account. As the name suggests, you should always keep secret keys *secret*.
-- `@solana/web3.js` provides helper functions for creating a brand new keypair, or for constructing a keypair using an existing secret key. 
+- **Пара ключів** — це відповідна пара **публічного ключа** та **секретного ключа**.  
+- **Публічний ключ** використовується як «адреса», що вказує на акаунт у мережі Solana. Публічним ключем можна ділитися з будь-ким.  
+- **Секретний ключ** використовується для підтвердження права власності над акаунтом. Як випливає з назви, секретні ключі слід завжди тримати *в секреті*.  
+- `@solana/web3.js` надає допоміжні функції для створення нової пари ключів або для створення пари ключів з використанням наявного секретного ключа.
 
-# Lesson
+# Урок
 
-## Symmetric and Asymmetric Cryptography
+## Симетрична та асиметрична криптографія  
 
-'Cryptography' is literally the study of hiding information. There are two main types of cryptography you'll encounter day to day:
+'Криптографія' це буквально наука про приховування інформації. Існує два основних види криптографії, з якими ви будети стикатися щодня:  
 
-**Symmetric Cryptography** is where the same key is used to encrypt and decrypt. It's hundreds of years old and has been used by everyone from the ancient Egyptians to Queen Elizabeth I.
+**Симетрична криптографія** — це метод, у якому для шифрування та розшифрування використовується один і той самий ключ. Вона існує вже сотні років і застосовувалася ще від часів стародавніх єгиптян до королеви Єлизавети I.  
 
-There's a variety of symmetric cryptography algorithms, but the most common you'll see today are AES and Chacha20.
+Існує багато алгоритмів симетричної криптографії, але найпоширенішими сьогодні є AES і Chacha20.
 
-**Asymmetric Cryptography**
+**Асиметрична криптографія**  
 
-- Asymmetric cryptography - also called '[public key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)' was developed in the 1970s. In asymmetric cryptography, participants have pairs of keys (or **keypairs**). Each keypair consists of a **secret key** and a **public key**. Asymmetric encryption works differently from symmetric encryption, and can do different things:
+- Асиметрична криптографія, також відома як ['криптографія з відкритим ключем'](https://en.wikipedia.org/wiki/Public-key_cryptography), була розроблена у 1970-х роках. В асиметричній криптографії учасники використовують пари ключів (**keypairs**). Кожна пара ключів складається з **секретного ключа** та **публічного ключа**. Асиметричне шифрування працює інакше, ніж симетричне, і може виконувати різні завдання:
 
-- **Encryption**: if it's encrypted with a public key, only the secret key from the same keypair can be used to read it
-- **Signatures**: if it's encrypted with a secret key, the public key from the same keypair can be used to prove the secret key holder signed it.
-- You can even use asymmetric cryptography to work out a good key for symmetric cryptography! This is called **key exchange**, where you use your public keys and the recipient's public key to come up with a 'session' key. 
-- There's a variety of asymmetric cryptography algorithms, but the most common you'll see today are variants of ECC or RSA.
+- **Шифрування**: якщо дані зашифровані за допомогою публічного ключа, їх можна розшифрувати лише секретним ключем з тієї ж пари ключів.  
+- **Підписи**: якщо дані зашифровані секретним ключем, публічний ключ з тієї ж пари ключів може бути використаний для підтвердження того, що власник секретного ключа підписав їх.
+- Асиметричну криптографію можна навіть використовувати для узгодження надійного ключа для симетричної криптографії! Це називається **обмін ключами**, коли ваші публічні ключі та публічний ключ отримувача використовуються для створення ключа сесії.  
+- Існує багато алгоритмів асиметричної криптографії, але найпоширенішими сьогодні є варіанти ECC або RSA.
 
-Asymmetric encryption is very popular: 
+Асиметричне шифрування є дуже популярним:  
 
- - Your bank card has a secret key inside it that's used to sign transactions.
+- Ваша банківська картка містить секретний ключ, який використовується для підпису транзакцій.
+ 
+  Ваш банк може підтвердити, що саме ви здійснили транзакцію, перевіривши підпис за допомогою відповідного публічного ключа.  
+- Вебсайти включають публічний ключ у свій сертифікат. Ваш браузер використовує цей публічний ключ для шифрування даних (таких як особиста інформація, облікові дані та номери банківських карток), які він надсилає на веб-сторінку.
+  
+  Вебсайт має відповідний приватний ключ, щоб розшифрувати отримані дані.  
+- Ваш електронний паспорт підписаний країною, яка його видала, щоб гарантувати його справжність.
+  
+  Електронні паспортні контролі можуть підтвердити це, використовуючи публічний ключ країни-емітента.  
+- Месенджери на вашому телефоні використовують обмін ключами для створення ключа сесії.
+  
+Коротко кажучи, криптографія оточує нас всюди. Solana, як і інші блокчейни, є лише одним із застосувань криптографії.
 
-   Your bank can confirm you made the transaction by checking them with the matching public key.
- - Websites include a public key in their certificate. Your browser will use this public key to encrypt the data (like personal information, login details, and credit card numbers) it sends to the web page. 
-
-   The website has the matching private key so that the website can read the data. 
- - Your electronic passport was signed by the country that issued it to ensure the passport isn't forged. 
-
-   The electronic passport gates can confirm this using the public key of your issuing country.
- - The messaging apps on your phone use key exchange to make a session key. 
-
-In short, cryptography is all around us. Solana, as well as other blockchains, are but one use of cryptography.    
-
-## Solana uses public keys as addresses
+## Solana використовує публічні ключі як адреси
 
 ![Solana wallet addresses](../assets/wallet-addresses.svg)
 
-People participating in the Solana network have at least one keypair. In Solana:
+Учасники мережі Solana мають принаймні одну пару ключів. У Solana:
 
-- The **public key** is used as an “address” that points to an account on the Solana network. Even friendly names - like `example.sol` - point to addresses like `dDCQNnDmNbFVi8cQhKAgXhyhXeJ625tvwsunRyRc7c8`
+- **Публічний ключ** використовується як «адреса», що вказує на акаунт у мережі Solana. Навіть зручні імена (домени), такі як `example.sol`, прив’язані до адрес, наприклад, `dDCQNnDmNbFVi8cQhKAgXhyhXeJ625tvwsunRyRc7c8`.
+ 
+- **Секретний ключ** використовується для підтвердження права власності. Якщо у вас є секретний ключ від певної адреси, ви контролюєте токени, що знаходяться на цій адресі. З цієї причини, як випливає з назви, секретні ключі слід завжди тримати *в секреті*.  
+## Використання `@solana/web3.js` для створення пари ключів
 
-- The **secret key** is used to verify authority over that keypair. If you have the secret key for an address, you control the tokens inside that address. For this reason, as the name suggests, you should always keep secret keys *secret*.
-## Using @solana/web3.js to make a keypair
-
-You can use the Solana blockchain from either the browser or node.js with the `@solana/web3.js` npm module.  Set up a project how you normally would, then [use `npm`](https://nodesource.com/blog/an-absolute-beginners-guide-to-using-npm/) to install `@solana/web3.js`
+Ви можете використовувати блокчейн Solana як у браузері, так і в Node.js за допомогою npm-модуля `@solana/web3.js`. Налаштуйте проект звичним для вас способом, а потім [використайте `npm`](https://nodesource.com/blog/an-absolute-beginners-guide-to-using-npm/) для встановлення `@solana/web3.js`.
 
 ```
 npm i @solana/web3.js
 ```
 
-We’ll cover a lot of [web3.js](https://docs.solana.com/developing/clients/javascript-reference) gradually throughout this course, but you can also check out the [official web3.js documentation](https://docs.solana.com/developing/clients/javascript-reference).
+Ми поступово розглянемо багато аспектів [web3.js](https://docs.solana.com/developing/clients/javascript-reference) у цьому курсі, але ви також можете ознайомитися з [офіційною документацією web3.js](https://docs.solana.com/developing/clients/javascript-reference).
 
-To send tokens, send NFTS, or read and write data Solana, you'll need your own keypair. To make a new keypair, use the `Keypair.generate()` function from  `@solana/web3.js`: 
+Щоб надсилати токени, відправляти NFT або читати й записувати дані в Solana, вам знадобиться власна пара ключів. Для її створення використовуйте функцію `Keypair.generate()` з `@solana/web3.js`:
 
 ```typescript
 import { Keypair } from "@solana/web3.js";
@@ -78,25 +78,25 @@ console.log(`The public key is: `, keypair.publicKey.toBase58());
 console.log(`The secret key is: `, keypair.secretKey);
 ```
 
-## ⚠️ Don't include secret keys in your source code
+## ⚠️ Не включайте секретні ключі у ваш вихідний код
 
-Since the keypair can be regenerated from the secret key, we usually only store the secret key, and restore the keypair from the secret key. 
+Оскільки пару ключів можна відновити з секретного ключа, зазвичай ми зберігаємо лише секретний ключ і відновлюємо її з секретного ключа.
 
-Additionally, since the secret key gives authority over the address, we don't store secret keys in source code. Instead, we:
+Крім того, оскільки секретний ключ надає право власності над адресою, ми не зберігаємо секретні ключі у вихідному коді. Замість цього ми:
 
-- Put secret keys in a `.env` file 
-- Add  `.env`  to `.gitignore` so the `.env` file is not committed.
+- Поміщаємо секретні ключі в файл `.env`.  
+- Додаємо `.env` до `.gitignore`, щоб файл `.env` не потрапляв у репозиторій.
 
-## Loading an existing keypair
+## Завантаження існуючої пари ключів
 
-If you already have a keypair you’d like to use, you can load a `Keypair` from an existing secret key stored in the filesystem or an `.env` file. In node.js, the  `@solana-developers/helpers` npm package includes some extra functions:
+Якщо у вас вже є пара ключів, яку ви хочете використати, ви можете завантажити її з наявного секретного ключа, збереженого у файловій системі або файлі `.env`. У Node.js пакет `@solana-developers/helpers` включає додаткові функції:
 
 ```bash
 npm i @solana-developers/helpers
 ```
 
- - To use an `.env` file use `getKeypairFromEnvironment()`
- - To use a Solana CLI file use `getKeypairFromFile()`
+- Для використання файлу `.env` використовуйте `getKeypairFromEnvironment()`.  
+- Для використання файлу Solana CLI використовуйте `getKeypairFromFile()`.
 
 ```typescript
 import "dotenv/config";
@@ -106,13 +106,13 @@ import { getKeypairFromEnvironment } from "@solana-developers/helpers";
 const keypair = getKeypairFromEnvironment("SECRET_KEY");
 ```
 
-You know how to make and load keypairs! Let’s practice what we’ve learned.
+Тепер ви знаєте, як створювати та завантажувати пари ключів! Давайте попрактикуємося з тим, що ми вивчили.
 
-# Lab
+# Лабораторна робота 
 
-### Installation
+### Встановлення
 
-Make a new directory, install TypeScript, Solana web3.js and esrun:
+Створіть нову директорію, встановіть TypeScript, Solana web3.js та esrun:
 
 ```bash
 mkdir generate-keypair
@@ -121,7 +121,7 @@ npm init -y
 npm install typescript @solana/web3.js esrun @solana-developers/helpers
 ```
 
-Make a new file called `generate-keypair.ts`
+Створіть новий файл під назвою `generate-keypair.ts`.
 
 ```typescript
 import { Keypair } from "@solana/web3.js";
@@ -129,13 +129,13 @@ const keypair = Keypair.generate();
 console.log(`✅ Generated keypair!`)
 ```
 
-Run `npx esrun generate-keypair.ts`. You should see the text:
+Запустіть команду `npx esrun generate-keypair.ts`. Ви повинні побачити текст:
 
 ```
 ✅ Generated keypair!
 ```
 
-Each `Keypair` has a `publicKey` and `secretKey` property. Update the file:
+Кожна `Keypair` має властивості `publicKey` та `secretKey`.
 
 ```typescript
 import { Keypair } from "@solana/web3.js";
@@ -147,7 +147,7 @@ console.log(`The secret key is: `, keypair.secretKey);
 console.log(`✅ Finished!`);
 ```
 
-Run `npx esrun generate-keypair.ts`. You should see the text:
+Запустіть `npx esrun generate-keypair.ts`. Ви повинні побачити текст:
 
 ```
 The public key is:  764CksEAZvm7C1mg2uFmpeFvifxwgjqxj2bH6Ps7La4F
@@ -157,17 +157,17 @@ The secret key is:  Uint8Array(64) [
 ✅ Finished!
 ```
 
-## Loading an existing keypair from an .env file
+## Завантаження існуючої пари ключів з файлу .env
 
-To ensure that your secret key stays secure, we recommend injecting the secret key using a `.env` file:
+Для того, щоб ваш секретний ключ залишався в безпеці, ми рекомендуємо впроваджувати секретний ключ за допомогою файлу `.env`:
 
-Make a new file called `.env` with the contents of the key you made earlier:
+Створіть новий файл з назвою `.env` і додайте в нього вміст ключа, який ви створили раніше:
 
 ```env
 SECRET_KEY="[(a series of numbers)]"
 ```
 
-We can then load the keypair from the environment. Update `generate-keypair.ts`:
+Ми можемо завантажити пару ключів з середовища. Оновіть файл `generate-keypair.ts`:
 
 ```typescript
 import "dotenv/config"
@@ -180,15 +180,15 @@ console.log(
 );
 ```
 
-Run `npx esrun generate-keypair.ts`. You should see the following result:
+Запустіть команду `npx esrun generate-keypair.ts`. Ви повинні побачити наступний результат:
 
 ```text
 ✅ Finished! We've loaded our secret key securely, using an env file!
 ```
 
-We've now learned about keypairs, and how to store secret keys securely on Solana. In the next chapter, we'll use them! 
+Тепер ми дізналися про пари ключів і як зберігати секретні ключі безпечно на Solana. В наступному розділі ми почнемо їх використовувати!
 
 
-## Completed the lab?
+## Завершили Лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=ee06a213-5d74-4954-846e-cba883bc6db1)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=ee06a213-5d74-4954-846e-cba883bc6db1)!
