@@ -55,7 +55,7 @@ pub struct TokenGroup {
 
 ### Створення мінт-акаунту з розширенням group і group pointer  
 
-Створення мінт акаунту з `group` і `group pointer` включає чотири інструкції:  
+Створення мінт-акаунту з `group` і `group pointer` включає чотири інструкції:  
 - `SystemProgram.createAccount`  
 - `createInitializeGroupPointerInstruction`  
 - `createInitializeMintInstruction`  
