@@ -1,5 +1,5 @@
 ---
-title: Вступ до розробки клієнтської частини з Anchor
+назва: Вступ до розробки клієнтської частини з Anchor
 завдання:
 - Використовувати IDL для взаємодії з програмою Solana з клієнта  
 - Пояснити об'єкт Anchor `Provider`  
@@ -110,7 +110,7 @@ await program.methods
 
 Хоча IDL не надає деталей виконання для кожної інструкції, ми можемо отримати загальне уявлення про те, як очікується, що інструкції будуть побудовані для ончейн-програми, і побачити структуру акаунтів програми.
 
-Незалежно від того, як ви його отримуєте, вам *потрібен* файл IDL для взаємодії з програмою за допомогою пакету `@coral-xyz/anchor`. Щоб використовувати IDL, вам потрібно включити файл IDL у ваш проєкт, а потім імпортувати його. 
+Незалежно від того, як ви його отримуєте, вам *потрібен* файл IDL для взаємодії з програмою за допомогою пакету `@coral-xyz/anchor`. Щоб використовувати IDL, вам потрібно включити файл IDL у ваш проект, а потім імпортувати його. 
 
 ```tsx
 import idl from "./idl.json"
@@ -346,7 +346,7 @@ const accounts = await program.account.counter.fetchMultiple([ACCOUNT_ADDRESS_ON
 
 Завантажте [початковий код для цього проєкту](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/starter). Після того, як ви завантажите початковий код, ознайомтесь з його структурою. Встановіть залежності за допомогою команди `npm install`, а потім запустіть додаток командою `npm run dev`.
 
-Цей проєкт — це проста програма на Next.js. Вона містить `WalletContextProvider`, який ми створили на уроці про [гаманці](https://github.com/Unboxed-Software/solana-course/blob/main/content/interact-with-wallets), файл `idl.json` для програми Counter, а також компоненти `Initialize` та `Increment`, які ми будемо створювати протягом цього заняття. У початковому коді також вказано `programId` програми, яку ми будемо викликати.
+Цей проект — це проста програма на Next.js. Вона містить `WalletContextProvider`, який ми створили на уроці про [гаманці](https://github.com/Unboxed-Software/solana-course/blob/main/content/interact-with-wallets), файл `idl.json` для програми Counter, а також компоненти `Initialize` та `Increment`, які ми будемо створювати протягом цього заняття. У початковому коді також вказано `programId` програми, яку ми будемо викликати.
 
 ### 2. `Initialize`
 
@@ -512,6 +512,7 @@ const refreshCount = async (program) => {
 
 Спробуйте зробити це самостійно! Але якщо у вас виникнуть труднощі, можете звернутися до [коду рішення](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
 
-## Завершили Лабораторну роботу?
 
-Поділіться своїм кодом на GitHub та [поділіться своїми враженнями про цей урок](https://form.typeform.com/to/IPH0UGz7#answers-lesson=774a4023-646d-4394-af6d-19724a6db3db)!
+## Завершили лабораторну роботу?
+
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=774a4023-646d-4394-af6d-19724a6db3db)!
