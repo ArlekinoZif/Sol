@@ -1,23 +1,23 @@
 ---
-title: Using custom onchain programs
-objectives:
-- Create transactions for custom onchain programs
+назва: Використання кастомних ончейн-програм
+завдання:
+- Створення транзакцій для кастомних ончейн-програм
 ---
 
-# Summary
+# Стислий виклад
 
-Solana has multiple onchain programs you can use. Instructions that use these programs need to have data in a custom format determined by the program.
+У Solana є кілька ончейн-програм, які ви можете використовувати. Інструкції, що використовують ці програми, повинні містити дані у кастомному форматі, визначеному програмою.
 
-# Lesson
-### Instructions
+# Урок
+### Інструкції
 
-In previous chapters, we used:
+У попередніх розділах ми використовували:
 
- - The `SystemProgram.transfer()` function from `@solana/web3.js` to make an instruction for the System program to transfer SOL. 
- - The `mintTo()` and `transfer()` functions from  `@solana/spl-token`, to make instructions to the Token program to mint and transfer tokens
- - The `createCreateMetadataAccountV3Instruction()` function from `@metaplex-foundation/mpl-token-metadata@2` to make instructions to Metaplex to create token Metadata.
+- Функцію `SystemProgram.transfer()` з `@solana/web3.js` для створення інструкції для системної програми з переказу SOL.
+- Функції `mintTo()` та `transfer()` з `@solana/spl-token` для створення інструкцій до токен-програми для мінта та переказу токенів.
+- Функцію `createCreateMetadataAccountV3Instruction()` з `@metaplex-foundation/mpl-token-metadata@2` для створення інструкцій до Metaplex для створення метаданих токена.
 
-When working with other programs, however, you’ll need to create instructions manually. With `@solana/web3.js`, you can create instructions with the `TransactionInstruction` constructor: 
+Однак при роботі з іншими програмами вам доведеться створювати інструкції вручну. За допомогою `@solana/web3.js` ви можете створювати інструкції за допомогою конструктора `TransactionInstruction`:
 
 ```typescript
 const instruction = new TransactionInstruction({
@@ -33,18 +33,18 @@ const instruction = new TransactionInstruction({
 });
 ```
 
-`TransactionInstruction()` takes 3 fields: 
+`TransactionInstruction()` приймає 3 поля:
 
-- The `programId` field is fairly self-explanatory: it’s the public key (also called the 'address' or 'program ID') of the program. 
+- Поле `programId` є досить зрозумілим: це публічний ключ (також званий 'адресою' або 'ID програми') програми.
 
-- `keys` is an array of accounts and how they will be used during the transaction. You need to know the behavior of the program you are calling and ensure that you provide all of the necessary accounts in the array.
-  - `pubkey` - the public key of the account
-  - `isSigner` - a boolean representing whether or not the account is a signer on the transaction
-  - `isWritable` - a boolean representing whether or not the account is written to during the transaction's execution
+- `keys` — це масив акаунтів та їх використання під час транзакції. Ви повинні знати поведінку програми, до якої ви звертаєтесь, і забезпечити наявність усіх необхідних акаунтів у масиві.
+  - `pubkey` — публічний ключ акаунту
+  - `isSigner` — булеве значення, яке вказує, чи є акаунт підписантом транзакції
+  - `isWritable` — булеве значення, яке вказує, чи буде акаунт змінюватися під час виконання транзакції
 
-- an optional `Buffer` containing data to pass to the program. We’ll be ignoring the `data` field for now, but will revisit it in a future lesson.
+- необов'язковий `Buffer`, який містить дані для передачі програмі. Ми поки що ігноруватимемо поле `data`, але повернемося до нього в наступному уроці.
 
-After making our instruction, we add it to a transaction, send it to our RPC to be processed and confirmed, and look at the transaction signature.
+Після створення інструкції ми додаємо її до транзакції, надсилаємо на наш RPC для обробки та підтвердження, а потім переглядаємо підпис транзакції.
 
 ```typescript
 const transaction = new web3.Transaction().add(instruction)
@@ -60,18 +60,18 @@ console.log(`✅ Success! Transaction signature is: ${signature}`);
 
 ### Solana Explorer
 
-![Solana Explorer set to Devnet](../assets/solana-explorer-devnet.png)
+![Solana Explorer, встановлений на Devnet](../assets/solana-explorer-devnet.png)
 
-All transactions on the blockchain are publicly viewable on [Solana Explorer](http://explorer.solana.com). For example, you could take the signature returned by `sendAndConfirmTransaction()` in the example above, search for that signature in Solana Explorer, then see:
+Усі транзакції в блокчейні є публічно доступними для перегляду на [Solana Explorer](http://explorer.solana.com). Наприклад, ви можете взяти підпис, який повертається функцією `sendAndConfirmTransaction()` у наведеному вище прикладі, знайти цей підпис у Solana Explorer і побачити:
 
-- when it occurred
-- which block it was included in
-- the transaction fee
-- and more!
+- коли вона відбулася
+- у якому блоці була включена
+- комісію за транзакцію
+- та багато іншого!
 
-![Solana Explorer with details about a transaction](../assets/solana-explorer-transaction-overview.png)
+![Solana Explorer з деталями про транзакцію](../assets/solana-explorer-transaction-overview.png)
 
-# Lab
+# Лабораторна робота 
 
 ### Writing transactions for the ping counter program
 
