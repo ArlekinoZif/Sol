@@ -73,17 +73,17 @@ console.log(`✅ Success! Transaction signature is: ${signature}`);
 
 # Лабораторна робота 
 
-### Writing transactions for the ping counter program
+### Написання транзакцій для програми лічильника ping
 
-We’re going to create a script to ping an onchain program that increments a counter each time it has been pinged. This program exists on the Solana Devnet at address `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa`. The program stores its data in a specific account at the address `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
+Ми створимо скрипт для надсилання ping до ончейн-програми, яка збільшує лічильник щоразу, коли її пінгують. Ця програма розміщена в Solana Devnet за адресою `ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa`. Програма зберігає свої дані в окремому акаунті за адресою `Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod`.
 
-![Solana stores programs and data in separate accounts](../assets/pdas-global-state.svg)
+![Solana зберігає програми та дані в окремих акаунтах](../assets/pdas-global-state.svg)
 
-### 1. Basic scaffolding
+### 1. Базова структура
 
-We'll start by using the same packages and `.env` file we made earlier in [Intro to Writing Data](./intro-to-writing-data).
+Ми почнемо з використання тих самих пакетів і файлу `.env`, які ми створили раніше в [Вступі до запису даних](./intro-to-writing-data).
 
-Name the file `send-ping-transaction.ts`:
+Назвіть файл `send-ping-transaction.ts`:
 
 ```typescript
 import * as web3 from "@solana/web3.js";
@@ -101,25 +101,25 @@ const newBalance = await airdropIfRequired(
 );
 ```
 
-This will connect to Solana Devnet and request some test Lamports if needed.
+Це підключиться до Solana Devnet і, за потреби, запитає тестові лампорти.
 
-### 2. Ping program
+### 2. Програма Ping
 
-Now let's talk to the Ping program! To do this, we need to:
+Тепер давайте взаємодіяти з програмою Ping! Для цього потрібно:
 
-1. create a transaction
-2. create an instruction
-3. add the instruction to the transaction
-4. send the transaction
+1. створити транзакцію
+2. створити інструкцію
+3. додати інструкцію до транзакції
+4. надіслати транзакцію
 
-Remember, the most challenging piece here is including the right information in the instructions. We know the address of the program that we are calling. We also know that the program writes data to a separate account whose address we also have. Let’s add the string versions of both of those as constants at the top of the file:
+Пам’ятайте, що найскладніше тут — це правильно включити всю необхідну інформацію в інструкції. Ми знаємо адресу програми, яку викликаємо. Також ми знаємо, що ця програма записує дані в окремий акаунт, адресу якого ми також маємо. Додаймо рядкові версії обох адрес як константи на початку файлу:
 
 ```typescript
 const PING_PROGRAM_ADDRESS = new web3.PublicKey('ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa')
 const PING_PROGRAM_DATA_ADDRESS =  new web3.PublicKey('Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod')
 ```
 
-Now let’s create a new transaction, then initialize a `PublicKey` for the program account, and another for the data account.
+Тепер давайте створимо нову транзакцію, а потім ініціалізуємо `PublicKey` для акаунту програми та ще один — для акаунту з даними.
 
 ```typescript
 const transaction = new web3.Transaction()
@@ -127,7 +127,7 @@ const programId = new web3.PublicKey(PING_PROGRAM_ADDRESS)
 const pingProgramDataId = new web3.PublicKey(PING_PROGRAM_DATA_ADDRESS)
 ```
 
-Next, let’s create the instruction. Remember, the instruction needs to include the public key for the Ping program and it also needs to include an array with all the accounts that will be read from or written to. In this example program, only the data account referenced above is needed.
+Далі давайте створимо інструкцію. Пам’ятайте, що інструкція повинна включати публічний ключ програми Ping, а також масив із усіма акаунтами, з яких буде здійснюватися читання або в які буде виконуватися запис. У цьому прикладі потрібен лише акаунт з даними, згаданий вище.
 
 ```typescript
 const transaction = new web3.Transaction()
@@ -146,7 +146,7 @@ const instruction = new web3.TransactionInstruction({
 })
 ```
 
-Next, let’s add this instruction to the transaction we created. Then, call `sendAndConfirmTransaction()` by passing in the connection, transaction, and payer. Finally, let’s log the result of that function call so we can look it up on Solana Explorer.
+Далі давайте додамо цю інструкцію до транзакції, яку ми створили. Потім викликаємо `sendAndConfirmTransaction()`, передавши підключення, транзакцію та платника. Наприкінці давайте виведемо результат цього виклику функції, щоб ми могли перевірити його в Solana Explorer.
 
 ```typescript
 transaction.add(instruction)
@@ -160,35 +160,35 @@ const signature = await web3.sendAndConfirmTransaction(
 console.log(`✅ Transaction completed! Signature is ${signature}`)
 ```
 
-### 3. Run the ping client and check Solana Explorer
+### 3. Запустіть клієнт пінгів і перевірте Solana Explorer
 
-Now run the code with the following command:
+Тепер запустіть код за допомогою наступної команди:
 
 ```bash
 npx esrun send-ping-transaction.ts
 ```
 
-It may take a moment or two but you should see a long string printed to the console, like the following:
+Це може зайняти кілька секунд, але ви повинні побачити довгий рядок, виведений у консолі, подібний до наступного:
 
 ```
 ✅ Transaction completed! Signature is 55S47uwMJprFMLhRSewkoUuzUs5V6BpNfRx21MpngRUQG3AswCzCSxvQmS3WEPWDJM7bhHm3bYBrqRshj672cUSG
 ```
 
-Copy the transaction signature. Open a browser and go to [https://explorer.solana.com/?cluster=devnet](https://explorer.solana.com/?cluster=devnet) (the query parameter at the end of the URL will ensure that you’ll explore transactions on Devnet instead of Mainnet). Paste the signature into the search bar at the top of Solana Explorer (make sure you're connected to Devnet) and hit enter. You should see all the details about the transaction. If you scroll all the way to the bottom, then you will see `Program Logs`, which show how many times the program has been pinged including your ping.
+Скопіюйте підпис транзакції. Відкрийте браузер і перейдіть за посиланням [https://explorer.solana.com/?cluster=devnet](https://explorer.solana.com/?cluster=devnet) (параметр у кінці URL гарантує, що ви переглядаєте транзакції саме в Devnet, а не в Mainnet). Вставте підпис у рядок пошуку у верхній частині Solana Explorer (переконайтеся, що ви підключені до Devnet), і натисніть Enter. Ви побачите всі деталі транзакції. Якщо прокрутити сторінку до самого низу, з’явиться розділ `Program Logs`, де буде показано, скільки разів програму було пінговано, включно з вашим пінгом.
 
-![Solana Explorer with logs from calling the Ping program](../assets/solana-explorer-ping-result.png)
+![Solana Explorer з логами виклику програми Ping](../assets/solana-explorer-ping-result.png)
 
-Scroll around the explorer and look at what you're seeing:
-- The **Account Input(s)** will include:
-  - The address of your payer - being debited 5000 lamports for the transaction
-  - The program address for the ping program
-  - The data address for the ping program
-- The **Instruction** section will contain a single instruction with no data - the ping program is a pretty simple program, so it doesn't need any data.
-- The **Program Instruction Logs** show the logs from the ping program.
+Прокрутіть сторінку в Explorer і зверніть увагу на те, що ви бачите:
+- У розділі **Account Input(s)** ви побачите:
+  - Адресу вашого платника — з нього буде списано 5000 лампортів за транзакцію
+  - Адресу програми для підрахунку пінгів
+  - Адресу акаунту з даними цієї програми
+- У розділі **Instruction** буде одна інструкція без жодних даних — програма для підрахунку пінгів досить проста і не потребує додаткових даних.
+- У **Program Instruction Logs** відображаються логи від цієї програми.
 
-[//]: # "TODO: these would make a good question-and-answer interactive once we have this content hosted on solana.com, and can support adding more interactive content easily."
+[//]: # "TODO: з цього вийшло б гарне інтерактивне запитання–відповідь, коли ми розмістимо цей контент на solana.com і зможемо легко додавати більше інтерактивного контенту."
 
-If you want to make it easier to look at Solana Explorer for transactions in the future, simply change your `console.log` to the following:
+Якщо ви хочете полегшити перегляд транзакцій у Solana Explorer у майбутньому, просто змініть свій `console.log` на таке:
 
 ```typescript
 console.log(`You can view your transaction on Solana Explorer at:\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`)
