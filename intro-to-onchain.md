@@ -1,29 +1,29 @@
 ---
-title: Intro to onchain development
-objectives:
-- Understand how Solana onchain programs work
-- Describe the structure and operation of onchain programs
-- Build a basic program
+назва: Intro to onchain development
+завдання:
+- Зрозуміти, як працюють ончейн-програми Solana
+- Описати структуру та принцип роботи ончейн-програм
+- Створити базову програму
 ---
 
-# Summary
+# Стислий виклад
 
-- **Onchain programs** are programs that run on Solana. 
-- Programs have one or more **instruction handlers**. Instruction handlers are functions that process the **instructions** in Solana transactions.
-- Instruction handlers write their data to Solana **accounts** and then either succeed or fail. 
-- Solana programs are most commonly written in **Rust**, typically with the **Anchor** framework.
-- Anchor programs have IDLs, which are small JSON files describing programs. IDLs can be used to automatically create JS/TS libraries for a program.  
+- **Ончейн-програми** — це програми, які виконуються в мережі Solana.
+- Програми мають одну або кілька **обробників інструкцій**. Обробники інструкцій — це функції, які обробляють **інструкції** в транзакціях Solana.
+- Обробники інструкцій записують свої дані в **акаунти** Solana, після чого транзакція або завершується успішно, або викликає помилку.
+- Програми для Solana найчастіше пишуться мовою **Rust**, зазвичай з використанням фреймворку **Anchor**.
+- Anchor-програми мають IDL — невеликі JSON-файли, які описують програму. IDL-файли можуть використовуватись для автоматичної генерації JS/TS-бібліотек для програми.
+  
+# Огляд
 
-# Overview
+Кожен кластер Solana (`mainnet-beta`, `testnet`, `devnet`, `localnet`) — це, по суті, окремий комп’ютер із глобально синхронізованим станом. Програми, які працюють у мережі Solana — ті, що створюють токени, обмінюють їх, реалізують маркетплейси мистецтва, ескроу, маркетмейкерів, DePIN-додатки, аукціони, платіжні платформи для роздрібної торгівлі тощо — називаються **Solana-додатками**.
 
-Each Solana cluster (`mainnet-beta`, `testnet`, `devnet`, `localnet`) is effectively a single computer with a globally synchronized state. The programs that run on Solana - the ones that create tokens, swap tokens, art marketplaces, escrows, market makers, DePIN apps, auctions, retail payments platforms, etc - are called **Solana apps**.
+Найпопулярніший спосіб створювати ончейн-додатки — це використання мови **Rust** та фреймворку **Anchor**.
 
-The most popular way to build onchain apps is using **Rust** language and the **Anchor** framework. 
-
-These frameworks implement common security checks automatically, and handle common tasks like:
- - sending incoming instructions to the right instruction handlers
- - deserializing data from incoming transactions
- - checking the accounts provided with incoming instructions, for example, to check that certain accounts are of a particular type, or are distinct from other accounts.
+Ці фреймворки автоматично реалізують типові перевірки безпеки та виконують поширені задачі, такі як:
+* перенаправлення вхідних інструкцій до відповідних обробників інструкцій
+* десеріалізація даних із вхідних транзакцій
+* перевірка акаунтів, наданих у вхідних інструкціях — наприклад, перевірка того, що певні акаунти є певного типу або що вони відрізняються від інших акаунтів
 
 Regardless of the language and framework you choose, Solana works the same. Let's refresh how programs work on Solana.
 
