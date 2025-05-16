@@ -194,21 +194,21 @@ npx esrun send-ping-transaction.ts
 console.log(`You can view your transaction on Solana Explorer at:\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`)
 ```
 
-And just like that you’re calling programs on the Solana network and writing data onchain!
+І от так просто ви вже викликаєте програми в мережі Solana та записуєте дані ончейн!
 
-In the next few lessons, you’ll learn how to
+У наступних кількох уроках ви дізнаєтеся, як:
 
-1. Send transactions safely from the browser instead of running a script
-2. Add custom data to your instructions
-3. Deserialize data from the chain
+1. Безпечно надсилати транзакції з браузера замість запуску скрипту
+2. Додавати власні дані до інструкцій
+3. Десеріалізувати дані з мережі
 
-# Challenge
+# Завдання
 
-Go ahead and create a script from scratch that will allow you to transfer SOL from one account to another on Devnet. Be sure to print out the transaction signature so you can look at it on Solana Explorer.
+Створіть скрипт з нуля, щоб переказати SOL з одного акаунту на інший у Devnet. Обов’язково виведіть у консоль підпис транзакції, щоб ви могли переглянути її в Solana Explorer.
 
-If you get stuck feel free to glance at the [solution code](https://github.com/Unboxed-Software/solana-ping-client).
+Якщо ви застрягли, можете підглянути до [коду рішення](https://github.com/Unboxed-Software/solana-ping-client).
 
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=e969d07e-ae85-48c3-976f-261a22f02e52)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=e969d07e-ae85-48c3-976f-261a22f02e52)!
