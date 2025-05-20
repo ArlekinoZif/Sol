@@ -1,52 +1,52 @@
 ---
-title: Read Data From The Solana Network
-objectives:
-- Understand accounts and their addresses
-- Understand SOL and lamports
-- Use web3.js to connect to Solana and read an account balance
+назва: Зчитування даних з мережі Solana
+завдання:
+- Розуміти акаунти та їхні адреси
+- Розуміти SOL і лампорти
+- Використовувати web3.js для підключення до Solana та зчитування балансу акаунту
 ---
 
-## Summary
+## Стислий виклад 
 
-- **SOL** is the name of Solana’s native token. Each SOL is made from 1 billion **Lamports**. 
-- **Accounts** store tokens, NFTs, programs, and data. For now, we’ll focus on accounts that store SOL. 
-- **Addresses** point to accounts on the Solana network. Anyone can read the data at a given address. Most addresses are also **public keys**.
+* **SOL** — це назва рідного токена Solana. Кожен SOL складається з 1 мільярда **лампортів**.
+* **Акаунти** зберігають токени, NFT, програми та дані. Наразі ми зосередимося на акаунтах, які зберігають SOL.
+* **Адреси** вказують на акаунти в мережі Solana. Будь-хто може прочитати дані за певною адресою. Більшість адрес також є **публічними ключами**.
 
-# Lesson
+# Урок
 
-### Accounts
+### Акаунти
 
-All data stored on Solana is stored in accounts. Accounts can store: 
+Всі дані, що зберігаються в Solana, зберігаються в акаунтах. Акаунти можуть зберігати:
 
-- SOL
-- Other tokens, like USDC
-- NFTs
-- Programs, like the film review program we make in this course!
-- Program data, like a film review for the program above!
+* SOL
+* Інші токени, як-от USDC
+* NFT
+* Програми, наприклад програму для рецензій на фільми, яку ми створюємо в цьому курсі!
+* Дані програм, наприклад рецензію на фільм для вищезгаданої програми!
 
 ### SOL
 
-SOL is Solana's native token - SOL is used to pay transaction fees, pay rent for accounts, and more. SOL is sometimes shown with the `◎` symbol. Each SOL is made from 1 billion **Lamports**. 
+SOL — це рідний токен Solana. SOL використовується для оплати комісій за транзакції, оренди акаунтів та іншого. Іноді SOL позначають символом `◎`. Кожна SOL складається з 1 мільярда **лампортів**.
 
-In the same way that finance apps typically do math in cents (for USD) and pence (for GBP), Solana apps typically transfer, spend, store, and handle SOL as Lamports, only converting to full SOL to display to users. 
+Так само, як фінансові додатки зазвичай виконують обчислення в центах (для USD) чи пенсах (для GBP), додатки Solana зазвичай переказують, витрачають, зберігають і опрацьовують SOL у лампортах, а для відображення користувачам конвертують у повні SOL.
 
-### Addresses
+### Адреси
 
-Addresses uniquely identify accounts. Addresses are often shown as base-58 encoded strings like `dDCQNnDmNbFVi8cQhKAgXhyhXeJ625tvwsunRyRc7c8`. Most addresses on Solana are also **public keys**. As mentioned in the previous chapter, whoever controls the matching secret key for an address controls the account - for example, the person with the secret key can send tokens from the account.
+Адреси унікально ідентифікують акаунти. Адреси часто показують як рядки, закодовані у форматі base-58, наприклад `dDCQNnDmNbFVi8cQhKAgXhyhXeJ625tvwsunRyRc7c8`. Більшість адрес у Solana також є **публічними ключами**. Як було згадано в попередньому розділі, той, хто контролює відповідний секретний ключ для адреси, контролює акаунт — наприклад, ця людина може відправляти токени з акаунту.
 
-## Reading from the Solana Blockchain
+## Зчитування з блокчейну Solana
 
-### Installation
+### Встановлення
 
-We use an npm package called `@solana/web3.js` to do most of the work with Solana. We'll also install TypeScript and `esrun`, so we can run `.ts` files on the command line:
+Ми використовуємо npm-пакет `@solana/web3.js` для більшості операцій з Solana. Також встановимо TypeScript і `esrun`, щоб запускати `.ts` файли з командного рядка:
 
 ```bash
 npm install typescript @solana/web3.js esrun 
 ```
 
-### Connect to the Network
+### Підключення до мережі
 
-Every interaction with the Solana network using `@solana/web3.js` is going to happen through a `Connection` object. The `Connection` object establishes a connection with a specific Solana network, called a 'cluster'. For now, we'll use the `Devnet` cluster rather than `Mainnet`. `Devnet` is designed for developer use and testing, and `DevNet` tokens don't have real value.
+Усі взаємодії з мережею Solana за допомогою `@solana/web3.js` відбуваються через об’єкт `Connection`. Об’єкт `Connection` встановлює з’єднання з конкретною мережею Solana, яка називається «кластером». Зараз ми використовуватимемо кластер `Devnet`, а не `Mainnet`. `Devnet` призначений для розробників і тестування, а токени в `Devnet` не мають реальної цінності.
 
 ```typescript
 import { Connection, clusterApiUrl } from "@solana/web3.js";
@@ -55,15 +55,15 @@ const connection = new Connection(clusterApiUrl("devnet"));
 console.log(`✅ Connected!`)
 ```
 
-Running this TypeScript (`npx esrun example.ts`) shows:
+Запуск цього TypeScript-коду (`npx esrun example.ts`) показує:
 
 ```
 ✅ Connected!
 ```
 
-### Read from the Network
+### Зчитування з мережі
 
-To read the balance of an account:
+Щоб зчитати баланс акаунту:
 
 ```typescript
 import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
@@ -76,7 +76,7 @@ console.log(`The balance of the account at ${address} is ${balance} lamports`);
 console.log(`✅ Finished!`)
 ```
 
-The balance returned is in *lamports, as discussed earlier. Web3.js provides the constant `LAMPORTS_PER_SOL` for showing Lamports as SOL:
+Повернутий баланс вказаний у *лампортах, як уже згадувалося раніше. Web3.js надає константу `LAMPORTS_PER_SOL` для відображення лампортів у вигляді SOL:
 
 ```typescript
 import { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -90,26 +90,26 @@ console.log(`The balance of the account at ${address} is ${balanceInSol} SOL`);
 console.log(`✅ Finished!`)
 ```
 
-Running `npx esrun example.ts` will show something like:
+Запуск `npx esrun example.ts` покаже щось на кшталт:
 
 ```
 The balance of the account at CenYq6bDRB7p73EjsPEpiYN7uveyPUTdXkDkgUduboaN is 0.00114144 SOL
 ✅ Finished!
 ```
 
-...and just like that, we are reading data from the Solana blockchain! 
+...і от так просто ми зчитуємо дані з блокчейну Solana!
 
-# Lab
+# Лабораторна робота 
 
-Let’s practice what we’ve learned, and check the balance at a particular address. 
+Давайте закріпимо вивчене та перевіримо баланс за конкретною адресою.
 
-## Load a keypair 
+## Завантаження пари ключів
 
-Remember the public key from the previous chapter. 
+Згадайте публічний ключ з попереднього розділу.
 
-Make a new file called `check-balance.ts`, substituting your public key for `<your public key>`.
+Створіть новий файл з назвою `check-balance.ts`, підставивши свій публічний ключ замість `<your public key>`.
 
-The script loads the public key, connects to DevNet, and checks the balance:
+Скрипт завантажує публічний ключ, підключається до DevNet і перевіряє баланс:
 
 ```tsx
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -128,31 +128,31 @@ console.log(
 
 ```
 
-Save this to a file, and `npx esrun check-balance.ts`. You should see something like:
+Збережіть це у файл і запустіть команду `npx esrun check-balance.ts`. Ви побачите щось на кшталт:
 
 ```
 💰 Finished! The balance for the wallet at address 31ZdXAvhRQyzLC2L97PC6Lnf2yWgHhQUKKYoUo9MLQF5 is 0!
 ```
 
-## Get Devnet Sol
+## Отримайте SOL у Devnet
 
-In Devnet you can get free SOL to develop with. Think of Devnet SOL like board game money - it looks like it has value, but it doesn't have value. 
+У Devnet ви можете отримати безкоштовні SOL для розробки. Уявіть собі Devnet SOL як ігрові гроші — вони виглядають як справжні, але не мають цінності.
 
-[Get some Devnet SOL](https://faucet.solana.com/) and use the public key of your keypair as the address. 
+[Отримайте Devnet SOL](https://faucet.solana.com/), використавши публічний ключ вашої пари ключів як адресу.
 
-Pick any amount of SOL you like.
+Виберіть будь-яку кількість SOL, яку бажаєте.
 
-## Check your balance
+## Перевірте свій баланс
 
-Re-run the script. You should see your balance updated:
+Повторно запустіть скрипт. Ви повинні побачити оновлений баланс:
 
 ```
 💰 Finished! The balance for the wallet at address 31ZdXAvhRQyzLC2L97PC6Lnf2yWgHhQUKKYoUo9MLQF5 is 0.5!
 ```
 
-## Check other student's balances
+## Перевірка балансів інших студентів
 
-You can modify the script to check balances on any wallet.
+Ви можете змінити скрипт, щоб перевіряти баланси будь-якого гаманця.
 
 ```tsx
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -176,24 +176,24 @@ console.log(
 
 ```
 
-Swap wallet addresses with your classmates in the chat and check their balances.
+Поміняйтеся адресами гаманців зі своїми одногрупниками в чаті та перевірте їхні баланси.
 
 ```bash
 % npx esrun check-balance.ts (some wallet address)
 ✅ Finished! The balance for the wallet at address 31ZdXAvhRQyzLC2L97PC6Lnf2yWgHhQUKKYoUo9MLQF5 is 3!
 ```
 
-And check a few of your classmate's balances.
+Перевірте баланс кількох своїх одногрупників.
 
-# Challenge
+# Завдання
 
-Modify the script as follows:
+Змініть скрипт так:
 
- - Add instructions to handle invalid wallet addresses.
- - Modify the script to connect to `mainNet` and look up some famous Solana wallets. Try `toly.sol`, `shaq.sol` or `mccann.sol`.
+* Додайте обробку некоректних адрес гаманців.
+* Змініть підключення до `mainNet` і перевірте кілька відомих Solana-гаманців, наприклад `toly.sol`, `shaq.sol` або `mccann.sol`.
 
-We'll transfer SOL in the next lesson!
+У наступному уроці ми будемо переказувати SOL!
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=8bbbfd93-1cdc-4ce3-9c83-637e7aa57454)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=8bbbfd93-1cdc-4ce3-9c83-637e7aa57454)!
