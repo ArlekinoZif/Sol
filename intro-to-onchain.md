@@ -25,55 +25,55 @@
 * десеріалізація даних із вхідних транзакцій
 * перевірка акаунтів, наданих у вхідних інструкціях — наприклад, перевірка того, що певні акаунти є певного типу або що вони відрізняються від інших акаунтів
 
-Regardless of the language and framework you choose, Solana works the same. Let's refresh how programs work on Solana.
+Незалежно від того, яку мову чи фреймворк ви оберете, принцип роботи Solana залишається однаковим. Давайте згадаємо, як працюють програми в Solana.
 
-![Diagram showing a transaction with two instructions](../assets/transaction-and-instructions.svg)
+![Діаграма, що показує транзакцію з двома інструкціями](../assets/transaction-and-instructions.svg)
 
-## Programs are deployed at addresses
+## Програми розгортаються за адресами
 
-In the same way that we can send tokens to users using their public key, we can find programs using the program's public key. When using Anchor, a keypair is created during `anchor init`, and the private key is saved in the `target/deploy` directory of your project.
+Так само, як ми можемо надсилати токени користувачам за їхнім публічним ключем, ми можемо знаходити програми за публічним ключем програми. Якщо ви використовуєте Anchor, пара ключів створюється під час виконання `anchor init`, а приватний ключ зберігається в директорії `target/deploy` вашого проекту.
 
-A program's public key is sometimes called a 'program ID' or 'program address'.
+Публічний ключ програми іноді називають 'program ID' або 'адреса програми'.
 
-## Programs have instruction handlers
+## Програми мають обробники інструкцій
 
-For example, a Solana client making a transaction transferring some USDC with a memo saying 'thanks' would have two instructions:
-  - one instruction for the Token program's `transfer` instruction handler
-  - the other instruction for the Memo program's `memo` instruction handler. 
+Наприклад, клієнт Solana, що створює транзакцію для переказу USDC із приміткою «thanks», матиме дві інструкції:
+* одну інструкцію для обробника `transfer` програми Token
+* іншу інструкцію для обробника `memo` програми Memo
 
-Both these instructions must be completed successfully for the transaction to execute.
+Обидві ці інструкції мають бути виконані успішно, щоб транзакція була здійснена.
 
-Instruction handlers are how blockchain programs process the instructions from clients. Every exchange, lending protocol, escrow, oracle, etc. provides their functionality by instruction handlers. 
+Обробники інструкцій — це спосіб, яким блокчейн-програми обробляють інструкції від клієнтів. Кожна біржа, протокол кредитування, ескроу, оракул тощо реалізують свою функціональність через обробники інструкцій.
 
-## Instruction handlers write their state to Solana accounts
+## Обробники інструкцій записують свій стан у акаунти Solana
 
-If you have previously done web development, you can think of instruction handlers like an HTTP route handler, and incoming instructions like HTTP requests. 
+Якщо ви раніше займалися веб-розробкою, можна уявити обробники інструкцій як обробники HTTP-маршрутів, а вхідні інструкції — як HTTP-запити.
 
-But unlike HTTP route handlers, Solana instruction handlers don't return data. Instead, the instruction handlers write their data to accounts on Solana.
+Але на відміну від HTTP-обробників маршрутів, обробники інструкцій Solana не повертають дані. Замість цього вони записують свої дані у акаунти в мережі Solana.
 
-Programs on Solana can transfer tokens, which end up in user wallet addresses (for SOL) for the user's token accounts (for other tokens). 
+Програми в Solana можуть переказувати токени, які потрапляють до гаманців користувачів (для SOL) або до токен-акаунтів користувачів (для інших токенів).
 
-But more importantly, programs on Solana can create additional addresses as needed, to store items of data. 
+Але що важливіше — програми в Solana можуть створювати додаткові адреси за потреби для збереження різних даних.
 
-## Programs store data in Program Derived Addresses (PDAs), a key-value store
+## Програми зберігають дані у **Програмно Визначених Адресах (PDA)**, як у **key/value сховищі**
 
-Data for Solana programs are stored in **program-derived addresses (PDAs)**. Solana's PDAs can be thought of as a **key/value store**:
+Дані для програм Solana зберігаються у **Програмно Визначених Адресах (PDA)**. PDA в Solana можна уявити як **key/value-сховище**:
 
- - The 'key' is the address of the PDA, which is determined by `seeds` chosen by you, the programmer. 
-   - Want an account to store USD to AUD exchange rate? Your program can use the seeds `USD` and `AUD` to make a Program Derived Address
-   - Want to store information about the relationship of two users? You can use **both those users' wallet addresses** as seeds to make a PDA to store that information.
-   - Want an account to store Steve's review of Titanic? Your program can use Steve's **wallet address** and the string `titanic` (or maybe the IMDB ID if you prefer) to make a Program Derived Address.
-   - Want some global information for your entire program? You can use a string like `'config'`. Your program's PDAs are unique, so they won't conflict with other programs. 
- - The value is the data inside the account at the given address.
-   - The data inside the PDA is determined by you, the programmer.
+* `key` — це адреса Програмно Визначеної Адреси (PDA), яка визначається `seeds`, обраними вами, як розробником.
+ * Хочете акаунт для зберігання курсу обміну USD до AUD? Ваша програма може використати seeds `USD` та `AUD`, щоб створити Програмно Визначену Адресу
+ * Хочете зберігати інформацію про взаємозв'язок двох користувачів? Ви можете використати **обидві адреси гаманців цих користувачів** як seeds, щоб створити PDA для зберігання цієї інформації
+ * Хочете акаунт для зберігання рецензії Стіва на фільм "Титанік"? Ваша програма може використати **адресу гаманця Стіва** та рядок `titanic` (або, за бажанням, IMDB ID), щоб створити Програмно Визначену Адресу
+ * Хочете зберігати глобальну інформацію для всієї вашої програми? Можна використати рядок на кшталт `'config'`. PDA вашої програми унікальні, тож вони не конфліктуватимуть з іншими програмами
+* `value` — це дані всередині акаунту за відповідною адресою
+ * Дані всередині PDA визначаються вами, як розробником
 
-Key value stores allow your onchain program, and client software, to consistently determine the address for a data item because the same seeds will always return the same address.
+Сховища key/value дозволяють вашій ончейн-програмі та клієнтському софту послідовно визначати адресу для певного елемента даних, оскільки однакові seeds завжди повертають одну й ту ж адресу.
 
-## Solana instructions need to specify all the accounts they will use
+## Інструкції Solana мають вказувати всі акаунти, які вони використовуватимуть
 
-As you may already know, Solana is fast because it can process transactions that don't overlap at the same time. I.e., just like in the real world, Alice sending to Bob doesn't stop Chris from sending something to Diana. Your front-end apps need to specify the addresses of all the accounts they will use. 
+Як вам уже може бути відомо, Solana є швидкою, оскільки може обробляти транзакції, які не перетинаються, одночасно. Тобто, як і в реальному світі, переказ Аліси до Боба не заважає Крісу надсилати щось Діані. Ваші фронтенд-додатки повинні вказувати адреси всіх акаунтів, які вони використовуватимуть.
 
-This includes the PDAs you make. Thankfully, you can calculate the address for PDAs in your front-end code before you write data there!
+Це включає й Програмно Визначені Адреси (PDA), які ви створюєте. На щастя, ви можете обчислити адресу для PDA у фронтенд-коді ще до того, як запишете туди дані!
 
 ```typescript
 // There's nothing at this address right now, but we're going to use in our transaction 
@@ -83,13 +83,13 @@ const address = findProgramAddressSync(
 )
 ```
 
-## There are multiple ways to build onchain, but we recommend Anchor
+## Існує кілька способів розробки ончейн-програм, але ми рекомендуємо Anchor
 
-You currently have two options for onchain program development:
+Наразі у вас є два варіанти для розробки ончейн-програм:
 
- - We recommend new onchain programmers [start with Anchor](./intro-to-anchor). Anchor's defaults make it easy to create safe programs. 
- - This course also covers [native onchain program development](./hello-world-program).
+* Ми рекомендуємо новачкам у ончейн-розробці [почати з Anchor](./intro-to-anchor). Стандартні налаштування Anchor дозволяють легко створювати безпечні програми.
+* У цьому курсі також розглядається [розробка нативних ончейн-програм](./hello-world-program).
 
-Whichever way you pick, Solana Foundation maintains [examples in both languages](https://github.com/solana-developers/program-examples), and [Solana Stack Exchange](https://solana.stackexchange.com/) is there to help.
+Який би варіант ви не обрали, Solana Foundation підтримує [приклади обома способами](https://github.com/solana-developers/program-examples), а [Solana Stack Exchange](https://solana.stackexchange.com/) завжди готовий допомогти.
 
-For now, let's [set up your computer](./local-setup)!
+А поки — давайте [налаштуємо ваш комп’ютер](./local-setup)!
