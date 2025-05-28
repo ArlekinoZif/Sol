@@ -1,124 +1,124 @@
 ---
-title: Introduction to Solana Mobile
-objectives:
+title: Вступ до Solana Mobile
+завдання:
 
-- Explain the benefits of creating mobile-first dApp experiences
-- Explain the high-level Mobile Wallet Adapter (MWA) flow
-- Explain the high-level differences between React and React Native
-- Create a simple Android Solana dApp using React Native
+* Пояснити переваги створення dApp з орієнтацією на мобільні пристрої
+* Пояснити загальний принцип роботи Mobile Wallet Adapter (MWA)
+* Пояснити основні відмінності між React та React Native
+* Створити простий Android Solana dApp за допомогою React Native
 ---
 
-# Summary
+# Стислий виклад
 
-- The Solana Mobile Wallet Adapter (MWA) creates a web socket connection between mobile apps and mobile wallets, allowing native mobile apps to submit transactions for signing
-- The simplest way to get started creating Solana mobile applications is with Solana Mobile's [React Native packages](https://docs.solanamobile.com/react-native/setup) `@solana-mobile/mobile-wallet-adapter-protocol` and `@solana-mobile/mobile-wallet-adapter-protocol-web3js`
-- React Native is very similar to React with a few mobile quirks
+* Solana Mobile Wallet Adapter (MWA) створює WebSocket-з’єднання між мобільними додатками та мобільними гаманцями, що дозволяє нативним мобільним додаткам надсилати транзакції для підписання
+* Найпростіший спосіб почати створювати мобільні Solana-додатки — використати пакети Solana Mobile для React Native: `@solana-mobile/mobile-wallet-adapter-protocol` та `@solana-mobile/mobile-wallet-adapter-protocol-web3js`
+* React Native дуже схожий на React, але має кілька особливостей, пов’язаних із мобільними пристроями
 
-# Lesson
+# Урок
 
-Solana Mobile Stack (SMS) is designed to help developers create mobile dApps with a seamless UX. It consists of the [Mobile Wallet Adapter (MWA)](https://docs.solanamobile.com/getting-started/overview#mobile-wallet-adapter), [Seed Vault](https://docs.solanamobile.com/getting-started/overview#seed-vault), and the [Solana dApp Store](https://docs.solanamobile.com/getting-started/overview#solana-dapp-store).
+Solana Mobile Stack (SMS) створений, щоб допомогти розробникам створювати мобільні dApp з безшовним користувацьким досвідом. Він складається з [Mobile Wallet Adapter (MWA)](https://docs.solanamobile.com/getting-started/overview#mobile-wallet-adapter), [Seed Vault](https://docs.solanamobile.com/getting-started/overview#seed-vault) та [Solana dApp Store](https://docs.solanamobile.com/getting-started/overview#solana-dapp-store).
 
-Most relevant to your development journey is the Mobile Wallet Adapter (MWA). The simplest way to get started is to use the Mobile Wallet Adapter with React Native to create a simple Android app. This lesson assumes you're familiar with React and Solana programming. If that's not the case, [start our course from the beginning](./intro-to-cryptography) and come back here when you feel ready!
+Найважливішим для вашого шляху розробки є Mobile Wallet Adapter (MWA). Найпростіший спосіб почати — використати Mobile Wallet Adapter з React Native для створення простого Android-додатка. Цей урок передбачає, що ви знайомі з React та програмуванням Solana. Якщо це не так, [почніть наш курс з самого початку](./intro-to-cryptography) і повертайтесь сюди, коли будете готові!
 
-## Intro To Solana Mobile
+## Вступ до Solana Mobile
 
-In these units, we'll develop mobile apps that interact with the Solana network. This opens up a whole new paradigm of crypto use cases and behaviors.
+У цих розділах ми розроблятимемо мобільні додатки, що взаємодіють із мережею Solana. Це відкриває зовсім нову парадигму використання криптовалют і поведінки користувачів.
 
-### Solana Mobile Use Cases
+### Варіанти використання Solana Mobile
 
-Here are a few examples of what Solana mobile development can unlock:
+Ось кілька прикладів того, що може дати розробка Solana для мобільних пристроїв:
 
-**Mobile Banking and Trading (DeFi)**
+**Мобільний банкінг і трейдинг (DeFi)**
 
-Most traditional banking right now happens on on native mobile apps. With SMS, you can now bank and trade using native mobile apps with your own wallet, where you hold your own keys.
+Наразі більшість традиційного банкінгу відбувається у нативних мобільних додатках. Завдяки SMS ви можете банківські операції та трейдинг здійснювати у власних мобільних додатках з вашим власним гаманцем, де ви контролюєте ключі.
 
-**Mobile Gaming with Solana Micropayments**
+**Мобільні ігри з мікроплатежами на Solana**
 
-Mobile games account for roughly 50% of the video game industry’s total value, largely due to small in-game purchases. However, payment processing fees usually mean these in-game purchases have a minimum of $0.99 USD. With Solana, it's possible to unlock true micropayments. Need an extra life? That'll be 0.0001 SOL.
+Мобільні ігри складають близько 50% загальної вартості індустрії відеоігор, переважно завдяки дрібним внутрішньоігровим покупкам. Однак комісії за обробку платежів зазвичай означають мінімальну покупку на рівні \$0.99 USD. З Solana можливі справжні мікроплатежі. Потрібне додаткове життя? Це буде 0.0001 SOL.
 
-**Mobile E-Commerce** 
+**Мобільна електронна комерція**
 
-SMS can enable a new wave of mobile e-commerce shoppers to pay directly from their favorite Solana wallet. Imagine a world where you can use your Solana wallet as seamlessly as you can use Apple Pay.
+SMS дає змогу новому поколінню мобільних покупців оплачувати товари прямо зі свого улюбленого гаманця Solana. Уявіть світ, де ваш гаманець Solana працює так само зручно, як Apple Pay.
 
-To summarize, mobile crypto opens up many doors. Let’s dive in and learn how we can be part of it:
+Підсумовуючи, мобільна крипта відкриває багато можливостей. Давайте зануримось і дізнаємося, як стати частиною цього:
 
-### How Solana development differs between native mobile apps and web
+### Чим розробка Solana для нативних мобільних додатків відрізняється від веб-розробки
 
-Solana wallet interaction differs slightly on mobile compared to the web. The core wallet functionality is the same: the wallet holds your private keys and uses them to sign and send transactions. To avoid having different interfaces between wallets, developers abstracted that functionality into the Solana Wallet Adapter standard. This remains the standard on the web. The mobile counterpart is the Mobile Wallet Adapter (MWA).
+Взаємодія з гаманцем Solana на мобільних пристроях дещо відрізняється від вебу. Основна функціональність гаманця залишається та сама: гаманець зберігає ваші приватні ключі та використовує їх для підпису й відправлення транзакцій. Щоб уникнути різних інтерфейсів між гаманцями, розробники винесли цю функціональність у стандарт Solana Wallet Adapter. Цей стандарт застосовується у веб. Мобільним аналогом є Mobile Wallet Adapter (MWA).
 
-The differences between the two standards are due to the different construction of web vs mobile wallets. Web wallets are just browser extensions that inject wallet adapter functions into the `window` object of your webpage. This gives your site access to them. Mobile wallets, however, are native applications on a mobile operating system. There's no way to surface functions from one native application to another. The Mobile Wallet Adapter exists to enable any app, written in any language, to connect to a native wallet app.
+Різниця між цими двома стандартами зумовлена різною архітектурою веб- і мобільних гаманців. Веб-гаманці — це просто розширення для браузера, які вставляють функції wallet adapter у об'єкт `window` вашої вебсторінки. Це надає сайту доступ до них. Натомість мобільні гаманці — це нативні застосунки на мобільній операційній системі. І немає прямого способу передати функції від одного нативного застосунку до іншого. Mobile Wallet Adapter створений саме для того, щоб будь-який застосунок, написаний будь-якою мовою, міг під'єднуватися до нативного мобільного гаманця.
 
-We'll dig into the specifics of the Mobile Wallet Adapter in a [later lesson](./mwa-deep-dive), but it effectively opens a WebSocket between applications to facilitate communication. That way a separate app can provide the wallet app with the transaction to be signed and sent, and the wallet app can respond with appropriate status updates.
+Ми детально розглянемо специфіку Mobile Wallet Adapter у [наступному уроці](./mwa-deep-dive), але по суті він відкриває WebSocket-з'єднання між застосунками для забезпечення комунікації. Таким чином, окремий застосунок може передати гаманець-застосунку транзакцію для підпису й відправлення, а гаманець-застосунок може у відповідь надсилати відповідні оновлення статусу.
 
-### Supported Operating Systems
+### Підтримувані операційні системи
 
-At the time of writing, Android is the only mobile OS supported by the Mobile Wallet Adapter.
+На момент написання, Mobile Wallet Adapter підтримується лише на Android.
 
-On Android, a WebSocket connection can persist between apps, even when the wallet app is in the background.
+В Android WebSocket-з’єднання може зберігатися між застосунками навіть тоді, коли гаманець-застосунок працює у фоновому режимі.
 
-On iOS, the lifetime of a connection between apps is purposefully limited by the operating system. Specifically, iOS will quickly suspend connections when an app is pushed to the background. This kills the MWA WebSocket connection. This is an inherent design difference between iOS and Android (probably made to preserve battery, network usage, etc).
+В iOS тривалість з’єднання між застосунками навмисно обмежується операційною системою. Зокрема, iOS швидко призупиняє з’єднання, коли застосунок переходить у фоновий режим. Це перериває WebSocket-з’єднання MWA. Така поведінка є частиною фундаментального дизайну iOS (ймовірно, для збереження заряду батареї, зменшення використання мережі тощо).
 
-However, this doesn’t mean that Solana dApps can’t run on iOS at all. You can still create a Mobile Web App using the [standard wallet adapter](https://github.com/solana-labs/wallet-adapter) library. Your users can then install a mobile-friendly wallet like the [Glow Wallet](https://glow.app/).
+Однак це не означає, що Solana dApp-и взагалі не можуть працювати на iOS. Ви все ще можете створити мобільний вебзастосунок, використовуючи бібліотеку [стандартного wallet adapter](https://github.com/solana-labs/wallet-adapter). Ваші користувачі зможуть встановити мобільний зручний гаманець, наприклад [Glow Wallet](https://glow.app/).
 
-The remainder of this lesson will focus on developing Android apps with the MWA.
+Решта цього уроку буде зосереджена на розробці Android-застосунків із використанням MWA.
 
-### Supported Frameworks
+### Підтримувані фреймворки
 
-Solana Mobile supports a number of different frameworks. Officially supported are React Native and native Android, with community SDKs for Flutter, Unity, and Unreal Engine.
+Solana Mobile підтримує низку різних фреймворків. Офіційно підтримуються React Native та нативний Android, а також існують SDK від спільноти для Flutter, Unity та Unreal Engine.
 
-**Solana SDKs:**
+**Solana SDK:**
 
-- [React Native](https://docs.solanamobile.com/react-native/quickstart) ( Regular and Expo )
-- [Android](https://docs.solanamobile.com/android-native/quickstart)
+* [React Native](https://docs.solanamobile.com/react-native/quickstart) (звичайна версія та версія для Expo)
+* [Android](https://docs.solanamobile.com/android-native/quickstart)
 
-**Community SDKs:**
+**SDK від спільноти:**
 
-- [Flutter](https://docs.solanamobile.com/flutter/overview)
-- [Unity](https://docs.solanamobile.com/unity/unity_sdk)
-- [Unreal Engine](https://docs.solanamobile.com/unreal/unreal_sdk)
+* [Flutter](https://docs.solanamobile.com/flutter/overview)
+* [Unity](https://docs.solanamobile.com/unity/unity_sdk)
+* [Unreal Engine](https://docs.solanamobile.com/unreal/unreal_sdk)
 
-To keep the development experience as close as possible to other lessons, we'll be working exclusively with React Native.
+Щоб зробити досвід розробки максимально схожим на попередні уроки, ми працюватимемо виключно з React Native.
 
-## From React to React Native
+## Від React до React Native
 
-React Native takes the React web framework and applies it to mobile applications. However, while React and React Native feel very similar, there are differences. The best way to understand these differences is to experience them while coding. But, to give you a head start here is a list of some differences to keep in mind:
+React Native використовує знайомий веб-фреймворк React для створення мобільних застосунків. Хоча React і React Native дуже схожі на вигляд, між ними є деякі відмінності. Найкращий спосіб зрозуміти ці відмінності — це відчути їх у процесі написання коду. Але щоб дати вам стартову точку, ось список відмінностей, які варто мати на увазі:
 
-- React Native compiles down to native iOS and Android applications while React compiles down to a collection of web pages. 
-- In React, you use JSX to program with HTML and CSS. With React Native, you use similar syntax to manipulate native UI components. It's more like using a UI library like Chakra or Tailwind UI. Instead of `<div>`, `<p>`, and `<img>` you'll be using `<View>`, `<Text>`, and `<Image>`.
-- Interactions are different. Instead of `onClick`, you'll use `onPress` and other gestures.
-- Many standard React and Node packages may not be compatible with React Native. Fortunately, there are React Native counterparts to the most popular libraries and you can often use polyfills to make Node packages available. If you're not familiar with polyfills, take a look at the [MDN docs](https://developer.mozilla.org/en-US/docs/Glossary/Polyfill). In short, polyfills actively replace Node-native libraries to make them work anywhere Node is not running.
-- Setting up a development environment in React Native can be challenging. This will require setting up Android Studio to compile to Android and XCode for iOS. React Native has a [really good guide](https://reactnative.dev/docs/environment-setup?guide=native) for this.
-- For regular development and testing, you'll use a physical mobile device or an emulator to run your code. This relies on a tool called Metro that comes pre-installed. React Native's setup guide also covers this.
-- React Native gives you access to the phone's hardware that React can't provide. This includes things like the phone's camera, accelerometer, and more.
-- React Native introduces new config files and build folders. For example, the `ios` and `android` directories contain platform-specific information. Additionally, there are config files like `Gemfile` and `metro.config.js`. Generally, leave all configurations alone and just worry about writing your code, the starting point for which will be in `App.tsx`.
+* React Native компілюється в нативні застосунки для iOS та Android, тоді як React компілюється в набір вебсторінок.
+* У React ви використовуєте JSX для роботи з HTML і CSS. У React Native ви використовуєте схожий синтаксис, але для керування нативними UI-компонентами. Це більше схоже на роботу з бібліотеками інтерфейсу на кшталт Chakra або Tailwind UI. Замість `<div>`, `<p>` і `<img>` ви будете використовувати `<View>`, `<Text>` і `<Image>`.
+* Взаємодія з інтерфейсом відрізняється. Замість `onClick` ви використовуватимете `onPress` та інші жести.
+* Багато стандартних бібліотек React та Node можуть бути несумісними з React Native. На щастя, існують аналоги найпопулярніших бібліотек, адаптовані для React Native, а також часто можна використовувати поліфіли (polyfills), щоб зробити доступними бібліотеки з Node. Якщо ви не знайомі з поліфілами, ознайомтесь із [документацією MDN](https://developer.mozilla.org/en-US/docs/Glossary/Polyfill). Коротко кажучи, поліфіли — це активні заміни вбудованих Node-бібліотек, які дозволяють використовувати їх у середовищах, де Node не працює.
+* Налаштувати середовище розробки в React Native може бути складно. Потрібно встановити Android Studio для компіляції під Android та XCode для iOS. React Native має [дуже детальний гайд](https://reactnative.dev/docs/environment-setup?guide=native) для цього.
+* Для звичайної розробки і тестування ви будете використовувати фізичний мобільний пристрій або емулятор, щоб запускати ваш код. Для цього використовується інструмент Metro, який встановлюється за замовчуванням. Цей процес також описаний у гайді з налаштування React Native.
+* React Native дає доступ до апаратних можливостей телефону, яких немає у React — наприклад, камера, акселерометр та інше.
+* React Native вводить нові конфігураційні файли та каталоги для збірки. Наприклад, папки `ios` і `android` містять специфічну для платформи інформацію. Також є конфігураційні файли на кшталт `Gemfile` та `metro.config.js`. Загалом, не варто змінювати ці налаштування — просто зосередьтеся на написанні коду, стартовою точкою якого буде файл `App.tsx`.
 
-There is a learning curve, but if you know React you're not nearly as far from being able to develop mobile apps as you think! It may feel jarring to start, but after a few hours of React Native development, you'll start to feel much more comfortable. You'll likely feel much more confident even after [this lesson's lab](#lab).
+Це правда, що в React Native є своя крива навчання, але якщо ви вже знайомі з React, то шлях до створення мобільних додатків буде набагато коротшим, ніж здається! Спочатку може бути непривично, але вже через кілька годин роботи з React Native ви почнете відчувати себе значно впевненіше. Після [лабораторної з цього уроку](#Лабораторна) ваша впевненість, швидше за все, зросте ще більше.
 
-## Creating a Solana dApp with React Native
+## Створення Solana dApp з React Native
 
-Solana React Native dApps are virtually identical to React dApps. The primary difference is in the wallet interaction. Instead of the wallet being available in the browser, your dApp will create an MWA session with the wallet app of your choosing using a WebSocket. Fortunately, this is abstracted for you in the MWA library. The only difference you'll need to know is anytime you need to make a call to the wallet you'll be using the `transact` function, which we'll talk about soon.
+Solana dApp на React Native майже ідентичні React dApp. Головна різниця полягає у взаємодії з гаманцем. Замість того, щоб гаманець був доступний у браузері, ваш dApp створює сесію MWA (Mobile Wallet Adapter) з обраним додатком-гаманцем через WebSocket. На щастя, ця складність прихована за бібліотекою MWA. Єдина відмінність, яку вам потрібно знати, — що кожного разу, коли треба викликати гаманець, ви використовуватимете функцію `transact`, про яку ми поговоримо трохи пізніше.
 
 ![dApp Flow](../assets/basic-solana-mobile-flow.png)
 
-### Reading data
+### Читання даних
 
-Reading data from a Solana cluster in React Native is the exact same as in React. You use the `useConnection` hook to grab the `Connection` object. Using that, you can get account info. Since reading is free, we don’t need to actually connect to the wallet.
+Читання даних із Solana-кластера в React Native відбувається точно так само, як і в React. Ви використовуєте хук `useConnection`, щоб отримати об’єкт `Connection`. За його допомогою можна отримати інформацію про акаунт. Оскільки читання даних безкоштовне, нам не потрібно насправді підключатися до гаманця.
 
 ```tsx
 const account = await connection.getAccountInfo(account);
 ```
 
-If you need a refresher on this, check out our [lesson on reading data from the blockchain](./intro-to-reading-data).
+Якщо потрібно освіжити пам’ять, перегляньте наш [урок про читання даних з блокчейну](./intro-to-reading-data).
 
-### Connecting to a wallet
+### Підключення до гаманця
 
-Writing data to the blockchain has to happen through a transaction. Transactions have to be signed by one or more private keys and sent to an RPC provider. This virtually always happens through a wallet application.
+Запис даних у блокчейн має відбуватися через транзакцію. Транзакції потрібно підписати одним або кількома приватними ключами та надіслати RPC-провайдеру. Це практично завжди робиться через додаток-гаманець.
 
-Typical wallet interaction happens by calling out to a browser extension. On mobile, you use a WebSocket to start an MWA session. Specifically, you use Android intents where the dApp broadcasts its intent with the `solana-wallet://` scheme. 
+Типова взаємодія з гаманцем у вебі відбувається через браузерне розширення. На мобільних пристроях для запуску сесії MWA використовується WebSocket. Конкретно, Android-додатки працюють через intents — децентралізований додаток (dApp) транслює intent із схемою `solana-wallet://`.
 
-![Connecting](../assets/basic-solana-mobile-connect.png)
+![Підключення](../assets/basic-solana-mobile-connect.png)
 
-When the wallet app receives this intent, it opens a connection with the dApp that initiated the session. Your dApp sends this intent using the `transact` function:
+Коли додаток-гаманець отримує цей intent, він відкриває з’єднання з dApp, що ініціював сесію. Ваш dApp відправляє цей intent за допомогою функції `transact`:
 
 ```tsx
 transact(async (wallet: Web3MobileWallet) => {
@@ -126,21 +126,21 @@ transact(async (wallet: Web3MobileWallet) => {
 }
 ```
 
-This will give you access to the `Web3MobileWallet` object. You can then use this to send transactions to the wallet. Again, when you want to access the wallet, it has to be through the function `transact` function's callback.
+Це дасть вам доступ до об’єкта `Web3MobileWallet`, який можна використовувати для відправлення транзакцій на гаманець. Ще раз: доступ до гаманця завжди має відбуватися через callback функції `transact`.
 
-### Signing and sending transactions
+### Підписання та відправлення транзакцій
 
-Sending a transaction happens inside the `transact` callback. The flow is as follows:
+Відправлення транзакції відбувається всередині callback функції `transact`. Загальний порядок такий:
 
-1. Establish a session with a wallet using `transact` which will have a callback of `async (wallet: Web3MobileWallet) => {...}`.
-2. Inside the callback, request authorization with the `wallet.authorize` or `wallet.reauthorize` method depending on the state of the wallet.
-3. Sign the transaction with `wallet.signTransactions` or sign and send with `wallet.signAndSendTransactions`. 
+1. Встановіть сесію з гаманцем за допомогою `transact`, яка приймає callback функцію `async (wallet: Web3MobileWallet) => {...}`.
+2. Всередині callback викличте авторизацію за допомогою `wallet.authorize` або `wallet.reauthorize` — залежно від стану гаманця.
+3. Підпишіть транзакцію за допомогою `wallet.signTransactions` або підпишіть і одразу надішліть за допомогою `wallet.signAndSendTransactions`.
 
-![Transacting](../assets/basic-solana-mobile-transact.png)
+![Виконання транзакцій](../assets/basic-solana-mobile-transact.png)
 
-Note: You may want to create a `useAuthorization()` hook to manage the wallet's authorization state. We'll practice this in the [Lab](#lab).
+Примітка: Можливо, вам варто створити хук `useAuthorization()` для керування станом авторизації гаманця. Ми потренуємось із цим у [Лабораторній роботі](#lab).
 
-Here is an example of sending a transaction using MWA:
+Ось приклад відправки транзакції з використанням MWA:
 ```tsx
 const { authorizeSession } = useAuthorization();
 const { connection } = useConnection();
@@ -164,54 +164,54 @@ const sendTransactions = (transaction: Transaction)=> {
 }
 ```
 
-### Debugging
+### Налагодження
 
-Since two applications are involved in sending transactions, debugging can be tricky. Specifically, you won’t be able to see the wallet's debug logs the way you can see your dApps logs.
+Оскільки у процесі відправки транзакцій задіяні два застосунки, налагодження може бути складним. Зокрема, ви не зможете бачити журнали налагодження гаманця так, як бачите журнали своєї dApp.
 
-Fortunately, [Logcat on Android Studio](https://developer.android.com/studio/debug/logcat) makes it possible to see logs from all applications on your device.
+На щастя, [Logcat у Android Studio](https://developer.android.com/studio/debug/logcat) дозволяє переглядати журнали всіх застосунків на вашому пристрої.
 
-If you prefer not to use Logcat, the other method you could try is to only use the wallet to sign transactions, and then send them in your code. This allows you to better debug the transaction if you’re running into problems.
+Якщо ви не хочете використовувати Logcat, інший підхід — використовувати гаманець лише для підпису транзакцій, а надсилати їх уже у своєму коді. Це дає змогу краще налагоджувати транзакції у разі виникнення проблем.
 
-### Releasing
+### Реліз
 
-Deploying mobile applications can be difficult on its own. It's often even more difficult when it's a crypto app. There are two main reasons for this: customer safety and financial incentives.
+Розгортання мобільних застосунків саме по собі є складним завданням. Для криптозастосунків воно ще складніше. Є дві основні причини цього: безпека користувачів і фінансові стимули.
 
-First, most of the mobile app marketplaces have policies restricting blockchain involvement. Crypto is new enough that it's a regulatory wildcard. Platforms feel they're protecting users by being strict with blockchain-related apps.
+По-перше, більшість маркетплейсів мобільних застосунків мають політики, що обмежують використання блокчейну. Криптовалюта досі є "дикою картою" з точки зору регулювання. Маркетплейси вважають, що захищають користувачів, дотримуючись суворих вимог щодо застосунків, пов’язаних із блокчейном.
 
-Second, if you use crypto for "purchases" in-app, you’ll be seen as circumnavigating the platform’s fee (anywhere from 15-30%). This is explicitly against app store policies as the platform is trying to protect its revenue stream.
+По-друге, якщо ви використовуєте криптовалюту для «покупок» у застосунку, це може розглядатися як спосіб обійти комісію маркетплейсу (яка зазвичай становить від 15 до 30%). Це прямо заборонено політикою більшості маркетплейсів, оскільки вони прагнуть захистити свої джерела доходів.
 
-These are hurdles for sure, but there's hope. Here are some things to keep in mind for each marketplace:
+Це, безумовно, перешкоди, але є й позитивні новини. Ось на що слід звернути увагу для кожного маркетплейсу:
 
-- **App Store (iOS) -** We only talked about Android today for the technical MWA reason. However, their policies are also some of the most strict and make it hard for Solana dApps to exist. For now, Apple has some pretty strict anti-crypto policies. Wallets seem to be fine, but they'll flag and likely reject anything that seems like a purchase using crypto.
-- **Google Play (Android) -** Google is generally more relaxed, but there are still a few things to be aware of. As of this writing in November ‘23, Google is rolling out [new crypto policies](https://www.theverge.com/2023/7/12/23792720/android-google-play-blockchain-crypto-nft-apps) to make it more clear what they will and will not allow. Take a look.
-- **Steam -** Does not allow crypto games at all
-    > “built on blockchain technology that issue or allow the exchange of cryptocurrencies or NFTs.”
-- **Download Sites / Your Site -** Depending on the target platform, you can make your dApp available for download on your own site. However, most users are wary of downloading mobile applications from websites.
-- **dApp Store (Solana) -** Solana saw the issues with mobile dApp distribution on other platform app stores and decided to make their own. As part of the SMS stack, they created the [Solana dApp Store](https://docs.solanamobile.com/getting-started/overview#solana-dapp-store).
+* **App Store (iOS)** – Сьогодні ми говорили лише про Android через технічні обмеження MWA. Але політики Apple одні з найсуворіших і ускладнюють існування Solana dApp-застосунків. Наразі Apple має доволі жорстку анти-крипто політику. Гаманці зазвичай проходять модерацію, але будь-яку функцію, що нагадує покупку за криптовалюту, можуть відхилити.
+* **Google Play (Android)** – Google загалом більш лояльний, але є нюанси. Станом на листопад 2023 року Google впроваджує [нові крипто-політики](https://www.theverge.com/2023/7/12/23792720/android-google-play-blockchain-crypto-nft-apps), які чіткіше регламентують, що дозволено, а що ні. Ознайомтеся з ними.
+* **Steam** – Взагалі не дозволяє ігри з використанням криптовалюти
+  > “побудовані на блокчейн-технології та передбачають випуск або обмін криптовалют чи NFT”
+* **Сайти для завантаження / Ваш сайт** – Залежно від цільової платформи, ви можете викладати ваш dApp на власному сайті. Але більшість користувачів з обережністю ставляться до встановлення мобільних застосунків із сайтів.
+* **dApp Store (Solana)** – Solana побачила проблеми з дистрибуцією мобільних dApp-застосунків у традиційних маркетплейсах і створила власний. У рамках стеку SMS вони запустили [Solana dApp Store](https://docs.solanamobile.com/getting-started/overview#solana-dapp-store).
 
-## Conclusion
+## Висновок
 
-Getting started with mobile Solana development is fairly straightforward thanks to SMS. While React Native is slightly different than React, the code you have to write is more similar than different. The primary difference is that the portion of your code that interacts with wallets will exist within the `transact` callback. Remember to look at our other lessons if you need a refresher on Solana development more broadly.
+Почати розробку мобільних застосунків на Solana досить просто завдяки SMS. Хоча React Native трохи відрізняється від React, код, який вам потрібно писати, більше схожий, ніж відмінний. Основна різниця полягає в тому, що частина коду, яка взаємодіє з гаманцями, буде знаходитись у callback-функції `transact`. Якщо вам потрібно пригадати основи розробки на Solana, зверніться до наших інших уроків.
 
-# Lab
+# Лабораторна робота
 
-Let's practice this together by building a simple Android mobile counter dApp with React Native. The app will interact with the Anchor counter program that we made in the [Intro to client-side Anchor development](https://www.soldev.app/course/intro-to-anchor-frontend) lesson. This dApp simply displays a counter and allows users to increment the count through a Solana program. In this app, we’ll be able to see the current count, connect our wallet, and increment the count. We’ll be doing this all on Devnet and will be compiling only for Android. 
+Давайте попрактикуємося, створюючи простий мобільний лічильник для Android на React Native. Цей застосунок буде взаємодіяти з програмою лічильника Anchor, яку ми робили у уроці [Intro to client-side Anchor development](https://www.soldev.app/course/intro-to-anchor-frontend). Цей dApp просто відображає лічильник і дозволяє користувачам збільшувати його через Solana програму. У застосунку ми зможемо бачити поточне значення лічильника, підключати гаманець і збільшувати лічильник. Усе це буде працювати на Devnet, а компіляція буде тільки для Android.
 
-This program already exists and is already deployed on Devnet. Feel free to check out the [deployed program's code](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement) if you want more context.
+Ця програма вже існує та розгорнута в Devnet. Якщо хочете більше контексту, можете переглянути [код розгорнутої програми](https://github.com/Unboxed-Software/anchor-ping-frontend/tree/solution-decrement).
 
-We’ll write this application in vanilla React Native without a starting template. Solana Mobile provides a [React Native template](https://docs.solanamobile.com/react-native/react-native-scaffold) that shortcuts some of the boilerplate, but there's no better way to learn than to do something from scratch.
+Ми писатимемо цей застосунок на чистому React Native без початкового шаблону. Solana Mobile надає [React Native шаблон](https://docs.solanamobile.com/react-native/react-native-scaffold), який спрощує деякі рутинні налаштування, але немає кращого способу навчитися, ніж зробити щось з нуля.
 
-### 0. Prerequisites
+### 0. Передумови
 
-React Native allows us to write mobile applications using similar patterns as React. However, under the hood, our React code needs to be compiled down to languages and frameworks that work with the device's native OS. This requires a few prerequisite setup items:
+React Native дає змогу писати мобільні застосунки, використовуючи схожі патерни, як у React. Однак, під капотом наш React-код потрібно скомпілювати у мови та фреймворки, які працюють з рідною ОС пристрою. Для цього потрібно виконати кілька початкових налаштувань:
 
-1. [Set up a React Native dev environment](https://reactnative.dev/docs/environment-setup?guide=native#creating-a-new-application). Go through the [***entire article***](https://reactnative.dev/docs/environment-setup?guide=native#creating-a-new-application), using Android as the target OS. For convenience, we've typed out the high-level steps below. Keep in mind that the source article might change from the time of writing to when you're reading this. The source article is your source of truth here.
-    1. Install dependencies
-    2. Install Android Studio
-    3. Configure **ANDROID_HOME** environment variable 
-    4. Create a new sample project (this is only used to set up the emulator)
-        1. If you run into the error `✖ Copying template`, add the `--npm` flag at the end
-        
+1. [Налаштуйте середовище розробки React Native](https://reactnative.dev/docs/environment-setup?guide=native#creating-a-new-application). Пройдіть [***всю статтю***](https://reactnative.dev/docs/environment-setup?guide=native#creating-a-new-application), орієнтуючись на Android як цільову ОС. Для зручності нижче наведено основні кроки. Врахуйте, що вихідна стаття може змінюватися з часу написання до моменту вашого читання. Вона є вашим основним джерелом інформації.
+   1. Встановіть залежності
+   2. Встановіть Android Studio
+   3. Налаштуйте змінну середовища **ANDROID\_HOME**
+   4. Створіть новий зразковий проект (він потрібен лише для налаштування емулятора)
+      1. Якщо виникне помилка `✖ Copying template`, додайте прапорець `--npm` у кінці команди
+   
             ```bash
             npx react-native@latest init AwesomeProject
             ✔ Downloading template
@@ -222,47 +222,47 @@ React Native allows us to write mobile applications using similar patterns as Re
             ✔ Copying template
             ```
         
-    5. Run and compile the sample project on your emulator 
-2. Install and run the Solana fake wallet
-    1. Install the repo
+   5. Запустіть і скомпілюйте приклад проєкту на вашому емуляторі
+6. Встановіть і запустіть Solana fake wallet
+   1. Встановіть репозиторій
         
         ```bash
         git clone https://github.com/solana-mobile/mobile-wallet-adapter.git
         ```
-        
-    2. In Android Studio, `Open project > Navigate to the cloned directory > Select mobile-wallet-adapter/android`
-    3. After Android Studio finishes loading the project, select `fakewallet` in the build/run configuration dropdown in the top right
+
+   2. В Android Studio, `Open project > Navigate to the cloned directory > Select mobile-wallet-adapter/android`
+   3. Після завершення завантаження проекту в Android Studio виберіть `fakewallet` у випадаючому меню конфігурації збірки/запуску у верхньому правому куті
         
         ![Fake Wallet](../assets/basic-solana-mobile-fake-wallet.png)
         
-    4. For debugging, you’ll want to use `Logcat`. Now that your fake wallet is running on the emulator, go to `View -> Tool Windows -> Logcat`. This will open up a console logging out what’s happening with fake wallet.
- 3. (Optional) Install other Solana wallets like Phantom on the Google Play store.
+    4. Для налагодження вам знадобиться `Logcat`. Тепер, коли ваш фейковий гаманець запущений на емуляторі, перейдіть до `View -> Tool Windows -> Logcat`. Це відкриє консоль, у якій буде виводитися інформація про роботу фейкового гаманця.
+5. (Необов’язково) Встановіть інші Solana-гаманці, як-от Phantom, з Google Play.
 
-Lastly, if you run into Java versioning issues - you’ll want to be on Java version 11. To check what you’re currently running type `java --version` in your terminal.
+Наостанок, якщо виникнуть проблеми з версією Java — вам слід використовувати Java версії 11. Щоб перевірити поточну версію, введіть `java --version` у вашому терміналі.
 
-### 1. Plan out the App's Structure
+### 1. Сплануйте структуру застосунку
 
-Before we do any coding, let's conceptualize the outline of the app. Again, this app will connect to and interact with the counter program we've already deployed to Devnet. To do this, we'll need the following:
+Перш ніж переходити до написання коду, давайте концептуалізуємо загальну структуру застосунку. Нагадаємо, цей застосунок буде підключатися до програми для підрахунку, яку ми вже задеплоїли на Devnet, і взаємодіяти з нею. Для цього нам знадобиться таке:
 
-- A `Connection` object to interact with Solana (`ConnectionProvider.tsx`)
-- Access to our counter program (`ProgramProvider.tsx`)
-- Authorization for a wallet to sign and send requests (`AuthProvider.tsx`)
-- Text to display our counter value (`CounterView.tsx`)
-- A button to press to increment our count (`CounterButton.tsx`)
+* Об'єкт `Connection` для взаємодії з Solana (`ConnectionProvider.tsx`)
+* Доступ до нашої програми для підрахунку (`ProgramProvider.tsx`)
+* Авторизація гаманця для підпису та надсилання запитів (`AuthProvider.tsx`)
+* Текст для відображення значення лічильника (`CounterView.tsx`)
+* Кнопка для збільшення значення лічильника (`CounterButton.tsx`)
   
-There will be more files and considerations, but these are the most important files we'll be creating and working with.
+Існуватимуть й інші файли та аспекти, які потрібно врахувати, але це — основні файли, з якими ми працюватимемо та які створюватимемо.
 
-### 2. Create the App
+### 2. Створення застосунку
 
-Now that we've got some of the basic setup and structure down, let’s scaffold a new app with the following command:
+Тепер, коли ми окреслили базове налаштування та структуру, давайте створимо новий застосунок за допомогою наступної команди:
 
 ```bash
 npx react-native@latest init counter --npm
 ```
 
-This scaffolds a new React Native project for us called `counter`.
+Ця команда створює для нас новий проект React Native під назвою `counter`.
 
-Let's make sure everything is set up properly by starting the default app and running it on our Android emulator.
+Перевірмо, чи все налаштовано правильно: запустіть застосунок за замовчуванням і відкрийте його на вашому емуляторі Android.
 
 ```bash
 cd counter
@@ -271,22 +271,22 @@ npm run android
 
 This should open and run the app in your Android emulator. If you run into problems, check to make sure you’ve accomplished everything in the [prerequisites section](#0-prerequisites).
 
-### 3. Install Dependencies
+### 3. Встановіть залежності
 
-We’ll need to add in our Solana dependencies. [The Solana Mobile docs provide a nice list of packages](https://docs.solanamobile.com/react-native/setup) and explanations for why we need them: 
+Нам потрібно додати залежності для роботи з Solana. [Документація Solana Mobile надає зручний список пакетів](https://docs.solanamobile.com/react-native/setup) та пояснення, навіщо вони потрібні:
 
-- `@solana-mobile/mobile-wallet-adapter-protocol`: A React Native/Javascript API enabling interaction with MWA-compatible wallets
-- `@solana-mobile/mobile-wallet-adapter-protocol-web3js`: A convenience wrapper to use common primitives from [@solana/web3.js](https://github.com/solana-labs/solana-web3.js), such as `Transaction` and `Uint8Array`
-- `@solana/web3.js`: Solana Web Library for interacting with the Solana network through the [JSON RPC API](https://docs.solana.com/api/http)
-- `react-native-get-random-values` Secure random number generator polyfill for `web3.js` underlying Crypto library on React Native
-- `buffer`: Buffer polyfill; also needed for `web3.js` on React Native
+* `@solana-mobile/mobile-wallet-adapter-protocol`: API для React Native/Javascript, що забезпечує взаємодію з гаманцями, сумісними з MWA
+* `@solana-mobile/mobile-wallet-adapter-protocol-web3js`: зручна обгортка для використання типових примітивів із [@solana/web3.js](https://github.com/solana-labs/solana-web3.js), таких як `Transaction` і `Uint8Array`
+* `@solana/web3.js`: веб-бібліотека Solana для взаємодії з мережею Solana через [JSON RPC API](https://docs.solana.com/api/http)
+* `react-native-get-random-values`: поліфіл для генерації криптографічно безпечних випадкових значень, потрібний для криптобібліотеки `web3.js` у React Native
+* `buffer`: поліфіл для `Buffer`, також необхідний для роботи `web3.js` у середовищі React Native
 
-In addition to this list, we'll add two more packages:
-- `@coral-xyz/anchor`: The Anchor TS client.
-- `assert`: A polyfill that lets Anchor do its thing.
-- `text-encoding-polyfill`: A polyfill needed to create the `Program` object
+Окрім цього списку, додамо ще два пакети:
+* `@coral-xyz/anchor`: клієнт Anchor для TypeScript
+* `assert`: поліфіл, який дозволяє Anchor коректно працювати
+* `text-encoding-polyfill`: поліфіл, необхідний для створення об’єкта `Program`
 
-If you’re not familiar: polyfills actively replace Node-native libraries to make them work anywhere Node is not running. We’ll finish our polyfill setup shortly. For now, install dependencies using the following command:
+Якщо ви не знайомі з цим: поліфіли активно замінюють бібліотеки, які є в Node за замовчуванням, щоб вони працювали в будь-якому середовищі, де Node не запущений. Ми скоро завершимо налаштування поліфілів. А поки що встановіть залежності за допомогою наступної команди:
 
 ```bash
 npm install \
@@ -300,9 +300,9 @@ npm install \
   text-encoding-polyfill
 ```
 
-### 4. Create ConnectionProvider.tsx
+### 4. Створіть ConnectionProvider.tsx
 
-Let’s start adding our Solana functionality. Create a new folder called `components` and within it, a file called `ConnectionProvider.tsx`. This provider will wrap the entire application and make our `Connection` object available throughout. Hopefully, you're noticing a pattern: this is identical to the React patterns we've used throughout the course.
+Давайте почнемо додавати функціонал Solana. Створіть нову папку з назвою `components`, а в ній — файл `ConnectionProvider.tsx`. Цей провайдер обгорне весь проект і зробить об’єкт `Connection` доступним по всьому застосунку. Сподіваюся, ви помічаєте закономірність: це ідентично React-патернам, які ми використовували протягом усього курсу.
 
 ```tsx
 import {Connection, ConnectionConfig} from '@solana/web3.js';
@@ -340,28 +340,28 @@ export const useConnection = (): ConnectionContextState =>
   useContext(ConnectionContext);
 ```
 
-### 5. Create AuthProvider.tsx
+### 5. Створіть AuthProvider.tsx
 
-The next Solana provision we’ll need is the auth provider. This is one of the main differences between mobile and web development. What we’re implementing here is roughly equivalent to the `WalletProvider` that we’re used to in web apps. However, since we're using Android and its natively installed wallets, the flow to connect and utilize them is a bit different. Most notably, we need to follow the MWA protocol. 
+Наступним компонентом Solana, який нам знадобиться, є провайдер авторизації. Це одна з головних відмінностей між мобільною та веб-розробкою. Те, що ми реалізуємо тут, приблизно відповідає `WalletProvider`, до якого ми звикли у вебзастосунках. Однак, оскільки ми використовуємо Android і його нативно встановлені гаманці, процес підключення та використання їх дещо відрізняється. Найголовніше — нам потрібно дотримуватися протоколу MWA. 
 
-We do this by providing the following in our `AuthProvider`:
+У нашому `AuthProvider` ми реалізуємо таке:
 
-- `accounts`: If the user has multiple wallets, different accounts are maintained in this array of Accounts.
-- `selectedAccount`: The current selected account for the transaction.
-- `authorizeSession(wallet)`: Authorizes (or reauthorizes, if token is expired) the `wallet` for the user and returns an account which will act as the selected account for the session. The `wallet` variable is from the callback of the `transact` function you call independently anytime you want to interact with a wallet.
-- `deauthorizeSession(wallet)`: Deauthorizes the `wallet`.
-- `onChangeAccount`: Acts as a handler when `selectedAccount` is changed.
+* `accounts`: якщо користувач має кілька гаманців, різні акаунти зберігаються в цьому масиві акаунтів.
+* `selectedAccount`: поточний вибраний акаунт для транзакції.
+* `authorizeSession(wallet)`: авторизує (або повторно авторизує, якщо токен протерміновано) `wallet` для користувача і повертає акаунт, який буде обраним акаунтом сесії. Змінна `wallet` походить із callback функції `transact`, яку ви викликаєте окремо щоразу, коли хочете взаємодіяти з гаманцем.
+* `deauthorizeSession(wallet)`: скасовує авторизацію `wallet`.
+* `onChangeAccount`: обробник, який спрацьовує при зміні `selectedAccount`.
 
-We’re also going to throw in some utility methods:
+Також додамо кілька допоміжних методів:
 
-- `getPublicKeyFromAddress(base64Address)`: Creates a new Public Key object from the Base64 address given from the `wallet` object
-- `getAuthorizationFromAuthResult`: Handles the authorization result, extracts relevant data from the result, and returns the `Authorization` context object
+* `getPublicKeyFromAddress(base64Address)`: створює новий об’єкт Public Key з адреси у форматі Base64, отриманої з об’єкта `wallet`
+* `getAuthorizationFromAuthResult`: обробляє результат авторизації, витягує з нього потрібні дані і повертає об’єкт контексту `Authorization`
 
-We’ll expose all of this through a `useAuthorization` hook.
+Усе це ми зробимо доступним через хук `useAuthorization`.
 
-Since this provider is the same across virtually all apps, we're going to give you the full implementation that you can copy/paste. We'll dig into the details of MWA in a future lesson. 
+Оскільки цей провайдер практично однаковий у всіх застосунках, ми надамо вам повну реалізацію, яку можна просто скопіювати і вставити. Детальніше про MWA розглянемо у наступних уроках.
 
-Create the file `AuthProvider.tsx` in the `components` and paste in the following:
+Створіть файл `AuthProvider.tsx` у папці `components` та вставте туди наступний код:
 
 ```tsx
 import {Cluster, PublicKey} from '@solana/web3.js';
@@ -547,13 +547,13 @@ export function AuthorizationProvider(props: AuthProviderProps) {
 export const useAuthorization = () => React.useContext(AuthorizationContext);
 ```
 
-### 6. Create ProgramProvider.tsx
+### 6. Створіть ProgramProvider.tsx
 
-The last provider we need is our program provider. This will expose the counter program we want to interact with.
+Останнім провайдером, який нам потрібен, є провайдер програми. Він надасть доступ до програми лічильника, з якою ми хочемо взаємодіяти.
 
-Since we're using the Anchor TS client to interact with our program, we need the program's IDL. Start by creating a root-level folder called `models`, then create a new file `anchor-counter.ts`. Paste the contents of the [Anchor Counter IDL](../assets/counter-rn-idl.ts) into this new file.
+Оскільки ми використовуємо клієнт Anchor TS для роботи з нашою програмою, нам потрібен IDL програми. Спочатку створіть у корені папку `models`, а в ній — новий файл `anchor-counter.ts`. Вставте в цей файл вміст [Anchor Counter IDL](../assets/counter-rn-idl.ts).
 
-Next, create the file `ProgramProvider.tsx` inside of `components`. Inside we'll create the program provider to surface our program and the counter PDA:
+Далі створіть файл `ProgramProvider.tsx` у папці `components`. Всередині ми створимо провайдера програми, який зробить доступними нашу програму та PDA лічильника:
 
 ```tsx
 import {AnchorProvider, IdlAccounts, Program, setProvider} from '@coral-xyz/anchor';
@@ -641,15 +641,15 @@ export function ProgramProvider(props: ProgramProviderProps) {
 export const useProgram = () => useContext(ProgramContext);
 ```
 
-### 7. Modify App.tsx
+### 7. Змініть App.tsx
 
-Now that we have all our providers, let’s wrap our app with them. We're going to re-write the default `App.tsx` with the following changes:
+Тепер, коли у нас є всі провайдери, давайте обгорнемо ними наш застосунок. Ми перепишемо стандартний `App.tsx` з такими змінами:
 
-- Import our providers and add in our polyfills
-- Wrap the app first with `ConnectionProvider`, then `AuthorizationProvider`, and finally `ProgramProvider`
-- Pass in our Devnet endpoint to the `ConnectionProvider`
-- Pass our cluster to the `AuthorizationProvider`
-- Replace the default internal `<View>` with `<MainScreen />`, a screen we'll build in the next step
+* Імпортуємо наші провайдери та додамо поліфіли
+* Обгорнемо застосунок спочатку в `ConnectionProvider`, потім у `AuthorizationProvider` і наостанок у `ProgramProvider`
+* Передамо наш Devnet endpoint у `ConnectionProvider`
+* Передамо кластер у `AuthorizationProvider`
+* Замінемо стандартний внутрішній `<View>` на `<MainScreen />` — екран, який ми створимо на наступному кроці
 
 ```tsx
 // Polyfills at the top
@@ -684,13 +684,13 @@ export default function App() {
 }
 ```
 
-### 8. Create MainScreen.tsx
+### 8. Створіть MainScreen.tsx
 
-Now, let’s put everything together to create our UI. Create a new folder called `screens` and a new file called `MainScreen.tsx` inside of it. In this file, we are only structuring the screen to display two yet-to-be-created components: `CounterView` and `CounterButton`.
+Тепер з’єднаємо все разом, щоб створити наш інтерфейс. Створіть нову папку `screens` та в ній файл `MainScreen.tsx`. У цьому файлі ми лише структуруємо екран для відображення двох компонентів, які ще потрібно створити: `CounterView` і `CounterButton`.
 
-Additionally, in this file, we're introducing React Native's `StyleSheet`. This is another difference from regular React. Don't worry, it behaves very similarly to CSS. 
+Також у цьому файлі ми використовуємо `StyleSheet` з React Native. Це ще одна відмінність від звичайного React. Не хвилюйтеся, він працює дуже схоже на CSS.
 
-In `screens/MainScreen.tsx` paste the following:
+Вставте у файл `screens/MainScreen.tsx` наступний код:
 ```tsx
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { CounterView } from '../components/CounterView';
@@ -731,11 +731,11 @@ export function MainScreen() {
 }
 ```
 
-### 9. Create CounterView.tsx
+### 9. Створіть CounterView\.tsx
 
-The `CounterView` is the first of our two program-specific files. `CounterView`'s only job is to fetch and listen for updates on our `Counter` account. Since we’re only listening here, we don’t have to do anything MWA-related. It should look identical to a web application. We'll use our `Connection` object to listen for the `programAddress` specified in `ProgramProvider.tsx`. When the account is changed, we update the UI.
+`CounterView` — це перший із двох файлів, специфічних для нашої програми. Його завдання — отримувати та відслідковувати оновлення акаунту `Counter`. Оскільки тут ми лише слухаємо зміни, робота з MWA не потрібна. Це буде практично ідентично вебзастосунку. Ми використаємо об’єкт `Connection` для прослуховування `programAddress`, вказаного у `ProgramProvider.tsx`. Коли акаунт змінюється — оновлюємо UI.
 
-In `components/CounterView.tsx` paste the following:
+Вставте у файл `components/CounterView.tsx` наступний код:
 
 ```tsx
 import {View, Text, StyleSheet} from 'react-native';
@@ -796,19 +796,19 @@ export function CounterView() {
 }
 ```
 
-### 10. Create CounterButton.tsx
+### 10. Створіть CounterButton.tsx
 
-Finally, we have our last component, the `CounterButton`. This floating action button will do the following in a new function `incrementCounter`:
+Нарешті, останній компонент — `CounterButton`. Ця кнопка, що "плаває" на екрані, виконуватиме наступні дії у функції `incrementCounter`:
 
-- Call `transact` to get access to a mobile wallet
-- Authorize the session with `authorizeSession` from the `useAuthorization` hook
-- Request a Devnet airdrop to fund the transaction if not enough Devnet SOL is available 
-- Create an `increment` transaction
-- Call `signAndSendTransactions` to have the wallet sign and send the transaction
+* Викликає `transact`, щоб отримати доступ до мобільного гаманця
+* Авторизує сесію за допомогою `authorizeSession` з хука `useAuthorization`
+* Запитує ейрдроп у Devnet, щоб профінансувати транзакцію, якщо недостатньо SOL
+* Створює транзакцію `increment`
+* Викликає `signAndSendTransactions`, щоб гаманець підписав і надіслав транзакцію
 
-Note: The fake Solana wallet we use generates a new keypair every time you restart the fake wallet app, requiring that we want to check for funds and airdrop every time. This is for demo purposes only, you can't do this in production.
+Примітка: фейковий Solana-гаманець, який ми використовуємо, генерує нову пару ключів щоразу при перезапуску застосунку, тому нам потрібно перевіряти наявність коштів і виконувати ейрдроп кожного разу. Це лише для демонстраційних цілей — у продакшн-середовищі так робити не можна.
 
-Create the file `CounterButton.tsx` and paste in the following:
+Створіть файл `CounterButton.tsx` і вставте в нього наступне:
 
 ```tsx
 import {
@@ -925,32 +925,32 @@ export function CounterButton() {
 }
 ```
 
-### 11. Build and Run
+### 11. Збірка та запуск
 
-Now it’s time to test that everything works! Build and run with the following command:
+Тепер час перевірити, що все працює! Зберіть і запустіть застосунок за допомогою наступної команди:
 
 ```bash
 npm run android
 ```
 
-This will open the app in your emulator, click the + button in the bottom right. This will open up the "fake wallet". The "fake wallet" has various options to assist in debugging. The image below outlines the buttons to tap to properly test your app:
+Це відкриє застосунок у вашому емуляторі. Натисніть кнопку "+" у нижньому правому куті — відкриється "фейковий гаманець". У "фейковому гаманці" є різні опції для допомоги з налагодженням. Зображення нижче показує, на які кнопки потрібно натиснути, щоб коректно протестувати застосунок:
 
 ![Counter App](../assets/basic-solana-mobile-counter-app.png)
 
-If you run into problems, here are some examples of what they could be and how to fix them:
+Якщо виникнуть проблеми, ось кілька прикладів того, що це може бути, і як це виправити:
 
-- Application does not build → Exit Metro with ctrl+c and try again
-- Nothing happens when you press the `CounterButton` → Make sure you have Solana wallet installed ( like the fake wallet we installed in Prerequisites )
-- You get stuck in a forever loop while calling `increment` → This is likely due to you reaching a Devnet airdrop rate limit. Take out the airdrop section in `CounterButton` and manually send some Devnet sol to your wallet’s address (printed in the console)
+* Застосунок не збирається → Вийдіть із Metro за допомогою ctrl+c і спробуйте знову
+* Нічого не відбувається після натискання `CounterButton` → Переконайтеся, що у вас встановлено гаманець Solana (наприклад, фейковий гаманець, який ми встановлювали на етапі Підготовки)
+* Ви застрягли в нескінченному циклі при виклику `increment` → Ймовірно, ви досягли ліміту на ейрдроп у Devnet. Приберіть частину з ейрдропом у `CounterButton` і вручну надішліть трохи Devnet SOL на адресу вашого гаманця (виводиться в консолі)
 
-That's it! You've made your first Solana Mobile dApp. If you get stuck, feel free to check out the [full solution code](https://github.com/Unboxed-Software/solana-react-native-counter) on the `main` branch of the repository.
+Ось і все! Ви створили свій перший Solana Mobile dApp. Якщо десь застрягли, можете переглянути [повний код рішення](https://github.com/Unboxed-Software/solana-react-native-counter) у гілці `main` цього репозиторію.
 
-# Challenge
+# Завдання
 
-Your challenge today is to take our app and add a decrement function. Simply add another button and call the `decrement` function on our program. This instruction already exists on the program and its IDL, so you simply need to write client code to call it.
+Ваше завдання на сьогодні — додати до застосунку функцію зменшення лічильника. Просто додайте ще одну кнопку й викличте функцію `decrement` у вашій програмі. Ця інструкція вже існує в програмі та її IDL, тож вам потрібно лише написати клієнтський код для її виклику.
 
-After you give it a try on your own, feel free to take a look at the [solution code on the `solution` branch](https://github.com/Unboxed-Software/solana-react-native-counter/tree/solution).
+Після того, як спробуєте самостійно, можете переглянути [код рішення у гілці `solution`](https://github.com/Unboxed-Software/solana-react-native-counter/tree/solution).
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=c15928ce-8302-4437-9b1b-9aa1d65af864)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=c15928ce-8302-4437-9b1b-9aa1d65af864)!
