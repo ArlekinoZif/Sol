@@ -2,10 +2,10 @@
 title: Вступ до Solana Mobile
 завдання:
 
-* Пояснити переваги створення dApp з орієнтацією на мобільні пристрої
-* Пояснити загальний принцип роботи Mobile Wallet Adapter (MWA)
-* Пояснити основні відмінності між React та React Native
-* Створити простий Android Solana dApp за допомогою React Native
+- Пояснити переваги створення dApp з орієнтацією на мобільні пристрої
+- Пояснити загальний принцип роботи Mobile Wallet Adapter (MWA)
+- Пояснити основні відмінності між React та React Native
+- Створити простий Android Solana dApp за допомогою React Native
 ---
 
 # Стислий виклад
