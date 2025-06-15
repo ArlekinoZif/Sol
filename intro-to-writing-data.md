@@ -1,49 +1,49 @@
 ---
-title: Create Transactions on the Solana Network
-objectives:
-- Explain transactions
-- Explain transaction fees
-- Use `@solana/web3.js` to send SOL
-- Use `@solana/web3.js` to sign transactions
-- Use Solana Explorer to view transactions
+назва: Створення транзакцій у мережі Solana
+завдання:
+- Пояснити, що таке транзакції
+- Пояснити, що таке комісія за транзакції
+- Використати `@solana/web3.js` для відправлення SOL
+- Використати `@solana/web3.js` для підписання транзакцій
+- Використати Solana Explorer для перегляду транзакцій
 ---
 
-# Summary
+# Стислий виклад
 
-All modifications to onchain data happen through **transactions**. Transactions are mostly a set of instructions that invoke Solana programs. Transactions are atomic, meaning they either succeed - if all the instructions have been executed properly - or fail as if the transaction hasn't been run at all. 
+Усі зміни ончен-даних відбуваються через **транзакції**. Транзакції здебільшого складаються з набору інструкцій, які викликають програми Solana. Транзакції атомарні — це означає, що вони або успішно виконуються, якщо всі інструкції пройшли коректно, або зазнають невдачі, ніби взагалі не запускалися.
 
-# Lesson
+# Урок
 
-## Transactions are atomic
+## Транзакції є атомарними
 
-Any modification to onchain data happens through transactions sent to programs.
+Будь-які зміни ончен-даних відбуваються через транзакції, які надсилаються програмам.
 
-A transaction on Solana is similar to a transaction elsewhere: it is atomic. **Atomic means the entire transaction runs or fails**. 
+Транзакція в Solana подібна до транзакції в інших системах: вона є атомарною. Атомарна означає, що вся транзакція або виконується повністю, або не виконується взагалі.
 
-Think of paying for something online: 
+Уявіть, що ви оплачуєте щось онлайн:
 
- - The balance of your account is debited
- - The bank transfers the funds to the merchant
+* З вашого рахунку списуються кошти
+* Банк переказує гроші продавцю
 
-Both of these things need to happen for the transaction to be successful. If either of them fails, none of them should happen, rather than pay the merchant and not debit your account, or debit the account but not pay the merchant. 
+Обидві ці дії мають відбутися, щоб транзакція вважалась успішною. Якщо якась із них не спрацює, не повинно відбутися жодної — інакше може статися так, що продавець отримає оплату, а з вашого рахунку гроші не спишуться, або ж гроші спишуться, але продавець нічого не отримає.
 
-Atomic means either the transaction happens - meaning all the individual steps succeed - or the entire transaction fails.
+Атомарна означає: або транзакція відбувається повністю — тобто всі окремі кроки виконуються успішно — або вся транзакція скасовується.
 
-## Transactions contain instructions
+## Транзакції містять інструкції
 
-The steps within a transaction on Solana are called **instructions**. 
+Кроки всередині транзакції в Solana називаються **інструкціями**.
 
-Each instruction contains:
+Кожна інструкція містить:
 
-- an array of accounts that will be read from and/or written to. This is what makes Solana fast - transactions that affect different accounts are processed simultaneously
-- the public key of the program to invoke
-- data passed to the program being invoked, structured as a byte array
+* масив акаунтів, з яких буде зчитуватися і/або до яких буде записуватися. Саме це робить Solana швидкою — транзакції, які впливають на різні акаунти, обробляються одночасно
+* публічний ключ програми, яку потрібно викликати
+* дані, що передаються викликаній програмі, у вигляді масиву байтів
 
-When a transaction is run, one or more Solana programs are invoked with the instructions included in the transaction.
+Коли транзакція виконується, одна або кілька програм Solana викликаються згідно з інструкціями, включеними до транзакції.
 
-As you might expect, `@solana/web3.js` provides helper functions for creating transactions and instructions. You can create a new transaction with the constructor, `new Transaction()`. Once created, then you can add instructions to the transaction with the `add()` method.
+Як і можна очікувати, `@solana/web3.js` надає допоміжні функції для створення транзакцій та інструкцій. Нову транзакцію можна створити за допомогою конструктора `new Transaction()`. Після створення до транзакції можна додати інструкції за допомогою методу `add()`.
 
-One of those helper functions is `SystemProgram.transfer()`, which makes an instruction for the `SystemProgram` to transfer some SOL:
+Одна з таких допоміжних функцій — це `SystemProgram.transfer()`, яка створює інструкцію для `SystemProgram` з метою переказу певної кількості SOL:
 
 ```typescript
 const transaction = new Transaction()
@@ -57,19 +57,19 @@ const sendSolInstruction = SystemProgram.transfer({
 transaction.add(sendSolInstruction)
 ```
 
-The `SystemProgram.transfer()` function requires:
+Функція `SystemProgram.transfer()` потребує:
 
-- a public key corresponding to the sender's account
-- a public key corresponding to the recipient's account
-- the amount of SOL to send in lamports.
+* публічного ключа, що відповідає акаунту відправника
+* публічного ключа, що відповідає акаунту отримувача
+* кількості SOL для надсилання в лампортах
 
-`SystemProgram.transfer()` returns the instruction for sending SOL from the sender to the recipient. 
+`SystemProgram.transfer()` повертає інструкцію для надсилання SOL від відправника до отримувача.
 
-The program used in this instruction will be the `system` program (at address `11111111111111111111111111111111`), the data will be the amount of SOL to transfer (in Lamports) and the accounts will be based on the sender and recipient. 
+Програма, яка використовується в цій інструкції — це `system` (за адресою `11111111111111111111111111111111`), дані — це кількість SOL для переказу (в лампортах), а акаунти визначаються на основі відправника та отримувача.
 
-The instruction can then be added to the transaction.
+Інструкцію можна додати до транзакції.
 
-Once all the instructions have been added, a transaction needs to be sent to the cluster and confirmed:
+Після того, як всі інструкції додані, транзакцію потрібно відправити до кластера та підтвердити:
 
 ```typescript
 const signature = sendAndConfirmTransaction(
@@ -79,23 +79,23 @@ const signature = sendAndConfirmTransaction(
 )
 ```
 
-The `sendAndConfirmTransaction()` function takes the following parameters:
+Функція `sendAndConfirmTransaction()` приймає такі параметри:
 
-- a cluster connection
-- a transaction
-- an array of keypairs that will act as signers on the transaction - in this example, we only have one signer: the sender.
+* підключення до кластера
+* транзакцію
+* масив пар ключів, які виступатимуть підписантами транзакції — у цьому прикладі у нас лише один підписант: відправник.
 
-## Transactions have fees
+## Транзакції мають комісію
 
-Transaction fees are built into the Solana economy as compensation to the validator network for the CPU and GPU resources required in processing transactions. Solana transaction fees are deterministic.
+Комісії за транзакції закладені в економіку Solana як компенсація мережі валідаторів за ресурси CPU та GPU, необхідні для обробки транзакцій. Комісії в Solana є детермінованими.
 
-The first signer included in the array of signers on a transaction is responsible for paying the transaction fee. If this signer does not have enough SOL in their account to cover the transaction fee, the transaction will be dropped with an error like:
+Перший підписант у масиві підписантів транзакції відповідає за сплату комісії. Якщо у цього підписанта недостатньо SOL на рахунку для покриття комісії, транзакція буде відхилена з помилкою на кшталт:
 
 ```
 > Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.
 ```
 
-If you get this error, it’s because your keypair is brand new and doesn’t have any SOL to cover the transaction fees. Let’s fix this by adding the following lines just after we've set up the connection:
+Якщо ви отримали цю помилку, це означає, що ваша пара ключів нова і на рахунку немає SOL для оплати комісії за транзакції. Виправимо це, додавши такі рядки одразу після налаштування підключення:
 
 ```typescript
 await airdropIfRequired(
@@ -106,33 +106,33 @@ await airdropIfRequired(
 );
 ```
 
-This will deposit 1 SOL into your account if your balance is below 0.5 SOL, which you can use for testing.
-This won’t work on Mainnet where it would have value. But it's incredibly convenient for testing locally and on Devnet.
+Це зарахує 1 SOL на ваш акаунт, якщо баланс буде менший за 0.5 SOL — ці кошти можна використовувати для тестування.
+Це не спрацює в Mainnet, де SOL має реальну вартість, але дуже зручно для локального тестування та роботи в Devnet.
 
-You can also use the Solana CLI command `solana airdrop 1` to get free test SOL in your account when testing, whether locally or on devnet.
+Також можна скористатися командою Solana CLI `solana airdrop 1`, щоб отримати безкоштовні тестові SOL на свій акаунт під час тестування локально або в Devnet.
 
 ## Solana Explorer
 
-![Solana Explorer set to Devnet](../assets/solana-explorer-devnet.png)
+![Solana Explorer, встановлений на Devnet](../assets/solana-explorer-devnet.png)
 
-All transactions on the blockchain are publicly viewable on the [Solana Explorer](http://explorer.solana.com). For example, you could take the signature returned by `sendAndConfirmTransaction()` in the example above, search for that signature in the Solana Explorer, then see:
+Всі транзакції на блокчейні публічно доступні для перегляду на [Solana Explorer](http://explorer.solana.com). Наприклад, ви можете взяти підпис (signature), який повертає функція `sendAndConfirmTransaction()` у наведеному вище прикладі, знайти цей підпис у Solana Explorer і побачити:
 
-- when it occurred
-- which block it was included in
-- the transaction fee
-- and more!
+* коли відбулася
+* у який блок була включена
+* розмір комісії за транзакцію
+* і багато іншого!
 
-![Solana Explorer with details about a transaction](../assets/solana-explorer-transaction-overview.png)
+![Solana Explorer із деталями про транзакцію](../assets/solana-explorer-transaction-overview.png)
 
-# Lab
+# Лабораторна робота
 
-We’re going to create a script to send SOL to other students.
+Ми створимо скрипт для відправлення SOL іншим студентам.
 
-### 1. Basic scaffolding
+### 1. Базова структура
 
-We'll start by using the same packages and `.env` file we made earlier in [Intro to Cryptography](./intro-to-cryptography).
+Почнемо з використання тих самих пакетів і файлу `.env`, які ми зробили раніше в [Вступі до криптографії](./intro-to-cryptography).
 
-Create a file called `transfer.ts`:
+Створіть файл під назвою `transfer.ts`:
 
 ```typescript
 import {
@@ -165,16 +165,16 @@ console.log(
 );
 ```
 
-Run the script to ensure it connects, loads your keypair, and loads:
+Запустіть скрипт, щоб переконатися, що він підключається, завантажує вашу пару ключів і завантажує:
 
 
 ```bash
 npx esrun transfer.ts (destination wallet address)
 ```
 
-### Create the transaction and run it
+### Створіть транзакцію та виконайте її
 
-Add the following to complete the transaction and send it:
+Додайте наступне, щоб завершити транзакцію та відправити її:
 
 ```typescript
 console.log(
@@ -202,9 +202,9 @@ console.log(
 );
 console.log(`Transaction signature is ${signature}!`);
 ```
-### Experiment!
+### Експериментуйте!
 
-Send SOL to other students in the class.
+Відправляйте SOL іншим студентам у класі.
 
 ```bash
 npx esrun transfer.ts (destination wallet address)
@@ -212,16 +212,16 @@ npx esrun transfer.ts (destination wallet address)
 
 # Challenge
 
-Answer the following questions:
+Відповідьте на наступні питання:
 
- - How much SOL did the transfer take? What is this in USD?
+* Скільки SOL було витрачено на переказ? Скільки це у доларах США?
 
- - Can you find your transaction on https://explorer.solana.com? Remember we are using the `devnet` network.
+* Чи можете ви знайти свою транзакцію на https://explorer.solana.com? Пам’ятайте, що ми використовуємо мережу `devnet`.
 
- - How long does the transfer take? 
+* Скільки часу займає переказ? 
 
- - What do you think "confirmed" means?
+* Як ви думаєте, що означає статус «confirmed»?
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=dda6b8de-9ed8-4ed2-b1a5-29d7a8a8b415)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=dda6b8de-9ed8-4ed2-b1a5-29d7a8a8b415)!
