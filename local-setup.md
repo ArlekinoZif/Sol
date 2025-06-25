@@ -1,51 +1,51 @@
 ---
-title: Local Program Development
-objectives:
-- Set up a local environment for Solana program development, with Solana CLI tools, Rust and Anchor.
-- Ensure Anchor works out of the box with no errors or warnings
+назва: Локальна розробка програм
+завдвння:
+- Налаштувати локальне середовище для розробки програм Solana, встановивши Solana CLI, Rust та Anchor.
+- Переконатися, що Anchor працює "з коробки" без помилок та попереджень.
 ---
 
-# Summary
+# Стислий виклад 
 
-- To develop onchain programs on your machine, you need  **Solana CLI**, **Rust** and (optional, but recommended) **Anchor**.
-- You can use `anchor init` to create a new blank Anchor project
-- `anchor test` runs your tests, and also builds your code. 
+* Для розробки ончен-програм на вашому комп’ютері потрібні **Solana CLI**, **Rust** та (опційно, але рекомендовано) **Anchor**.
+* За допомогою `anchor init` можна створити новий порожній проект Anchor.
+* Команда `anchor test` запускає ваші тести та одночасно збирає код.
 
-# Lesson
+# Урок
 
-There's no lesson here! Let's install Solana CLI tools, the Rust SDK, and Anchor, and create a test program to ensure that our setup works.
+Тут немає теоретичного уроку! Давайте встановимо інструменти Solana CLI, Rust SDK та Anchor, а також створимо тестову програму, щоб переконатися, що наше середовище працює.
 
-# Lab
+# Лабораторна робота
 
-### Extra steps for Windows users
+### Додаткові кроки для користувачів Windows
 
-Firstly install [Windows Terminal](https://apps.microsoft.com/detail/9N0DX20HK701) from the Microsoft store.
+Спершу встановіть [Windows Terminal](https://apps.microsoft.com/detail/9N0DX20HK701) із Microsoft Store.
 
-Then [install Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). WSL provides a Linux environment that launches instantly whenever you need it and doesn't slow your computer down. 
+Потім [встановіть Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). WSL надає середовище Linux, яке запускається миттєво, коли вам потрібно, і не сповільнює роботу комп’ютера.
 
-Start Windows Terminal, launch an 'Ubuntu' session inside the terminal, and proceed with the rest of these steps.
+Запустіть Windows Terminal, відкрийте сесію 'Ubuntu' всередині терміналу та продовжуйте виконувати наступні кроки.
 
-### Download Rust
+### Завантаження Rust
 
-First, download Rust by [following the instructions](https://www.rust-lang.org/tools/install):
+Спочатку завантажте Rust, [дотримуючись інструкцій](https://www.rust-lang.org/tools/install):
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-### Download the Solana CLI tools
+### Завантаження інструментів Solana CLI
 
-Next [download the Solana CLI tools](https://docs.solana.com/cli/install-solana-cli-tools).
+Далі [завантажте інструменти Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools).
 
 ```
 sh -c "$(curl -sSfL https://release.solana.com/beta/install)"
 ```
 
-Afterwards, `solana -V` should show `solana-cli 1.18.x` (any number for `x` is fine).
+Після цього команда `solana -V` повинна показати `solana-cli 1.18.x` (будь-яке число замість `x` — це нормально).
 
-### Download Anchor
+### Завантаження Anchor
 
-Finally [download Anchor](https://www.anchor-lang.com/docs/installation):
+Наостанок [завантажте Anchor](https://www.anchor-lang.com/docs/installation):
 
 ```
 cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
@@ -53,11 +53,11 @@ avm install latest
 avm use latest
 ```
 
-Afterwards, `anchor -V` should show `anchor-cli 0.30.0`.
+Після цього команда `anchor -V` повинна показати `anchor-cli 0.30.0`.
 
-### Check your Anchor installation
+### Перевірка встановлення Anchor
 
-Create a temporary project, with the default contents, using Anchor and make sure it compiles and runs our tests:
+Створіть тимчасовий проєкт із типовим вмістом за допомогою Anchor і переконайтеся, що він компілюється та проходить тести:
 
 ```bash
 anchor init temp-project
@@ -65,28 +65,28 @@ cd temp-project
 anchor test
 ```
 
-**The `anchor test` command should complete with no errors or warnings**. However you may encounter issues, and we'll fix them below:
+**Команда `anchor test` повинна завершитись без помилок і попереджень**. Однак можуть виникнути певні проблеми — нижче ми покажемо, як їх вирішити:
 
-#### `package `solana-program v1.18.12` cannot be built because it requires rustc 1.75.0 or newer` error
+#### Помилка `package \`solana-program v1.18.12\` cannot be built because it requires rustc 1.75.0 or newer\`
 
-Run `cargo add solana-program@"=1.18.x"`, where `x` matches your version of `solana-cli`. Then re-run `anchor test`.
+Виконайте команду `cargo add solana-program@"=1.18.x"`, де `x` має відповідати вашій версії `solana-cli`. Потім повторно запустіть `anchor test`.
 
 #### `Error: Unable to read keypair file`
 
-Add a keypair to `.config/solana/id.json`. You can either copy a keypair from an `.env` file (just the array of numbers) into a file or use the command `solana-keygen new --no-bip39-passphrase` to create a new keypair file. Then re-run `anchor test`.
+Додайте пару ключів до `.config/solana/id.json`. Ви можете або скопіювати пару ключів з `.env`-файлу (тільки масив чисел) у файл, або скористатися командою `solana-keygen new --no-bip39-passphrase`, щоб створити новий файл із парою ключів. Потім повторно запустіть `anchor test`.
 
-#### `unused variable: 'ctx'` warning
+#### Попередження `unused variable: 'ctx'`
 
-This simply means the `initialize` instruction handler isn't doing anything yet. You can open `programs/favorites/src/lib.rs` and change `ctx` to `_ctx` or just go onto the next step.  
+Це просто означає, що обробник інструкції `initialize` поки нічого не робить. Ви можете відкрити `programs/favorites/src/lib.rs` і змінити `ctx` на `_ctx`, або просто перейти до наступного кроку.
 
-#### `No license field in package.json` warning
+#### Попередження `No license field in package.json`
 
-Open package.json, add `"license": "MIT"` or `"license": "UNLICENSED"` depending on preferences
+Відкрийте `package.json` і додайте `"license": "MIT"` або `"license": "UNLICENSED"` залежно від ваших уподобань.
 
-### All done?
+### Все готово?
 
-Ensure `anchor test` completes successfully - with no warnings and no errors - before continuing.
+Переконайтеся, що `anchor test` завершується успішно - без попереджень і без помилок - перш ніж продовжити.
 
-## Completed the lab?
+## Завершили лабораторну роботу?
 
-Push your code to GitHub and [tell us what you thought of this lesson](https://form.typeform.com/to/IPH0UGz7#answers-lesson=aa0b56d6-02a9-4b36-95c0-a817e2c5b19d)!
+Завантажте свій код на GitHub і [поділіться своїми враженнями від цього уроку](https://form.typeform.com/to/IPH0UGz7#answers-lesson=aa0b56d6-02a9-4b36-95c0-a817e2c5b19d)!
